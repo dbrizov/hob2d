@@ -207,9 +207,7 @@ namespace hob {
         const std::string overlay_key = std::filesystem::path(OVERLAY_SPRITE_SHADER).lexically_normal().string();
 
         // Overlay sprites are drawn into the swapchain (render_overlay_pass), not the offscreen target.
-        const SDL_GPUTextureFormat swapchain_format =
-            SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
-        m_overlay_pipeline = build_sprite_pipeline(overlay_key, swapchain_format);
+        m_overlay_pipeline = build_sprite_pipeline(overlay_key, m_swapchain_format);
         return m_overlay_pipeline != nullptr;
     }
 
@@ -232,7 +230,7 @@ namespace hob {
         }
 
         SDL_GPUColorTargetDescription ctd{};
-        ctd.format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
+        ctd.format = m_swapchain_format;
         ctd.blend_state.enable_blend = false;
 
         SDL_GPUGraphicsPipelineCreateInfo gci{};
@@ -296,8 +294,7 @@ namespace hob {
         attrs[1].offset = sizeof(Vector2);
 
         SDL_GPUColorTargetDescription ctd{};
-        // Debug lines are drawn into the swapchain (render_debug_lines_pass), not the offscreen target.
-        ctd.format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
+        ctd.format = m_swapchain_format;
         ctd.blend_state.enable_blend = true;
         ctd.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
         ctd.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
@@ -394,7 +391,7 @@ namespace hob {
         attrs[2].offset = sizeof(Vector2) * 2;
 
         SDL_GPUColorTargetDescription ctd{};
-        ctd.format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
+        ctd.format = m_swapchain_format;
         ctd.blend_state.enable_blend = true;
         ctd.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
         ctd.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;

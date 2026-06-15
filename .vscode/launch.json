@@ -39,6 +39,43 @@
             "preLaunchTask": "CMake build (macos-debug-clang-arm64-osx)"
         },
         {
+            "name": "Release C++ [Windows/MSVC]",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/release/windows-msvc/Release/hob2d.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/release/windows-msvc/Release",
+            "console": "integratedTerminal",
+            "preLaunchTask": "CMake build (windows-release-msvc-x64)"
+        },
+        {
+            "name": "Release C++ [Linux/GCC]",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/release/linux-gcc/Release/hob2d",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/release/linux-gcc/Release",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "CMake build (linux-release-gcc-x64)"
+        },
+        {
+            "name": "Release C++ [macOS/Clang]",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/release/macos-clang/Release/hob2d",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/release/macos-clang/Release",
+            "MIMode": "lldb",
+            "preLaunchTask": "CMake build (macos-release-clang-arm64-osx)"
+        },
+        {
             "name": "Attach C++ [Windows/MSVC]",
             "type": "cppvsdbg",
             "request": "attach",

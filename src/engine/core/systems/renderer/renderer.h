@@ -124,6 +124,9 @@ namespace hob {
         SDL_GPUTexture* m_offscreen_color = nullptr;
         SDL_GPUTextureFormat m_offscreen_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
 
+        // Swapchain color format, queried once at init (the window is already claimed by the GPU device).
+        SDL_GPUTextureFormat m_swapchain_format = SDL_GPU_TEXTUREFORMAT_INVALID;
+
         // Sprite pipelines indexed by ShaderId, plus path-dedupe map. Slot 0 holds the
         // default pipeline (built from DEFAULT_SPRITE_SHADER) and is pre-warmed at init,
         // so DEFAULT_SPRITE_SHADER_ID is always valid. Failed builds alias the default id.

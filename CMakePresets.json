@@ -7,6 +7,40 @@
   },
   "configurePresets": [
     {
+      "name": "debug-msvc",
+      "hidden": false,
+      "description": "Windows debug configure preset using MSVC.",
+      "binaryDir": "${sourceDir}/build/debug/windows-msvc",
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "Visual Studio"
+        }
+      }
+    },
+    {
+      "name": "release-msvc",
+      "hidden": false,
+      "description": "Windows release configure preset using MSVC.",
+      "binaryDir": "${sourceDir}/build/release/windows-msvc",
+      "architecture": "x64",
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "vendor": {
+        "jetbrains.com/clion": {
+          "toolchain": "Visual Studio"
+        }
+      }
+    },
+    {
       "name": "debug-gcc",
       "hidden": false,
       "description": "Linux debug configure preset using GCC.",
@@ -55,43 +89,19 @@
         "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg-overlays",
         "CMAKE_BUILD_TYPE": "Release"
       }
-    },
-    {
-      "name": "debug-msvc",
-      "hidden": false,
-      "description": "Windows debug configure preset using MSVC.",
-      "binaryDir": "${sourceDir}/build/debug/windows-msvc",
-      "architecture": "x64",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "CMAKE_BUILD_TYPE": "Debug"
-      },
-      "vendor": {
-        "jetbrains.com/clion": {
-          "toolchain": "Visual Studio"
-        }
-      }
-    },
-    {
-      "name": "release-msvc",
-      "hidden": false,
-      "description": "Windows release configure preset using MSVC.",
-      "binaryDir": "${sourceDir}/build/release/windows-msvc",
-      "architecture": "x64",
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-windows",
-        "CMAKE_BUILD_TYPE": "Release"
-      },
-      "vendor": {
-        "jetbrains.com/clion": {
-          "toolchain": "Visual Studio"
-        }
-      }
     }
   ],
   "buildPresets": [
+    {
+      "name": "windows-debug-msvc-x64",
+      "configurePreset": "debug-msvc",
+      "description": "Windows debug build using MSVC."
+    },
+    {
+      "name": "windows-release-msvc-x64",
+      "configurePreset": "release-msvc",
+      "description": "Windows release build using MSVC."
+    },
     {
       "name": "linux-debug-gcc-x64",
       "configurePreset": "debug-gcc",
@@ -111,16 +121,6 @@
       "name": "macos-release-clang-arm64-osx",
       "configurePreset": "release-clang",
       "description": "macOS release build using Clang."
-    },
-    {
-      "name": "windows-debug-msvc-x64",
-      "configurePreset": "debug-msvc",
-      "description": "Windows debug build using MSVC."
-    },
-    {
-      "name": "windows-release-msvc-x64",
-      "configurePreset": "release-msvc",
-      "description": "Windows release build using MSVC."
     }
   ]
 }

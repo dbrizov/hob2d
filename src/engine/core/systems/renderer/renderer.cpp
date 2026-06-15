@@ -26,6 +26,8 @@ namespace hob {
             return;
         }
 
+        m_swapchain_format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
+
         if (!SDL_ShaderCross_Init()) {
             debug::log_error("SDL_ShaderCross_Init failed: {}", SDL_GetError());
             return;
