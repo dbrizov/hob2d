@@ -89,7 +89,7 @@ namespace hob {
             return it->second;
         }
 
-        SDL_GPUGraphicsPipeline* pipeline = build_sprite_pipeline(key);
+        SDL_GPUGraphicsPipeline* pipeline = build_sprite_pipeline(key, m_offscreen_format);
         if (!pipeline) {
             // Alias to default so subsequent lookups are O(1) and silent.
             m_shader_path_to_id.emplace(key, DEFAULT_SPRITE_SHADER_ID);
@@ -113,7 +113,20 @@ namespace hob {
         tci.num_levels = 1;
         tci.sample_count = SDL_GPU_SAMPLECOUNT_1;
 
+        // Bake the optimized clear value (used by the D3D12 backend) to match the per-frame
+        // LOADOP_CLEAR to CLEAR_COLOR in render_world_pass. Without it the clear takes a slower
+        // path and the D3D12 debug layer warns (#820 CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE).
+        SDL_PropertiesID props = SDL_CreateProperties();
+        SDL_SetFloatProperty(props, SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_R_FLOAT, CLEAR_COLOR.r);
+        SDL_SetFloatProperty(props, SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_G_FLOAT, CLEAR_COLOR.g);
+        SDL_SetFloatProperty(props, SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_B_FLOAT, CLEAR_COLOR.b);
+        SDL_SetFloatProperty(props, SDL_PROP_GPU_TEXTURE_CREATE_D3D12_CLEAR_A_FLOAT, CLEAR_COLOR.a);
+        tci.props = props;
+
         m_offscreen_color = SDL_CreateGPUTexture(m_gpu_device, &tci);
+
+        SDL_DestroyProperties(props);
+
         if (!m_offscreen_color) {
             debug::log_error("SDL_CreateGPUTexture (offscreen) failed: {}", SDL_GetError());
             return false;
@@ -179,7 +192,7 @@ namespace hob {
     bool Renderer::init_default_sprite_pipeline() {
         const std::string default_key = std::filesystem::path(DEFAULT_SPRITE_SHADER).lexically_normal().string();
 
-        SDL_GPUGraphicsPipeline* pipeline = build_sprite_pipeline(default_key);
+        SDL_GPUGraphicsPipeline* pipeline = build_sprite_pipeline(default_key, m_offscreen_format);
         if (!pipeline) {
             return false;
         }
@@ -193,7 +206,10 @@ namespace hob {
     bool Renderer::init_overlay_pipeline() {
         const std::string overlay_key = std::filesystem::path(OVERLAY_SPRITE_SHADER).lexically_normal().string();
 
-        m_overlay_pipeline = build_sprite_pipeline(overlay_key);
+        // Overlay sprites are drawn into the swapchain (render_overlay_pass), not the offscreen target.
+        const SDL_GPUTextureFormat swapchain_format =
+            SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
+        m_overlay_pipeline = build_sprite_pipeline(overlay_key, swapchain_format);
         return m_overlay_pipeline != nullptr;
     }
 
@@ -280,7 +296,8 @@ namespace hob {
         attrs[1].offset = sizeof(Vector2);
 
         SDL_GPUColorTargetDescription ctd{};
-        ctd.format = m_offscreen_format;
+        // Debug lines are drawn into the swapchain (render_debug_lines_pass), not the offscreen target.
+        ctd.format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
         ctd.blend_state.enable_blend = true;
         ctd.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
         ctd.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
@@ -484,7 +501,8 @@ namespace hob {
         return true;
     }
 
-    SDL_GPUGraphicsPipeline* Renderer::build_sprite_pipeline(const std::string& path) {
+    SDL_GPUGraphicsPipeline* Renderer::build_sprite_pipeline(const std::string& path,
+                                                             SDL_GPUTextureFormat target_format) {
         const std::filesystem::path assets_root = PathUtils::get_assets_root_path();
         const std::filesystem::path vert_path = assets_root / (path + ".vert.hlsl");
         const std::filesystem::path frag_path = assets_root / (path + ".frag.hlsl");
@@ -517,7 +535,7 @@ namespace hob {
         attrs[1].offset = 2 * sizeof(float);
 
         SDL_GPUColorTargetDescription ctd{};
-        ctd.format = m_offscreen_format;
+        ctd.format = target_format;
         ctd.blend_state.enable_blend = true;
         ctd.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
         ctd.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;

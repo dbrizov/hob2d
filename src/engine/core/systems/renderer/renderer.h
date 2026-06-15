@@ -301,8 +301,9 @@ namespace hob {
         bool init_debug_font();
 
         // Builds a sprite pipeline from a shader path (relative to assets root, no suffix).
-        // Returns nullptr on failure; caller handles fallback.
-        SDL_GPUGraphicsPipeline* build_sprite_pipeline(const std::string& path);
+        // `target_format` must match the color target the pipeline draws into (offscreen for world
+        // sprites, swapchain for overlay sprites). Returns nullptr on failure; caller handles fallback.
+        SDL_GPUGraphicsPipeline* build_sprite_pipeline(const std::string& path, SDL_GPUTextureFormat target_format);
 
         // --- Render passes (renderer_passes.cpp) ---
 
