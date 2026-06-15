@@ -55,9 +55,7 @@ namespace hob {
     struct GamepadTuning {
         float stick_deadzone = 0.2f;
         float trigger_deadzone = 0.1f;
-        // Deadzoned analog magnitude at which a trigger (or other analog source) bound to a
-        // digital action counts as a pressed button.
-        float trigger_button_threshold = 0.5f;
+        float trigger_button_threshold = 0.5f; // Threshold at which a trigger bound to a digital action counts as a pressed button.
     };
 
     struct InputConfig {

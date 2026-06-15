@@ -195,8 +195,8 @@ namespace hob {
     }
 
     bool Input::is_source_down(const InputSource& source) const {
-        // An analog source (e.g. a gamepad trigger or stick) can drive a digital binding:
-        // it counts as "down" once its deadzoned magnitude crosses a press threshold.
+        // A trigger can drive a digital binding: it counts as "down"
+        // once its deadzoned magnitude crosses a press threshold.
         if (source.is_analog) {
             return std::fabs(read_analog_source(source)) >= m_input_config.gamepad.trigger_button_threshold;
         }
