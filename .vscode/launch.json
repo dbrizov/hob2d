@@ -1,0 +1,94 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug C++ [Windows/MSVC]",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/debug/windows-msvc/Debug/hob2d.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/debug/windows-msvc/Debug",
+            "console": "integratedTerminal",
+            "preLaunchTask": "CMake build (windows-debug-msvc-x64)"
+        },
+        {
+            "name": "Debug C++ [Linux/GCC]",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/debug/linux-gcc/Debug/hob2d",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/debug/linux-gcc/Debug",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "CMake build (linux-debug-gcc-x64)"
+        },
+        {
+            "name": "Debug C++ [macOS/Clang]",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/debug/macos-clang/Debug/hob2d",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/debug/macos-clang/Debug",
+            "MIMode": "lldb",
+            "preLaunchTask": "CMake build (macos-debug-clang-arm64-osx)"
+        },
+        {
+            "name": "Attach C++ [Windows/MSVC]",
+            "type": "cppvsdbg",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        },
+        {
+            "name": "Attach C++ [Linux/GCC]",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/build/debug/linux-gcc/Debug/hob2d",
+            "processId": "${command:pickProcess}",
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Attach C++ [macOS/Clang]",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/build/debug/macos-clang/Debug/hob2d",
+            "processId": "${command:pickProcess}",
+            "MIMode": "lldb"
+        },
+        {
+            "name": "Debug Lua",
+            "type": "lua-local",
+            "request": "launch",
+            "linux": {
+                "program": {
+                    "command": "${workspaceFolder}/build/debug/linux-gcc/Debug/hob2d"
+                },
+                "cwd": "${workspaceFolder}/build/debug/linux-gcc/Debug"
+            },
+            "osx": {
+                "program": {
+                    "command": "${workspaceFolder}/build/debug/macos-clang/Debug/hob2d"
+                },
+                "cwd": "${workspaceFolder}/build/debug/macos-clang/Debug"
+            },
+            "windows": {
+                "program": {
+                    "command": "${workspaceFolder}/build/debug/windows-msvc/Debug/hob2d.exe"
+                },
+                "cwd": "${workspaceFolder}/build/debug/windows-msvc/Debug"
+            }
+        }
+    ]
+}

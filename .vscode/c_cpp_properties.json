@@ -1,0 +1,49 @@
+{
+    "version": 4,
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/build/debug/windows-msvc/vcpkg_installed/x64-windows/include"
+            ],
+            "compilerPath": "cl.exe",
+            "compilerArgs": [
+                "/FIcstdint"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "windows-msvc-x64"
+        },
+        {
+            "name": "Linux",
+            "includePath": [
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/build/debug/linux-gcc/vcpkg_installed/x64-linux/include"
+            ],
+            "compilerPath": "/usr/bin/g++",
+            "compilerArgs": [
+                "-include",
+                "cstdint"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "linux-gcc-x64"
+        },
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/src/**",
+                "${workspaceFolder}/build/debug/macos-clang/vcpkg_installed/arm64-osx/include"
+            ],
+            "compilerPath": "/usr/bin/clang++",
+            "compilerArgs": [
+                "-include",
+                "cstdint"
+            ],
+            "cStandard": "c17",
+            "cppStandard": "c++20",
+            "intelliSenseMode": "macos-clang-arm64"
+        }
+    ]
+}

@@ -1,0 +1,51 @@
+{
+    // --- Global editor / files ---
+    "files.eol": "\n",
+    "files.encoding": "utf8",
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "files.associations": {
+        "*.lua": "lua"
+    },
+    // Hide repo-meta / OS clutter from the Explorer (merges with user + default excludes).
+    "files.exclude": {
+        "**/.gitignore": true,
+        "**/docs": true,
+        "**/README.md": true,
+        "**/LICENSE.md": true,
+        "**/.claude": true,
+        "**/.idea": true,
+        "**/.DS_Store": true
+    },
+    // Keep the generated build tree out of search / file-watching.
+    "search.exclude": {
+        "**/build": true
+    },
+    "files.watcherExclude": {
+        "**/build/**": true
+    },
+    // --- C++ / CMake ---
+    "cmake.useCMakePresets": "always",
+    // --- Lua (sol2 / sumneko) ---
+    "Lua.hint.enable": true,
+    "Lua.workspace.checkThirdParty": false,
+    "Lua.workspace.library": [
+        "${workspaceFolder}/scripts/engine/meta"
+    ],
+    // Don't analyze the scripts copied next to the executable by the POST_BUILD step.
+    "Lua.workspace.ignoreDir": [
+        ".vscode",
+        "build"
+    ],
+    "Lua.diagnostics.disable": [
+        "lowercase-global",
+        "undefined-global",
+        "undefined-field",
+        "duplicate-set-field",
+        "need-check-nil",
+        "deprecated",
+        "cast-local-type"
+    ]
+}
