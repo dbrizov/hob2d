@@ -1,5 +1,3 @@
-#include "renderer.h"
-
 #include <cstring>
 #include <unordered_map>
 
@@ -7,6 +5,7 @@
 
 #include "engine/core/debug.h"
 #include "engine/core/systems/console.h"
+#include "renderer.h"
 
 namespace hob {
     void Renderer::register_cvars(Console& console) {

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <box2d/box2d.h>
 #include <cmath>
 #include <vector>
+
+#include <box2d/box2d.h>
 
 #include "engine/math/capsule.h"
 #include "engine/math/vector2.h"

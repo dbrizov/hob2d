@@ -1,5 +1,3 @@
-#include "renderer.h"
-
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -10,6 +8,7 @@
 #include "engine/core/debug.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/sdl_context.h"
+#include "renderer.h"
 
 namespace hob {
     namespace {

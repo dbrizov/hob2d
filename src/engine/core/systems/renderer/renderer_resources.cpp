@@ -1,5 +1,3 @@
-#include "renderer.h"
-
 #include <cstring>
 #include <filesystem>
 
@@ -8,6 +6,7 @@
 
 #include "engine/core/debug.h"
 #include "engine/core/path_utils.h"
+#include "renderer.h"
 
 namespace hob {
     TextureRef Renderer::get_or_load_texture(const std::string& path) {

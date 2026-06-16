@@ -35,12 +35,13 @@ BreakStringLiterals: false
 BreakTemplateDeclarations: Yes
 ColumnLimit: 120
 FixNamespaceComments: true
+IncludeBlocks: Regroup
 IncludeCategories:
-  - Regex: '^<.*'
+  - Regex: '^<[^/.]+>$' # C++ standard library
     Priority: 1
-  - Regex: '^".*'
+  - Regex: '^<.*>' # Third-party
     Priority: 2
-  - Regex: '.*'
+  - Regex: '^".*"' # Project headers
     Priority: 3
 IncludeIsMainRegex: '([-_](test|unittest))?$'
 IndentCaseLabels: true

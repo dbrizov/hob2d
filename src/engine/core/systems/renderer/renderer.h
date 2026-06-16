@@ -13,7 +13,6 @@
 #include "engine/math/color.h"
 #include "engine/math/matrix4x4.h"
 #include "engine/math/vector2.h"
-
 #include "font.h"
 #include "material.h"
 #include "sprite_draw_data.h"

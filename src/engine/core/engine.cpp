@@ -1,5 +1,7 @@
+// clang-format off
 #include "engine.h"
 #include "engine_config.h"
+// clang-format on
 
 #include "debug.h"
 #include "engine/components/camera_component.h"

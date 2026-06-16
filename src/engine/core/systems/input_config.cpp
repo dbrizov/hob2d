@@ -1,11 +1,12 @@
 #include "input_config.h"
 
-#include <SDL3/SDL_gamepad.h>
-#include <SDL3/SDL_keyboard.h>
 #include <algorithm>
 #include <fstream>
-#include <nlohmann/json.hpp>
 #include <optional>
+
+#include <SDL3/SDL_gamepad.h>
+#include <SDL3/SDL_keyboard.h>
+#include <nlohmann/json.hpp>
 
 #include "engine/core/debug.h"
 
@@ -142,8 +143,7 @@ namespace hob {
             const auto& cfg = json["gamepad"];
             gamepad.stick_deadzone = cfg.value("stick_deadzone", gamepad.stick_deadzone);
             gamepad.trigger_deadzone = cfg.value("trigger_deadzone", gamepad.trigger_deadzone);
-            gamepad.trigger_button_threshold =
-                cfg.value("trigger_button_threshold", gamepad.trigger_button_threshold);
+            gamepad.trigger_button_threshold = cfg.value("trigger_button_threshold", gamepad.trigger_button_threshold);
 
             // Deadzones feed a 1/(1 - deadzone) rescale, so keep them strictly below 1 to avoid
             // a divide-by-zero; clamp the button threshold to the normalized [0, 1] range.

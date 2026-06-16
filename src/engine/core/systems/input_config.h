@@ -19,10 +19,10 @@ namespace hob {
         ButtonLeft,
         ButtonRight,
         ButtonMiddle,
-        WheelUp,   // digital: fires for one frame on wheel up
+        WheelUp, // digital: fires for one frame on wheel up
         WheelDown, // digital: fires for one frame on wheel down
-        AxisX,     // analog: motion delta x
-        AxisY,     // analog: motion delta y
+        AxisX, // analog: motion delta x
+        AxisY, // analog: motion delta y
         AxisWheel, // analog: wheel delta y
     };
 

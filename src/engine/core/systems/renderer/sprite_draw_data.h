@@ -1,7 +1,6 @@
 #pragma once
 
 #include "engine/math/vector2.h"
-
 #include "material.h"
 #include "texture.h"
 

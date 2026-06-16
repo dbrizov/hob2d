@@ -1,6 +1,3 @@
-#include "lua_script_system.h"
-#include "lua_script_system_impl.h"
-
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -11,6 +8,8 @@
 
 #include "engine/core/debug.h"
 #include "engine/core/path_utils.h"
+#include "lua_script_system.h"
+#include "lua_script_system_impl.h"
 
 namespace hob {
     namespace {

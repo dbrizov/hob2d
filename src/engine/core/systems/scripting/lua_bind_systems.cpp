@@ -1,9 +1,3 @@
-#include "lua_meta.h"
-#include "lua_schema_factory.h"
-#include "lua_script_system.h"
-#include "lua_script_system_impl.h"
-#include "lua_type_names.h" // IWYU pragma: keep
-
 #include <functional>
 #include <string>
 #include <vector>
@@ -21,6 +15,11 @@
 #include "engine/core/systems/timer.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
+#include "lua_meta.h"
+#include "lua_schema_factory.h"
+#include "lua_script_system.h"
+#include "lua_script_system_impl.h"
+#include "lua_type_names.h" // IWYU pragma: keep
 
 namespace hob {
     namespace {

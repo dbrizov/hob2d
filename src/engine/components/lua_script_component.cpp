@@ -1,5 +1,7 @@
+// clang-format off
 #include "lua_script_component.h"
 #include "lua_script_component_impl.h"
+// clang-format on
 
 #include <format>
 #include <utility>

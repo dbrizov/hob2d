@@ -1,8 +1,3 @@
-#include "lua_meta.h"
-#include "lua_script_system.h"
-#include "lua_script_system_impl.h"
-#include "lua_type_names.h" // IWYU pragma: keep
-
 #include "engine/math/aabb.h"
 #include "engine/math/capsule.h"
 #include "engine/math/circle.h"
@@ -10,6 +5,10 @@
 #include "engine/math/constants.h"
 #include "engine/math/mathf.h"
 #include "engine/math/vector2.h"
+#include "lua_meta.h"
+#include "lua_script_system.h"
+#include "lua_script_system_impl.h"
+#include "lua_type_names.h" // IWYU pragma: keep
 
 namespace hob {
     void LuaScriptSystem::bind_math() {

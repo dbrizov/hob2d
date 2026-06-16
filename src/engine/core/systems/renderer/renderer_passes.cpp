@@ -1,9 +1,9 @@
-#include "renderer.h"
-
 #include <algorithm>
 #include <cstring>
 
 #include <SDL3/SDL.h>
+
+#include "renderer.h"
 
 namespace hob {
     namespace {
