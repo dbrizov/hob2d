@@ -53,9 +53,11 @@ namespace hob {
     };
 
     struct GamepadTuning {
+        // clang-format off
         float stick_deadzone = 0.2f;
         float trigger_deadzone = 0.1f;
         float trigger_button_threshold = 0.5f; // Threshold at which a trigger bound to a digital action counts as a pressed button.
+        // clang-format on
     };
 
     struct InputConfig {

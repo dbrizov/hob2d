@@ -47,25 +47,12 @@ namespace hob {
         bool init(Renderer& renderer, const std::filesystem::path& ttf_path, float size_px);
         void shutdown();
 
-        bool is_initialized() const {
-            return m_initialized;
-        }
+        bool is_initialized() const;
 
-        SDL_GPUTexture* get_atlas_texture() const {
-            return m_atlas;
-        }
-
-        uint32_t get_atlas_width() const {
-            return m_atlas_width;
-        }
-
-        uint32_t get_atlas_height() const {
-            return m_atlas_height;
-        }
-
-        int get_line_height() const {
-            return m_line_height;
-        }
+        SDL_GPUTexture* get_atlas_texture() const;
+        uint32_t get_atlas_width() const;
+        uint32_t get_atlas_height() const;
+        int get_line_height() const;
 
         // Returns the metrics for `codepoint`, or for '?' if unknown, or nullptr if
         // even '?' is missing (font is empty).

@@ -13,10 +13,8 @@ namespace hob {
         EntityRef() = default;
         EntityRef(EntityId id, EntitySpawner& spawner);
 
+        EntityId get_id() const;
         Entity* resolve() const;
         bool is_valid() const;
-        EntityId get_id() const {
-            return m_id;
-        }
     };
 } // namespace hob

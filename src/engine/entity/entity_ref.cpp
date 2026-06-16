@@ -7,6 +7,10 @@ namespace hob {
         : m_id(id)
         , m_spawner(&spawner) {}
 
+    EntityId EntityRef::get_id() const {
+        return m_id;
+    }
+
     Entity* EntityRef::resolve() const {
         return m_spawner ? m_spawner->get_entity(m_id) : nullptr;
     }

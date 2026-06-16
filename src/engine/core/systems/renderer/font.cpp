@@ -183,6 +183,26 @@ namespace hob {
         }
     }
 
+    bool Font::is_initialized() const {
+        return m_initialized;
+    }
+
+    SDL_GPUTexture* Font::get_atlas_texture() const {
+        return m_atlas;
+    }
+
+    uint32_t Font::get_atlas_width() const {
+        return m_atlas_width;
+    }
+
+    uint32_t Font::get_atlas_height() const {
+        return m_atlas_height;
+    }
+
+    int Font::get_line_height() const {
+        return m_line_height;
+    }
+
     const Glyph* Font::get_glyph(uint32_t codepoint) const {
         auto it = m_glyphs.find(codepoint);
         if (it != m_glyphs.end()) {

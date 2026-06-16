@@ -40,7 +40,7 @@ namespace hob {
     }
 
     void CameraComponent::set_zoom(float multiplier) {
-        m_screen_pixels_per_meter = m_base_screen_pixels_per_meter * multiplier;
+        set_screen_pixels_per_meter(m_base_screen_pixels_per_meter * multiplier);
     }
 
     Matrix4x4 CameraComponent::build_sprite_view_projection() const {
