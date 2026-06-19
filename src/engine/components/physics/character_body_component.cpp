@@ -85,8 +85,6 @@ namespace hob {
         // Solver iterations
         for (int i = 0; i < SOLVER_MAX_ITERATIONS; ++i) {
             m_solver_planes_count = 0;
-
-            // Build capsule at current position
             const b2Capsule mover = make_world_capsule(local_capsule, Physics::b2Vec2_to_vec2(b2_current_pos), radians);
 
             // 1) Gather planes at current position
@@ -109,7 +107,6 @@ namespace hob {
             }
         }
 
-        // Apply velocity
         const b2Vec2 achieved_delta = b2Sub(b2_current_pos, b2_start_pos);
         const b2Vec2 achieved_velocity = b2MulSV(1.0f / delta_time, achieved_delta);
         b2Body_SetLinearVelocity(body_id, achieved_velocity);

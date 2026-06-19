@@ -191,7 +191,6 @@ namespace hob {
             }
         }
 
-        // Erase the entities
         for (const EntityId id : destroy_requests) {
             auto it = m_entity_records.find(id);
             if (it == m_entity_records.end()) {

@@ -94,16 +94,13 @@ namespace hob {
             }
 #endif
 
-            // Draw
             draw_entities();
             flush_debug_draws_to_renderer(scaled_delta_time);
             m_cursor.draw();
-
             if (m_console.is_open()) {
                 m_console.draw();
             }
 
-            // Render
             m_renderer.set_frame_time(m_timer.get_play_time());
             if (m_renderer.acquire_command_buffer()) {
                 m_renderer.render_world_pass();

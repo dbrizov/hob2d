@@ -10,7 +10,6 @@
 #include "engine/core/engine.h"
 
 namespace hob {
-    // Helper functions
     namespace {
         void trim_right_spaces(char* s) {
             assert(s != nullptr && "cstring is null");
@@ -236,13 +235,11 @@ namespace hob {
         const std::string key = key_of(tokens[0]);
         auto args = tokens | std::views::drop(1);
 
-        // Command?
         if (const auto it = m_commands.find(key); it != m_commands.end()) {
             execute_command(it->second, args);
             return;
         }
 
-        // CVar?
         if (const auto it = m_cvars.find(key); it != m_cvars.end()) {
             execute_cvar(it->second, args);
             return;
@@ -428,7 +425,6 @@ namespace hob {
 
     // Console Frontend
     Console::Console() {
-        // Wire backend output into frontend log
         m_backend.print = [this](std::string_view s) {
             log("{}", s);
         };
@@ -561,7 +557,6 @@ namespace hob {
 
         ImGui::Separator();
 
-        // Command-line
         ImGui::SetNextItemWidth(width - 75.0f);
         if (ImGui::InputText("Input",
                              m_input_buffer,

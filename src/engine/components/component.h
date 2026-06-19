@@ -16,7 +16,7 @@ namespace hob {
         Entity& m_entity;
 
     protected:
-        explicit Component(Entity& entity); // prevent the base Component from being instantiated on its own
+        explicit Component(Entity& entity);
 
     public:
         virtual ~Component() = default;

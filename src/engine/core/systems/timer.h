@@ -15,10 +15,6 @@ namespace hob {
         uint64_t m_frame_start_ticks;
         uint64_t m_last_frame_start_ticks;
 
-        // Engine is a friend class of Timer.
-        // - Engine uses frame_start() and frame_end() to limit FPS
-        friend class Engine;
-
     public:
         explicit Timer(const EngineConfig& config);
 
@@ -34,6 +30,7 @@ namespace hob {
         float get_delta_time() const;
 
     private:
+        friend class Engine;
         void frame_start();
         void frame_end();
     };

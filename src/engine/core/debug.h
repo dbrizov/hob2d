@@ -24,8 +24,7 @@ namespace hob {
         constexpr float MESSAGE_FADE_DURATION = 0.3f;
         constexpr uint32_t MAX_ON_SCREEN_MESSAGES = 32;
 
-        // --- Console logging ---
-
+        // Console logging
         template<typename... Args>
         void log(std::format_string<Args...> fmt, Args&&... args) {
             std::cout << std::format(fmt, std::forward<Args>(args)...) << std::endl;
@@ -36,8 +35,7 @@ namespace hob {
             std::cerr << std::format(fmt, std::forward<Args>(args)...) << std::endl;
         }
 
-        // --- Debug primitives ---
-
+        // Debug primitives
         struct DebugLine {
             Vector2 start;
             Vector2 end;
@@ -79,10 +77,8 @@ namespace hob {
                          float thickness = DEFAULT_LINE_THICKNESS,
                          int segments = DEFAULT_CIRCLE_SEGMENTS);
 
-        // --- On-screen messages  ---
-
+        // On-screen messages
         namespace detail {
-            // Non-template entry point; called by all print(...) overloads.
             void add_on_screen_debug_message(std::string text, const Color& color, float duration);
 
             template<typename... Args>

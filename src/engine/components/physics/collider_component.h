@@ -14,7 +14,7 @@ namespace hob {
         float m_density = 1.0f; // In kg/m^2. A body's mass = density * area
         float m_friction = 0.6f; // In range [0, 1]
         float m_bounciness = 0.0f; // In range [0, 1]
-        uint64_t m_collision_layer = 1u; // The collision layer of this collider
+        uint64_t m_collision_layer = 1u; // What this collider is
         uint64_t m_collision_mask = ~0ull; // What this collider collides with
         bool m_is_trigger = false;
 
@@ -51,10 +51,7 @@ namespace hob {
         void on_geometry_changed();
 
     protected:
-        // Builds the Box2D shape primitive (with the given def) and returns its id;
         virtual b2ShapeId create_geometry(const b2ShapeDef& shape_def, const Vector2& scale) = 0;
-
-        // Replaces the existing shape's geometry in place.
         virtual void update_geometry(const Vector2& scale) = 0;
 
         virtual void debug_draw_shape(const Color& color, const Vector2& scale) const = 0;

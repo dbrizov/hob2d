@@ -40,10 +40,6 @@ namespace hob {
         std::vector<SpriteComponent*> m_sprites; // Registry of in-play sprites
         std::vector<RigidbodyComponent*> m_simulated_rigidbodies; // Registry of in-play non-static rigidbodies
 
-        // Engine is a friend of EntitySpawner so that:
-        // - It can handle the lifecycle of entities
-        friend class Engine;
-
     public:
         explicit EntitySpawner(Engine& engine);
         ~EntitySpawner();
@@ -68,6 +64,7 @@ namespace hob {
         const std::vector<RigidbodyComponent*>& get_simulated_rigidbodies() const;
 
     private:
+        friend class Engine;
         void resolve_requests();
         void resolve_spawn_requests();
         void resolve_destroy_requests();

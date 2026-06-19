@@ -34,8 +34,7 @@ namespace hob {
         mutable TransformComponent* m_transform = nullptr;
         mutable RigidbodyComponent* m_rigidbody = nullptr;
 
-        // EntitySpawner is a friend of Entity.
-        // - Only the EntitySpawner can create entities.
+        // Only the EntitySpawner can create entities.
         friend class EntitySpawner;
         explicit Entity(Engine& engine);
 

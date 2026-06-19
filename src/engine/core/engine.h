@@ -35,7 +35,6 @@ namespace hob {
         bool m_is_os_cursor_visible_before_console_opened = false;
 
 #ifndef NDEBUG
-        // Debug-only Lua hot reload: polls scripts/**.lua N times and reloads on change.
         std::filesystem::file_time_type m_last_script_write_time{};
         bool m_has_script_write_baseline = false;
         float m_script_watch_accumulator = 0.0f;
@@ -70,7 +69,6 @@ namespace hob {
         static bool has_moving_physics_body(const Entity& entity);
 
 #ifndef NDEBUG
-        // Reloads Lua scripts when any scripts/**.lua file changes on disk.
         void poll_script_hot_reload(float delta_time);
 #endif
     };

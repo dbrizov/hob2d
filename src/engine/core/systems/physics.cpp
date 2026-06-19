@@ -77,10 +77,8 @@ namespace hob {
                 }
             }
 
-            // Tick the physics world
             m_physics_world.tick(m_fixed_delta_time, m_sub_steps_per_tick);
 
-            // Dispatch events
             dispatch_collision_events();
             dispatch_trigger_events();
 

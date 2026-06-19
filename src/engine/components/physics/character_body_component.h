@@ -15,7 +15,6 @@ namespace hob {
         RigidbodyComponent* m_rigidbody = nullptr;
         CapsuleColliderComponent* m_capsule_collider = nullptr;
 
-        // Collision solver data
         static constexpr int SOLVER_MAX_ITERATIONS = 4;
         static constexpr float SOLVER_DISTANCE_TOLERANCE = 0.01f;
         static constexpr int SOLVER_PLANES_CAPACITY = 8;

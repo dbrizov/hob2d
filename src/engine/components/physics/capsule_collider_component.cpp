@@ -55,11 +55,9 @@ namespace hob {
 
         const Capsule scaled = scale_capsule(m_capsule, scale);
 
-        // Capsule's centers in world space
         const Vector2 c1_world = Vector2::rotate_around(position + scaled.center_a, position, radians);
         const Vector2 c2_world = Vector2::rotate_around(position + scaled.center_b, position, radians);
 
-        // Capsule's axis and its perpendicular (both unit length)
         Vector2 axis = (c2_world - c1_world);
         if (axis.length_sqr() > EPSILON) {
             axis = axis.normalized();
@@ -70,13 +68,11 @@ namespace hob {
 
         const Vector2 perp(-axis.y, axis.x);
 
-        // Capsule's side line endpoints (tangent lines)
         const Vector2 p1 = c1_world + perp * scaled.radius;
         const Vector2 p2 = c2_world + perp * scaled.radius;
         const Vector2 p3 = c2_world - perp * scaled.radius;
         const Vector2 p4 = c1_world - perp * scaled.radius;
 
-        // Draw
         debug::draw_line(p1, p2, color);
         debug::draw_line(p3, p4, color);
 

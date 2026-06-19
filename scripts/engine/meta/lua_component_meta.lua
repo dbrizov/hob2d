@@ -3,10 +3,6 @@
 -- C++. C++ bindings are auto-generated into engine.generated.lua by
 -- hob::LuaScriptSystem::dump_meta(); do not duplicate them here.
 
-----------------------------------------------------------------------
--- LuaComponent base class
-----------------------------------------------------------------------
-
 -- Every component declared with DefineComponent.Foo = { ... } should be
 -- annotated as `---@class Foo : LuaComponent` so that self.entity and the
 -- lifecycle hooks (init/enter_play/tick/...) are typed correctly.

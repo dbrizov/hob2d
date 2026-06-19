@@ -186,6 +186,6 @@ namespace hob {
 
         b2Shape_SetUserData(m_shape_id, this);
         b2Shape_EnableSensorEvents(m_shape_id, true);
-        b2Shape_EnableContactEvents(m_shape_id, !m_is_trigger); // enable contact events if it's NOT a sensor (trigger)
+        b2Shape_EnableContactEvents(m_shape_id, !m_is_trigger);
     }
 } // namespace hob

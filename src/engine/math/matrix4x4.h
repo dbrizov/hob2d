@@ -16,7 +16,6 @@ namespace hob {
             return m.data();
         }
 
-        // Size of the matrix in bytes — handy for GPU uniform pushes.
         static constexpr uint32_t byte_size() {
             return static_cast<uint32_t>(16 * sizeof(float));
         }

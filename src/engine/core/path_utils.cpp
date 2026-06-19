@@ -3,8 +3,7 @@
 namespace hob {
     std::filesystem::path PathUtils::get_root_path() {
 #ifndef NDEBUG
-        // (IN DEBUG MODE)
-        // Return the root directory of the project
+        // (IN DEBUG MODE) - return the root directory of the project
         const std::filesystem::path source_file_path = __FILE__;
         std::filesystem::path project_root_path = source_file_path
                                                       .parent_path() // root/src/engine/core
@@ -14,8 +13,7 @@ namespace hob {
 
         return project_root_path;
 #else
-        // (IN RELEASE MODE)
-        // Return the current directory of the executable
+        // (IN RELEASE MODE) - return the current directory of the executable
         std::filesystem::path current_path = std::filesystem::current_path();
         return current_path;
 #endif
