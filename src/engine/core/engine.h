@@ -3,7 +3,6 @@
 #include <filesystem>
 
 #include "systems/console.h"
-#include "systems/cursor.h"
 #include "systems/entity_spawner.h"
 #include "systems/imgui_system.h"
 #include "systems/input.h"
@@ -26,13 +25,10 @@ namespace hob {
         Timer m_timer;
         Input m_input;
         Physics m_physics;
-        Cursor m_cursor;
         EntitySpawner m_entity_spawner;
         LuaScriptSystem m_lua_script_system;
 
         CameraComponent* m_active_camera = nullptr;
-
-        bool m_is_os_cursor_visible_before_console_opened = false;
 
 #ifndef NDEBUG
         std::filesystem::file_time_type m_last_script_write_time{};
@@ -54,7 +50,6 @@ namespace hob {
         Timer& get_timer();
         Input& get_input();
         Physics& get_physics();
-        Cursor& get_cursor();
         EntitySpawner& get_entity_spawner();
         LuaScriptSystem& get_lua_script_system();
 

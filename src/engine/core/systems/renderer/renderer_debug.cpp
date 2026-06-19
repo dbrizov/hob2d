@@ -53,17 +53,12 @@ namespace hob {
 
         if (ImGui::Begin("Texture Refs")) {
             // Count per-texture refs held by the renderer's draw data.
-            // World sprite draws hold a persistent TextureRef and overlay sprites a per-frame one;
-            // both inflate use_count() without being "logical" holders.
+            // World sprite draws hold a persistent TextureRef that inflates use_count()
+            // without being a "logical" holder.
             std::unordered_map<const Texture*, int> pending_refs;
             for (const auto& draw : m_sprite_draws) {
                 if (draw.texture) {
                     pending_refs[draw.texture.get()] += 1;
-                }
-            }
-            for (const auto& sp : m_pending_overlay_sprites) {
-                if (sp.texture) {
-                    pending_refs[sp.texture.get()] += 1;
                 }
             }
 

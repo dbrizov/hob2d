@@ -8,7 +8,6 @@
 ---@class Assets
 
 ---@class Textures
----@field Cursor string
 ---@field PlayerIdle01 string
 ---@field PlayerIdle02 string
 ---@field PlayerIdle03 string

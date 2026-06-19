@@ -20,7 +20,6 @@ namespace hob {
         , m_timer(config)
         , m_input(m_sdl_context, m_renderer)
         , m_physics(config, m_console)
-        , m_cursor(m_sdl_context, m_renderer, m_input)
         , m_entity_spawner(*this)
         , m_lua_script_system(*this) {}
 
@@ -49,14 +48,6 @@ namespace hob {
                 }
                 else if (event.type == SDL_EVENT_KEY_DOWN) {
                     if (event.key.key == SDLK_GRAVE) {
-                        if (!m_console.is_open()) {
-                            m_is_os_cursor_visible_before_console_opened = m_cursor.is_os_cursor_visible();
-                            m_cursor.set_os_cursor_visible(true);
-                        }
-                        else {
-                            m_cursor.set_os_cursor_visible(m_is_os_cursor_visible_before_console_opened);
-                        }
-
                         m_console.toggle_open();
                     }
                 }
@@ -96,7 +87,6 @@ namespace hob {
 
             draw_entities();
             flush_debug_draws_to_renderer(scaled_delta_time);
-            m_cursor.draw();
             if (m_console.is_open()) {
                 m_console.draw();
             }
@@ -108,7 +98,6 @@ namespace hob {
                 m_renderer.render_debug_lines_pass();
                 m_renderer.render_debug_text_pass();
                 m_imgui_system.render_pass(m_renderer.get_command_buffer(), m_renderer.get_swap_texture());
-                m_renderer.render_overlay_pass();
 
                 m_renderer.submit_command_buffer();
             }
@@ -150,10 +139,6 @@ namespace hob {
         return m_physics;
     }
 
-    Cursor& Engine::get_cursor() {
-        return m_cursor;
-    }
-
     EntitySpawner& Engine::get_entity_spawner() {
         return m_entity_spawner;
     }
@@ -186,8 +171,6 @@ namespace hob {
             return;
         }
 
-        // Camera pan/zoom lives entirely in the view-projection; sprite draws stay in world
-        // space, so a static sprite's draw data never needs rewriting when the camera moves.
         m_renderer.set_sprite_view_projection(camera->build_sprite_view_projection());
 
         const float interpolation_fraction = m_physics.get_interpolation_fraction();
@@ -247,8 +230,6 @@ namespace hob {
     }
 
     bool Engine::has_moving_physics_body(const Entity& entity) {
-        // A non-static body that is still awake -- once it settles, Box2D sleeps it and its
-        // interpolation endpoints stop changing, so there is nothing left to re-resolve per frame.
         const RigidbodyComponent* rigidbody = entity.get_rigidbody();
         const bool result = rigidbody != nullptr && rigidbody->has_body() &&
                             rigidbody->get_body_type() != BodyType::Static && rigidbody->is_awake();
@@ -258,7 +239,6 @@ namespace hob {
 
 #ifndef NDEBUG
     void Engine::poll_script_hot_reload(float delta_time) {
-        // Throttle the directory scan so we don't stat the tree every frame.
         constexpr float POLL_INTERVAL = 0.5f;
         m_script_watch_accumulator += delta_time;
         if (m_script_watch_accumulator < POLL_INTERVAL) {

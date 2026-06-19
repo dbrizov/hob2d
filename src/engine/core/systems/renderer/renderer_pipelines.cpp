@@ -202,14 +202,6 @@ namespace hob {
         return true;
     }
 
-    bool Renderer::init_overlay_pipeline() {
-        const std::string overlay_key = std::filesystem::path(OVERLAY_SPRITE_SHADER).lexically_normal().string();
-
-        // Overlay sprites are drawn into the swapchain (render_overlay_pass), not the offscreen target.
-        m_overlay_pipeline = build_sprite_pipeline(overlay_key, m_swapchain_format);
-        return m_overlay_pipeline != nullptr;
-    }
-
     bool Renderer::init_blit_pipeline() {
         const std::filesystem::path shader_dir = PathUtils::get_assets_root_path() / BUILTIN_SHADERS_DIR;
 

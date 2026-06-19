@@ -42,8 +42,6 @@ namespace hob {
             return;
         if (!init_default_sprite_pipeline())
             return;
-        if (!init_overlay_pipeline())
-            return;
         if (!init_blit_pipeline())
             return;
         if (!init_debug_line_pipeline())
@@ -105,8 +103,6 @@ namespace hob {
             SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_debug_line_pipeline);
         if (m_blit_pipeline)
             SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_blit_pipeline);
-        if (m_overlay_pipeline)
-            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_overlay_pipeline);
 
         // Sprite pipelines: failed builds alias the default-slot pointer, so dedupe by
         // pointer identity before releasing to avoid double-free.
@@ -261,16 +257,6 @@ namespace hob {
         }
 
         m_sprite_draws[index] = draw;
-    }
-
-    void Renderer::draw_overlay_sprite(TextureRef texture,
-                                       const Vector2& screen_pos,
-                                       const Vector2& size_pixels,
-                                       const Vector2& pivot_pixels,
-                                       float rotation_rad,
-                                       const Material& material) {
-        m_pending_overlay_sprites.push_back(
-            {std::move(texture), material, screen_pos, size_pixels, pivot_pixels, rotation_rad, 0});
     }
 
     void Renderer::draw_debug_line(const Vector2& screen_start,

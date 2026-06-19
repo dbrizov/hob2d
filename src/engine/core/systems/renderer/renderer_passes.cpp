@@ -11,11 +11,8 @@ namespace hob {
             return {c.r, c.g, c.b, c.a};
         }
 
-        // Shared byte layout for both sprite vertex shaders (cbuffer @ b0, space1):
-        //  - world sprite.vert.hlsl:      { view_proj, world_pos, size(meters), pivot(fraction), rotation }
-        //  - overlay sprite_overlay.vert.hlsl: { proj, screen_pos, size(pixels), pivot(pixels), rotation }
-        // The two shaders interpret the same 96 bytes differently, so the field names here are kept
-        // space-agnostic (e.g. 'position' is world meters for one, screen pixels for the other).
+        // Byte layout for the world sprite vertex shader (cbuffer @ b0, space1):
+        //  - world sprite.vert.hlsl: { view_proj, world_pos, size(meters), pivot(fraction), rotation }
         // HLSL default packing: float2 pairs share a 16-byte slot.
         struct SpriteVSUniforms {
             float proj[16]; // 0..64
@@ -291,43 +288,6 @@ namespace hob {
         m_pending_debug_text_indices.clear();
     }
 
-    void Renderer::render_overlay_pass() {
-        if (m_pending_overlay_sprites.empty()) {
-            return;
-        }
-
-        SDL_GPUColorTargetInfo ct{};
-        ct.texture = m_swap_texture;
-        ct.load_op = SDL_GPU_LOADOP_LOAD;
-        ct.store_op = SDL_GPU_STOREOP_STORE;
-
-        // Render pass
-        {
-            SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(m_command_buffer, &ct, 1, nullptr);
-            if (!pass) {
-                m_pending_overlay_sprites.clear();
-                return;
-            }
-
-            // Overlay sprites use one screen-space pipeline (per-material shader ids are ignored).
-            SDL_BindGPUGraphicsPipeline(pass, m_overlay_pipeline);
-
-            SDL_GPUBufferBinding vb{};
-            vb.buffer = m_quad_vbo;
-            vb.offset = 0;
-            SDL_BindGPUVertexBuffers(pass, 0, &vb, 1);
-
-            // Overlay sprites are drawn in push order (no z-sort).
-            for (const Sprite& sp : m_pending_overlay_sprites) {
-                record_overlay_sprite(pass, sp);
-            }
-
-            SDL_EndGPURenderPass(pass);
-        }
-
-        m_pending_overlay_sprites.clear();
-    }
-
     void Renderer::record_sprite_draw(SDL_GPURenderPass* pass, const SpriteDrawData& draw, ShaderId& bound_shader) {
         if (!draw.texture || !draw.texture->m_gpu_texture) {
             return;
@@ -353,33 +313,6 @@ namespace hob {
 
         SDL_GPUTextureSamplerBinding ts{};
         ts.texture = draw.texture->m_gpu_texture;
-        ts.sampler = m_sprite_sampler;
-        SDL_BindGPUFragmentSamplers(pass, 0, &ts, 1);
-
-        SDL_DrawGPUPrimitives(pass, 6, 1, 0, 0);
-    }
-
-    void Renderer::record_overlay_sprite(SDL_GPURenderPass* pass, const Sprite& sprite) {
-        if (!sprite.texture || !sprite.texture->m_gpu_texture) {
-            return;
-        }
-
-        SpriteVSUniforms vsu{};
-        std::memcpy(vsu.proj, m_swapchain_projection.data(), sizeof(vsu.proj));
-        vsu.position[0] = sprite.screen_pos.x;
-        vsu.position[1] = sprite.screen_pos.y;
-        vsu.size[0] = sprite.size_pixels.x;
-        vsu.size[1] = sprite.size_pixels.y;
-        vsu.pivot[0] = sprite.pivot_pixels.x;
-        vsu.pivot[1] = sprite.pivot_pixels.y;
-        // Logical screen is y-down; negate so positive world rotation remains visually CCW.
-        vsu.rotation = -sprite.rotation_rad;
-        SDL_PushGPUVertexUniformData(m_command_buffer, 0, &vsu, sizeof(vsu));
-
-        push_sprite_fragment_uniforms(*sprite.texture, sprite.material);
-
-        SDL_GPUTextureSamplerBinding ts{};
-        ts.texture = sprite.texture->m_gpu_texture;
         ts.sampler = m_sprite_sampler;
         SDL_BindGPUFragmentSamplers(pass, 0, &ts, 1);
 

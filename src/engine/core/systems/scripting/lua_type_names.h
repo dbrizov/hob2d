@@ -31,7 +31,6 @@ namespace hob {
     class InputComponent;
     enum class BodyType;
     enum class InputEventType;
-    enum class CursorMode;
 
     // clang-format off
     HOB_LUA_TYPE(Vector2, "Vector2")
@@ -58,6 +57,5 @@ namespace hob {
     HOB_LUA_TYPE(InputComponent, "InputComponent")
     HOB_LUA_TYPE(BodyType, "BodyType")
     HOB_LUA_TYPE(InputEventType, "InputEventType")
-    HOB_LUA_TYPE(CursorMode, "CursorMode")
     // clang-format on
 } // namespace hob

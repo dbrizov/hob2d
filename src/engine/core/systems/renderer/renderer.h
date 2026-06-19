@@ -40,18 +40,7 @@ namespace hob {
 
         static constexpr std::string_view BUILTIN_SHADERS_DIR = "builtin/shaders";
         static constexpr std::string_view DEFAULT_SPRITE_SHADER = "builtin/shaders/sprite";
-        static constexpr std::string_view OVERLAY_SPRITE_SHADER = "builtin/shaders/sprite_overlay";
         static constexpr std::string_view DEBUG_FONT_PATH = "builtin/fonts/jetbrains_mono_bold.ttf";
-
-        struct Sprite {
-            TextureRef texture;
-            Material material;
-            Vector2 screen_pos;
-            Vector2 size_pixels;
-            Vector2 pivot_pixels;
-            float rotation_rad = 0.0;
-            int z_index = 0;
-        };
 
         struct DebugLineVertex {
             Vector2 screen_pos;
@@ -94,7 +83,6 @@ namespace hob {
         std::vector<SpriteDrawHandle> m_free_handles;
         std::vector<uint32_t> m_sprite_draw_order;
 
-        std::vector<Sprite> m_pending_overlay_sprites;
         std::vector<DebugLineVertex> m_pending_debug_line_vertices;
         std::vector<DebugTextVertex> m_pending_debug_text_vertices;
         std::vector<uint16_t> m_pending_debug_text_indices;
@@ -107,8 +95,6 @@ namespace hob {
         std::unordered_map<std::string, ShaderId> m_shader_path_to_id;
         SDL_GPUBuffer* m_quad_vbo = nullptr;
         SDL_GPUSampler* m_sprite_sampler = nullptr;
-
-        SDL_GPUGraphicsPipeline* m_overlay_pipeline = nullptr;
 
         SDL_GPUGraphicsPipeline* m_blit_pipeline = nullptr;
         SDL_GPUSampler* m_blit_sampler = nullptr;
@@ -164,13 +150,6 @@ namespace hob {
         void unregister_sprite_draw(SpriteDrawHandle handle);
         void update_sprite_draw(SpriteDrawHandle handle, const SpriteDrawData& draw);
 
-        void draw_overlay_sprite(TextureRef texture,
-                                 const Vector2& screen_pos,
-                                 const Vector2& size_pixels,
-                                 const Vector2& pivot_pixels,
-                                 float rotation_rad,
-                                 const Material& material);
-
         void draw_debug_line(const Vector2& screen_start,
                              const Vector2& screen_end,
                              const Color& color,
@@ -184,7 +163,6 @@ namespace hob {
         void render_blit_pass();
         void render_debug_lines_pass();
         void render_debug_text_pass();
-        void render_overlay_pass();
 
         TextureRef get_or_load_texture(const std::string& path);
         ShaderId get_or_build_sprite_shader(const std::string& path);
@@ -202,7 +180,6 @@ namespace hob {
         bool init_samplers();
         bool init_quad_vbo();
         bool init_default_sprite_pipeline();
-        bool init_overlay_pipeline();
         bool init_blit_pipeline();
         bool init_debug_line_pipeline();
         bool init_debug_text_pipeline();
@@ -211,7 +188,6 @@ namespace hob {
         SDL_GPUGraphicsPipeline* build_sprite_pipeline(const std::string& path, SDL_GPUTextureFormat target_format);
 
         void record_sprite_draw(SDL_GPURenderPass* pass, const SpriteDrawData& draw, ShaderId& bound_shader);
-        void record_overlay_sprite(SDL_GPURenderPass* pass, const Sprite& sprite);
         void push_sprite_fragment_uniforms(const Texture& texture, const Material& material);
 
         void register_cvars(Console& console);

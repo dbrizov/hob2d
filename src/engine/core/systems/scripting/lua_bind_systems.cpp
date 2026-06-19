@@ -7,7 +7,6 @@
 #include "engine/components/transform_component.h"
 #include "engine/core/debug.h"
 #include "engine/core/engine.h"
-#include "engine/core/systems/cursor.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/input.h"
 #include "engine/core/systems/physics.h"
@@ -181,84 +180,6 @@ namespace hob {
                       {"origin", "direction", "distance", "layer_mask"});
         }
 
-        void bind_cursor(sol::state& lua, LuaMetaRegistry& meta, Cursor& cursor) {
-            bind_enum<CursorMode>(lua,
-                                  meta,
-                                  {
-                                      {"Default", CursorMode::Default},
-                                      {"Confined", CursorMode::Confined},
-                                  });
-
-            bind_table(lua, meta, "Cursor")
-                .func("get_texture",
-                      [&cursor]() -> const TextureRef& {
-                          return cursor.get_texture();
-                      })
-                .func_sig(
-                    "set_texture",
-                    [&cursor](const sol::object& value) {
-                        if (value.is<TextureRef>()) {
-                            cursor.set_texture(value.as<TextureRef>());
-                        }
-                        else if (value.is<std::string>()) {
-                            cursor.set_texture(value.as<std::string>());
-                        }
-                        else {
-                            debug::log_error("Cursor.set_texture expects a string path or a Texture");
-                        }
-                    },
-                    "(path_or_texture: string|Texture)")
-                .func("clear_texture",
-                      [&cursor]() {
-                          cursor.clear_texture();
-                      })
-                .func("get_pivot",
-                      [&cursor]() {
-                          return cursor.get_pivot();
-                      })
-                .func("set_pivot",
-                      [&cursor](const Vector2& p) {
-                          cursor.set_pivot(p);
-                      },
-                      {"pivot"})
-                .func("get_scale",
-                      [&cursor]() {
-                          return cursor.get_scale();
-                      })
-                .func("set_scale",
-                      [&cursor](const Vector2& s) {
-                          cursor.set_scale(s);
-                      },
-                      {"scale"})
-                .func("get_material",
-                      [&cursor]() -> Material& {
-                          return cursor.get_material();
-                      })
-                .func("set_material",
-                      [&cursor](const Material& material) {
-                          cursor.set_material(material);
-                      },
-                      {"material"})
-                .func("is_visible",
-                      [&cursor]() {
-                          return cursor.is_visible();
-                      })
-                .func("set_visible",
-                      [&cursor](bool v) {
-                          cursor.set_visible(v);
-                      },
-                      {"visible"})
-                .func("get_mode",
-                      [&cursor]() {
-                          return cursor.get_mode();
-                      })
-                .func("set_mode",
-                      [&cursor](CursorMode m) {
-                          cursor.set_mode(m);
-                      },
-                      {"mode"});
-        }
-
         void bind_entity_spawner(sol::state& lua, LuaMetaRegistry& meta, EntitySpawner& spawner) {
             bind_table(lua, meta, "EntitySpawner")
                 .func("spawn_entity_c",
@@ -375,7 +296,6 @@ namespace hob {
         bind_timer(lua, meta, m_engine.get_timer());
         bind_input(lua, meta, m_engine.get_input());
         bind_physics(lua, meta, m_engine.get_physics());
-        bind_cursor(lua, meta, m_engine.get_cursor());
         bind_entity_spawner(lua, meta, m_engine.get_entity_spawner());
         bind_scripts(
             lua,

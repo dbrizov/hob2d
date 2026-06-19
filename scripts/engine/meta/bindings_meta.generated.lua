@@ -80,48 +80,6 @@ function Physics.raycast(origin, direction, distance, layer_mask) end
 ---@return RaycastHit[]
 function Physics.raycast_all(origin, direction, distance, layer_mask) end
 
--- Cursor
----@class Cursor
-Cursor = {}
-
----@return Texture?
-function Cursor.get_texture() end
-
----@param path_or_texture string|Texture
-function Cursor.set_texture(path_or_texture) end
-
-function Cursor.clear_texture() end
-
----@return Vector2
-function Cursor.get_pivot() end
-
----@param pivot Vector2
-function Cursor.set_pivot(pivot) end
-
----@return Vector2
-function Cursor.get_scale() end
-
----@param scale Vector2
-function Cursor.set_scale(scale) end
-
----@return Material
-function Cursor.get_material() end
-
----@param material Material
-function Cursor.set_material(material) end
-
----@return boolean
-function Cursor.is_visible() end
-
----@param visible boolean
-function Cursor.set_visible(visible) end
-
----@return CursorMode
-function Cursor.get_mode() end
-
----@param mode CursorMode
-function Cursor.set_mode(mode) end
-
 -- EntitySpawner
 ---@class EntitySpawner
 EntitySpawner = {}
@@ -223,13 +181,6 @@ InputEventType = {
     Axis = 0,
     Pressed = 1,
     Released = 2,
-}
-
--- CursorMode
----@enum CursorMode
-CursorMode = {
-    Default = 0,
-    Confined = 1,
 }
 
 -- Vector2
