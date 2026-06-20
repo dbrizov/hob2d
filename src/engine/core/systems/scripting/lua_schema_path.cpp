@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 
 namespace hob {
     void LuaPathSchemaRegistry::add_schema(LuaPathSchemaInfo info) {
@@ -32,7 +32,7 @@ namespace hob {
 
         std::ofstream f(path, std::ios::binary | std::ios::trunc);
         if (!f) {
-            debug::log_error("LuaPathSchemaRegistry: failed to open '{}' for writing", path.string());
+            log::lua.error("LuaPathSchemaRegistry: failed to open '{}' for writing", path.string());
             return false;
         }
 
@@ -71,7 +71,7 @@ namespace hob {
 
         std::ofstream f(path, std::ios::binary | std::ios::trunc);
         if (!f) {
-            debug::log_error("LuaPathSchemaRegistry: failed to open '{}' for writing", path.string());
+            log::lua.error("LuaPathSchemaRegistry: failed to open '{}' for writing", path.string());
             return false;
         }
 

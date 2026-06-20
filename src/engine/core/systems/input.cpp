@@ -8,7 +8,7 @@
 #include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_mouse.h>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "renderer/renderer.h"
 #include "sdl_context.h"
@@ -288,12 +288,12 @@ namespace hob {
     void Input::open_gamepad(uint32_t gamepad_id) {
         m_gamepad = SDL_OpenGamepad(gamepad_id);
         if (m_gamepad == nullptr) {
-            debug::log_error("SDL_OpenGamepad failed: {}", SDL_GetError());
+            log::input.error("SDL_OpenGamepad failed: {}", SDL_GetError());
             return;
         }
 
         m_gamepad_id = gamepad_id;
-        debug::log("Gamepad connected: {}", SDL_GetGamepadName(m_gamepad));
+        log::input.info("Gamepad connected: {}", SDL_GetGamepadName(m_gamepad));
     }
 
     void Input::close_gamepad() {
@@ -304,7 +304,7 @@ namespace hob {
         SDL_CloseGamepad(m_gamepad);
         m_gamepad = nullptr;
         m_gamepad_id = 0;
-        debug::log("Gamepad disconnected");
+        log::input.info("Gamepad disconnected");
     }
 
     void Input::adopt_any_gamepad() {

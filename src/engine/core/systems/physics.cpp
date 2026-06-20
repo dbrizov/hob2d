@@ -7,14 +7,14 @@
 #include "engine/components/physics/collider_component.h"
 #include "engine/components/physics/rigidbody_component.h"
 #include "engine/components/transform_component.h"
-#include "engine/core/debug.h"
 #include "engine/core/engine_config.h"
+#include "engine/core/logging.h"
 #include "engine/entity/entity.h"
 
 namespace hob {
     namespace {
         int box2d_assert_handler(const char* condition, const char* file_name, int line_number) {
-            debug::log_error("Box2D assertion: {} ({}:{})", condition, file_name, line_number);
+            log::box2d.error("Box2D assertion: {} ({}:{})", condition, file_name, line_number);
             return 1;
         }
     } // namespace

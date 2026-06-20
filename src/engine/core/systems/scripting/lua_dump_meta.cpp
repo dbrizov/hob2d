@@ -6,7 +6,7 @@
 #include <system_error>
 #include <vector>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "lua_script_system.h"
 #include "lua_script_system_impl.h"
@@ -79,7 +79,7 @@ namespace hob {
             PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "bindings_meta.generated.lua";
 
         if (!m_impl->meta.write_to_file(out_path)) {
-            debug::log_error("LuaScriptSystem::dump_bindings_meta: failed to write '{}'", out_path.string());
+            log::lua.error("LuaScriptSystem::dump_bindings_meta: failed to write '{}'", out_path.string());
         }
     }
 
@@ -88,7 +88,7 @@ namespace hob {
             PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "path_schemas_meta.generated.lua";
 
         if (!m_impl->path_schemas.write_meta_to_file(out_path)) {
-            debug::log_error("LuaScriptSystem::dump_path_schemas_meta: failed to write '{}'", out_path.string());
+            log::lua.error("LuaScriptSystem::dump_path_schemas_meta: failed to write '{}'", out_path.string());
         }
     }
 
@@ -129,8 +129,8 @@ namespace hob {
 
         std::ofstream f(out_path, std::ios::binary | std::ios::trunc);
         if (!f) {
-            debug::log_error("LuaScriptSystem::dump_path_aliases_meta: failed to open '{}' for writing",
-                             out_path.string());
+            log::lua.error("LuaScriptSystem::dump_path_aliases_meta: failed to open '{}' for writing",
+                           out_path.string());
             return;
         }
 
@@ -138,7 +138,7 @@ namespace hob {
         f.write(str.data(), static_cast<std::streamsize>(str.size()));
 
         if (!f.good()) {
-            debug::log_error("LuaScriptSystem::dump_path_aliases_meta: write failed for '{}'", out_path.string());
+            log::lua.error("LuaScriptSystem::dump_path_aliases_meta: write failed for '{}'", out_path.string());
         }
     }
 
@@ -147,7 +147,7 @@ namespace hob {
             PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "factory_schemas_meta.generated.lua";
 
         if (!m_impl->factory_schemas.write_meta_to_file(out_path)) {
-            debug::log_error("LuaScriptSystem::dump_factory_schemas_meta: failed to write '{}'", out_path.string());
+            log::lua.error("LuaScriptSystem::dump_factory_schemas_meta: failed to write '{}'", out_path.string());
         }
     }
 
@@ -187,8 +187,8 @@ namespace hob {
 
         std::ofstream f(out_path, std::ios::binary | std::ios::trunc);
         if (!f) {
-            debug::log_error("LuaScriptSystem::dump_factory_aliases_meta: failed to open '{}' for writing",
-                             out_path.string());
+            log::lua.error("LuaScriptSystem::dump_factory_aliases_meta: failed to open '{}' for writing",
+                           out_path.string());
             return;
         }
 
@@ -196,7 +196,7 @@ namespace hob {
         f.write(str.data(), static_cast<std::streamsize>(str.size()));
 
         if (!f.good()) {
-            debug::log_error("LuaScriptSystem::dump_factory_aliases_meta: write failed for '{}'", out_path.string());
+            log::lua.error("LuaScriptSystem::dump_factory_aliases_meta: write failed for '{}'", out_path.string());
         }
     }
 
@@ -215,7 +215,7 @@ namespace hob {
                                                  names);
 
         if (!ok) {
-            debug::log_error("LuaScriptSystem::dump_entity_registry_meta: failed to write '{}'", out_path.string());
+            log::lua.error("LuaScriptSystem::dump_entity_registry_meta: failed to write '{}'", out_path.string());
         }
     }
 
@@ -250,7 +250,7 @@ namespace hob {
                                                  names);
 
         if (!ok) {
-            debug::log_error("LuaScriptSystem::dump_component_registry_meta: failed to write '{}'", out_path.string());
+            log::lua.error("LuaScriptSystem::dump_component_registry_meta: failed to write '{}'", out_path.string());
         }
     }
 } // namespace hob

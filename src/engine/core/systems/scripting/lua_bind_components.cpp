@@ -12,8 +12,8 @@
 #include "engine/components/sprite_animator_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
-#include "engine/core/debug.h"
 #include "engine/core/engine.h"
+#include "engine/core/logging.h"
 #include "engine/core/systems/input.h"
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/entity/entity.h"
@@ -184,7 +184,7 @@ namespace hob {
                         auto result = fn(v);
                         if (!result.valid()) {
                             const sol::error err = result;
-                            debug::log_error("Lua error in axis '{}' handler: {}", name, err.what());
+                            log::sol2.error("Lua error in axis '{}' handler: {}", name, err.what());
                         }
                     });
                 },
@@ -205,7 +205,7 @@ namespace hob {
                         auto result = fn();
                         if (!result.valid()) {
                             const sol::error err = result;
-                            debug::log_error("Lua error in action '{}' handler: {}", name, err.what());
+                            log::sol2.error("Lua error in action '{}' handler: {}", name, err.what());
                         }
                     });
                 },
@@ -238,7 +238,7 @@ namespace hob {
                         self.set_texture(value.as<std::string>());
                     }
                     else {
-                        debug::log_error("SpriteComponent:set_texture expects a string path or a Texture");
+                        log::lua.error("SpriteComponent:set_texture expects a string path or a Texture");
                     }
                 },
                 "(path_or_texture: string|Texture|nil)")

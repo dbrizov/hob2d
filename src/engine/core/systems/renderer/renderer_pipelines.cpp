@@ -5,7 +5,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_shadercross/SDL_shadercross.h>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/sdl_context.h"
 #include "renderer.h"
@@ -29,7 +29,7 @@ namespace hob {
     SDL_GPUShader* Renderer::load_shader(const std::filesystem::path& hlsl_path, SDL_ShaderCross_ShaderStage stage) {
         const std::string source = read_text_file(hlsl_path);
         if (source.empty()) {
-            debug::log_error("Failed to read shader: {}", hlsl_path.string());
+            log::renderer.error("Failed to read shader: {}", hlsl_path.string());
             return nullptr;
         }
 
@@ -41,14 +41,14 @@ namespace hob {
         size_t spirv_size = 0;
         void* spirv = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &spirv_size);
         if (!spirv) {
-            debug::log_error("CompileSPIRVFromHLSL failed for {}: {}", hlsl_path.string(), SDL_GetError());
+            log::renderer.error("CompileSPIRVFromHLSL failed for {}: {}", hlsl_path.string(), SDL_GetError());
             return nullptr;
         }
 
         SDL_ShaderCross_GraphicsShaderMetadata* meta =
             SDL_ShaderCross_ReflectGraphicsSPIRV(static_cast<Uint8*>(spirv), spirv_size, 0);
         if (!meta) {
-            debug::log_error("ReflectGraphicsSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
+            log::renderer.error("ReflectGraphicsSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
             SDL_free(spirv);
             return nullptr;
         }
@@ -66,7 +66,7 @@ namespace hob {
         SDL_free(meta);
 
         if (!shader) {
-            debug::log_error("CompileGraphicsShaderFromSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
+            log::renderer.error("CompileGraphicsShaderFromSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
             return nullptr;
         }
 
@@ -124,7 +124,7 @@ namespace hob {
         SDL_DestroyProperties(props);
 
         if (!m_offscreen_color) {
-            debug::log_error("SDL_CreateGPUTexture (offscreen) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUTexture (offscreen) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -142,7 +142,7 @@ namespace hob {
 
         m_sprite_sampler = SDL_CreateGPUSampler(m_gpu_device, &sprite_info);
         if (!m_sprite_sampler) {
-            debug::log_error("SDL_CreateGPUSampler (sprite) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUSampler (sprite) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -152,7 +152,7 @@ namespace hob {
 
         m_blit_sampler = SDL_CreateGPUSampler(m_gpu_device, &blit_info);
         if (!m_blit_sampler) {
-            debug::log_error("SDL_CreateGPUSampler (blit) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUSampler (blit) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -178,7 +178,7 @@ namespace hob {
         bci.size = sizeof(verts);
         m_quad_vbo = SDL_CreateGPUBuffer(m_gpu_device, &bci);
         if (!m_quad_vbo) {
-            debug::log_error("SDL_CreateGPUBuffer (quad) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUBuffer (quad) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -238,7 +238,7 @@ namespace hob {
         SDL_ReleaseGPUShader(m_gpu_device, fs);
 
         if (!m_blit_pipeline) {
-            debug::log_error("SDL_CreateGPUGraphicsPipeline (blit) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUGraphicsPipeline (blit) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -309,7 +309,7 @@ namespace hob {
         SDL_ReleaseGPUShader(m_gpu_device, fs);
 
         if (!m_debug_line_pipeline) {
-            debug::log_error("SDL_CreateGPUGraphicsPipeline (debug_line) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUGraphicsPipeline (debug_line) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -320,7 +320,7 @@ namespace hob {
         bci.size = buffer_bytes;
         m_debug_line_vbo = SDL_CreateGPUBuffer(m_gpu_device, &bci);
         if (!m_debug_line_vbo) {
-            debug::log_error("SDL_CreateGPUBuffer (debug_line) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUBuffer (debug_line) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -329,7 +329,7 @@ namespace hob {
         tbi.size = buffer_bytes;
         m_debug_line_transfer_buffer = SDL_CreateGPUTransferBuffer(m_gpu_device, &tbi);
         if (!m_debug_line_transfer_buffer) {
-            debug::log_error("SDL_CreateGPUTransferBuffer (debug_line) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUTransferBuffer (debug_line) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -404,7 +404,7 @@ namespace hob {
         SDL_ReleaseGPUShader(m_gpu_device, fs);
 
         if (!m_debug_text_pipeline) {
-            debug::log_error("SDL_CreateGPUGraphicsPipeline (debug_text) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUGraphicsPipeline (debug_text) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -416,7 +416,7 @@ namespace hob {
         vbo_info.size = vbo_bytes;
         m_debug_text_vbo = SDL_CreateGPUBuffer(m_gpu_device, &vbo_info);
         if (!m_debug_text_vbo) {
-            debug::log_error("SDL_CreateGPUBuffer (debug_text vbo) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUBuffer (debug_text vbo) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -425,7 +425,7 @@ namespace hob {
         ibo_info.size = ibo_bytes;
         m_debug_text_ibo = SDL_CreateGPUBuffer(m_gpu_device, &ibo_info);
         if (!m_debug_text_ibo) {
-            debug::log_error("SDL_CreateGPUBuffer (debug_text ibo) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUBuffer (debug_text ibo) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -434,7 +434,7 @@ namespace hob {
         vbo_tbi.size = vbo_bytes;
         m_debug_text_vbo_transfer = SDL_CreateGPUTransferBuffer(m_gpu_device, &vbo_tbi);
         if (!m_debug_text_vbo_transfer) {
-            debug::log_error("SDL_CreateGPUTransferBuffer (debug_text vbo) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUTransferBuffer (debug_text vbo) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -443,7 +443,7 @@ namespace hob {
         ibo_tbi.size = ibo_bytes;
         m_debug_text_ibo_transfer = SDL_CreateGPUTransferBuffer(m_gpu_device, &ibo_tbi);
         if (!m_debug_text_ibo_transfer) {
-            debug::log_error("SDL_CreateGPUTransferBuffer (debug_text ibo) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUTransferBuffer (debug_text ibo) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -456,7 +456,7 @@ namespace hob {
         sci.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         m_debug_text_sampler = SDL_CreateGPUSampler(m_gpu_device, &sci);
         if (!m_debug_text_sampler) {
-            debug::log_error("SDL_CreateGPUSampler (debug_text) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUSampler (debug_text) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -470,7 +470,7 @@ namespace hob {
         const float pixel_density = m_sdl_context.get_pixel_density();
         const float font_size_px = DEBUG_FONT_SIZE_PX * pixel_density;
         if (!m_debug_font.init(*this, font_path, font_size_px)) {
-            debug::log_error("Failed to init debug font from {}", font_path.string());
+            log::renderer.error("Failed to init debug font from {}", font_path.string());
             return false;
         }
 
@@ -545,7 +545,7 @@ namespace hob {
         SDL_ReleaseGPUShader(m_gpu_device, fs);
 
         if (!pipeline) {
-            debug::log_error("SDL_CreateGPUGraphicsPipeline (sprite '{}') failed: {}", path, SDL_GetError());
+            log::renderer.error("SDL_CreateGPUGraphicsPipeline (sprite '{}') failed: {}", path, SDL_GetError());
             return nullptr;
         }
 

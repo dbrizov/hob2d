@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 
 namespace hob {
     void LuaComponentSchemaRegistry::add_schema(std::string key,
@@ -58,7 +58,7 @@ namespace hob {
 
         std::ofstream f(path, std::ios::binary | std::ios::trunc);
         if (!f) {
-            debug::log_error("LuaComponentSchemaRegistry: failed to open '{}' for writing", path.string());
+            log::lua.error("LuaComponentSchemaRegistry: failed to open '{}' for writing", path.string());
             return false;
         }
 

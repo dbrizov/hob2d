@@ -7,8 +7,8 @@
 #include <utility>
 
 #include "engine/components/physics/collider_component.h"
-#include "engine/core/debug.h"
 #include "engine/core/engine.h"
+#include "engine/core/logging.h"
 #include "engine/core/systems/scripting/lua_script_system.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
@@ -40,7 +40,7 @@ namespace hob {
             sol::protected_function_result result = hook(instance, std::forward<Args>(args)...);
             if (!result.valid()) {
                 const sol::error err = result;
-                debug::log_error("Lua error in {}: {}", method, err.what());
+                log::sol2.error("Lua error in {}: {}", method, err.what());
             }
         }
     } // namespace
@@ -85,7 +85,7 @@ namespace hob {
 
     void LuaScriptComponent::init() {
         if (m_class_name.empty()) {
-            debug::log_error("LuaScriptComponent has no class name");
+            log::lua.error("LuaScriptComponent has no class name");
             return;
         }
 
@@ -93,14 +93,14 @@ namespace hob {
 
         const sol::object registry_obj = lua["__component_registry"];
         if (!registry_obj.is<sol::table>()) {
-            debug::log_error("__component_registry is missing — engine bootstrap did not run");
+            log::lua.error("__component_registry is missing — engine bootstrap did not run");
             return;
         }
 
         sol::table registry = registry_obj;
         const sol::object class_obj = registry[m_class_name];
         if (!class_obj.is<sol::table>()) {
-            debug::log_error("DefineComponent '{}' is not registered", m_class_name);
+            log::lua.error("DefineComponent '{}' is not registered", m_class_name);
             return;
         }
 
@@ -111,7 +111,7 @@ namespace hob {
 
         const sol::object new_fn_obj = class_table["new"];
         if (!new_fn_obj.is<sol::protected_function>()) {
-            debug::log_error("'{}' does not have a 'new' function", m_class_name);
+            log::lua.error("'{}' does not have a 'new' function", m_class_name);
             return;
         }
 
@@ -119,13 +119,13 @@ namespace hob {
         sol::protected_function_result inst_result = new_fn();
         if (!inst_result.valid()) {
             const sol::error err = inst_result;
-            debug::log_error("Failed to instantiate '{}': {}", m_class_name, err.what());
+            log::sol2.error("Failed to instantiate '{}': {}", m_class_name, err.what());
             return;
         }
 
         const sol::object inst_obj = inst_result;
         if (!inst_obj.is<sol::table>()) {
-            debug::log_error("'{}'.new() did not return a table", m_class_name);
+            log::lua.error("'{}'.new() did not return a table", m_class_name);
             return;
         }
 

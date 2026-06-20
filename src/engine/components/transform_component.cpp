@@ -4,7 +4,7 @@
 #include <format>
 
 #include "engine/components/physics/collider_component.h"
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "engine/entity/entity.h"
 #include "engine/math/constants.h"
 
@@ -147,8 +147,8 @@ namespace hob {
 
         if (parent != nullptr && is_ancestor_of(parent)) {
             // 'parent' is this node or one of its descendants -> would create a cycle.
-            debug::log_error("TransformComponent::set_parent: cannot create a cyclic hierarchy (entity_id = {})",
-                             get_entity().get_id());
+            log::engine.error("TransformComponent::set_parent: cannot create a cyclic hierarchy (entity_id = {})",
+                              get_entity().get_id());
             return;
         }
 

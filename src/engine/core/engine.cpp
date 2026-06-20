@@ -9,6 +9,7 @@
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
 #include "engine/math/matrix2x3.h"
+#include "logging.h"
 
 namespace hob {
     Engine::Engine(const EngineConfig& config)
@@ -163,7 +164,7 @@ namespace hob {
 
     CameraComponent* Engine::get_active_camera() const {
         if (m_active_camera == nullptr) {
-            debug::log_error(
+            log::engine.error(
                 "Engine::get_active_camera: no active camera (spawn a Camera entity before any rendering or camera query)");
         }
         return m_active_camera;

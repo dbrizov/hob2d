@@ -6,8 +6,8 @@
 #include <SDL3/SDL.h>
 #include <SDL3_shadercross/SDL_shadercross.h>
 
-#include "engine/core/debug.h"
 #include "engine/core/engine_config.h"
+#include "engine/core/logging.h"
 #include "engine/core/systems/console.h"
 #include "engine/core/systems/sdl_context.h"
 
@@ -22,14 +22,14 @@ namespace hob {
         , m_swapchain_projection(
               ortho_top_left_y_flipped(static_cast<float>(m_logical_width), static_cast<float>(m_logical_height))) {
         if (!m_gpu_device) {
-            debug::log_error("Renderer init failed: GPU device is null");
+            log::renderer.error("Renderer init failed: GPU device is null");
             return;
         }
 
         m_swapchain_format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
 
         if (!SDL_ShaderCross_Init()) {
-            debug::log_error("SDL_ShaderCross_Init failed: {}", SDL_GetError());
+            log::renderer.error("SDL_ShaderCross_Init failed: {}", SDL_GetError());
             return;
         }
         m_shadercross_initialized = true;
@@ -54,7 +54,7 @@ namespace hob {
         register_cvars(console);
 
         m_is_initialized = true;
-        debug::log("Renderer initialized (logical {}x{})", m_logical_width, m_logical_height);
+        log::renderer.info("Renderer::Initialise (logical {}x{})", m_logical_width, m_logical_height);
     }
 
     Renderer::~Renderer() {
@@ -64,7 +64,7 @@ namespace hob {
         // directly so Texture::~Texture (which would call back into us) becomes a no-op.
         for (auto& [path, weak] : m_textures) {
             if (auto tex = weak.lock()) {
-                debug::log_error(
+                log::renderer.error(
                     "Renderer::~Renderer: texture '{}' still has {} holder(s) at shutdown — destruction order is wrong",
                     path,
                     tex.use_count() - 1);
@@ -128,7 +128,7 @@ namespace hob {
             SDL_ShaderCross_Quit();
         }
 
-        debug::log("Renderer uninitialized");
+        log::renderer.info("Renderer::Shutdown");
     }
 
     bool Renderer::is_initialized() const {

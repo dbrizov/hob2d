@@ -3,7 +3,7 @@
 #include <fstream>
 #include <sstream>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 
 namespace hob {
     namespace {
@@ -307,7 +307,7 @@ namespace hob {
 
         std::ofstream f(path, std::ios::binary | std::ios::trunc);
         if (!f) {
-            debug::log_error("LuaMetaRegistry: failed to open '{}' for writing", path.string());
+            log::lua.error("LuaMetaRegistry: failed to open '{}' for writing", path.string());
             return false;
         }
 

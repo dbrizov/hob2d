@@ -8,6 +8,7 @@
 
 #include "engine/core/debug.h"
 #include "engine/core/engine_config.h"
+#include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/core/systems/sdl_context.h"
@@ -113,7 +114,7 @@ namespace hob {
         , m_screen_match_mode(config.screen_match_mode) {
 
         if (!m_render_interface.init()) {
-            debug::log_error("UiSystem init failed: render interface init failed");
+            log::ui.error("UiSystem init failed: render interface init failed");
             return;
         }
 
@@ -122,23 +123,21 @@ namespace hob {
         Rml::SetRenderInterface(&m_render_interface);
 
         if (!Rml::Initialise()) {
-            debug::log_error("UiSystem init failed: Rml::Initialise() returned false");
+            log::ui.error("UiSystem init failed: Rml::Initialise() returned false");
             return;
         }
 
-        debug::log("Rml::Initialise (RmlUi {})", Rml::GetVersion());
+        log::ui.info("Rml::Initialise (RmlUi {})", Rml::GetVersion());
 
         if (!Rml::LoadFontFace(UI_FONT_PATH)) {
-            debug::log_error("UiSystem init failed: could not load font '{}'", UI_FONT_PATH);
+            log::ui.error("UiSystem init failed: could not load font '{}'", UI_FONT_PATH);
             Rml::Shutdown();
             return;
         }
 
-        debug::log("Rml::LoadFontFace('{}')", UI_FONT_PATH);
-
         m_base_stylesheet = Rml::Factory::InstanceStyleSheetFile(UI_BASE_STYLESHEET);
         if (!m_base_stylesheet) {
-            debug::log_error("UiSystem: could not load base stylesheet '{}'", UI_BASE_STYLESHEET);
+            log::ui.error("UiSystem: could not load base stylesheet '{}'", UI_BASE_STYLESHEET);
         }
 
         const Rml::Vector2i dimensions(static_cast<int>(m_reference_resolution.x),
@@ -146,12 +145,12 @@ namespace hob {
 
         m_context = Rml::CreateContext(UI_CONTEXT_NAME, dimensions);
         if (m_context == nullptr) {
-            debug::log_error("UiSystem init failed: Rml::CreateContext() returned null");
+            log::ui.error("UiSystem init failed: Rml::CreateContext() returned null");
             Rml::Shutdown();
             return;
         }
 
-        debug::log("Rml::CreateContext('{}', {}x{})", UI_CONTEXT_NAME, dimensions.x, dimensions.y);
+        log::ui.info("Rml::CreateContext('{}', {}x{})", UI_CONTEXT_NAME, dimensions.x, dimensions.y);
 
         update_logical_size();
 
@@ -164,7 +163,7 @@ namespace hob {
         }
 
         Rml::Shutdown();
-        debug::log("Rml::Shutdown");
+        log::ui.info("Rml::Shutdown");
     }
 
     bool UiSystem::is_initialized() const {
@@ -236,14 +235,14 @@ namespace hob {
 
         const UiDocumentId id = m_next_document_id++;
         m_documents.emplace(id, UiDocument{document, path});
-        debug::log("UiSystem::load_document('{}') -> {}", path, id);
+        log::ui.info("UiSystem::load_document('{}') -> {}", path, id);
         return id;
     }
 
     void UiSystem::unload_document(UiDocumentId id) {
         const auto it = m_documents.find(id);
         if (it == m_documents.end()) {
-            debug::log_error("UiSystem::unload_document: invalid document {}", id);
+            log::ui.error("UiSystem::unload_document: invalid document {}", id);
             return;
         }
 
@@ -277,13 +276,13 @@ namespace hob {
     UiElementId UiSystem::get_element(UiDocumentId document_id, const std::string& element_id) {
         UiDocument* document = find_document(document_id);
         if (document == nullptr) {
-            debug::log_error("UiSystem::get_element: invalid document {}", document_id);
+            log::ui.error("UiSystem::get_element: invalid document {}", document_id);
             return INVALID_UI_ELEMENT_ID;
         }
 
         Rml::Element* element = document->rml_document->GetElementById(element_id);
         if (element == nullptr) {
-            debug::log_error("UiSystem::get_element: no element '{}' in document {}", element_id, document_id);
+            log::ui.error("UiSystem::get_element: no element '{}' in document {}", element_id, document_id);
             return INVALID_UI_ELEMENT_ID;
         }
 
@@ -297,7 +296,7 @@ namespace hob {
                                               std::function<void()> callback) {
         UiElement* element = find_element(element_id);
         if (element == nullptr) {
-            debug::log_error("UiSystem::add_event_listener: invalid element {}", element_id);
+            log::ui.error("UiSystem::add_event_listener: invalid element {}", element_id);
             return INVALID_UI_LISTENER_ID;
         }
 
@@ -312,7 +311,7 @@ namespace hob {
     void UiSystem::remove_event_listener(UiListenerId id) {
         const auto it = m_listeners.find(id);
         if (it == m_listeners.end()) {
-            debug::log_error("UiSystem::remove_event_listener: invalid listener {}", id);
+            log::ui.error("UiSystem::remove_event_listener: invalid listener {}", id);
             return;
         }
 
@@ -336,7 +335,7 @@ namespace hob {
 
         Rml::DataModelConstructor constructor = m_context->CreateDataModel(name);
         if (!constructor) {
-            debug::log_error("UiSystem::create_model: could not create data model '{}'", name);
+            log::ui.error("UiSystem::create_model: could not create data model '{}'", name);
             return INVALID_UI_DATA_MODEL_ID;
         }
 
@@ -360,14 +359,14 @@ namespace hob {
                 });
         }
 
-        debug::log("UiSystem::create_model('{}') -> {}", name, id);
+        log::ui.info("UiSystem::create_model('{}') -> {}", name, id);
         return id;
     }
 
     void UiSystem::destroy_model(UiDataModelId id) {
         const auto it = m_models.find(id);
         if (it == m_models.end()) {
-            debug::log_error("UiSystem::destroy_model: invalid model {}", id);
+            log::ui.error("UiSystem::destroy_model: invalid model {}", id);
             return;
         }
 
@@ -391,13 +390,13 @@ namespace hob {
     UiValue UiSystem::get_model_value(UiDataModelId id, const std::string& field) {
         UiDataModel* model = find_model(id);
         if (model == nullptr) {
-            debug::log_error("UiSystem::get_model_value: invalid model {}", id);
+            log::ui.error("UiSystem::get_model_value: invalid model {}", id);
             return UiValue{};
         }
 
         const auto it = model->values.find(field);
         if (it == model->values.end()) {
-            debug::log_error("UiSystem::get_model_value: model {} has no field '{}'", id, field);
+            log::ui.error("UiSystem::get_model_value: model {} has no field '{}'", id, field);
             return UiValue{};
         }
 
@@ -407,13 +406,13 @@ namespace hob {
     void UiSystem::set_model_value(UiDataModelId id, const std::string& field, UiValue value) {
         UiDataModel* model = find_model(id);
         if (model == nullptr) {
-            debug::log_error("UiSystem::set_model_value: invalid model {}", id);
+            log::ui.error("UiSystem::set_model_value: invalid model {}", id);
             return;
         }
 
         const auto it = model->values.find(field);
         if (it == model->values.end()) {
-            debug::log_error("UiSystem::set_model_value: model {} has no field '{}'", id, field);
+            log::ui.error("UiSystem::set_model_value: model {} has no field '{}'", id, field);
             return;
         }
 
@@ -424,7 +423,7 @@ namespace hob {
     void UiSystem::bind_model_event(UiDataModelId id, const std::string& event, std::function<void()> callback) {
         UiDataModel* model = find_model(id);
         if (model == nullptr) {
-            debug::log_error("UiSystem::bind_model_event: invalid model {}", id);
+            log::ui.error("UiSystem::bind_model_event: invalid model {}", id);
             return;
         }
 
@@ -479,9 +478,9 @@ namespace hob {
                     target->AddEventListener(ui_listener.event, ui_listener.listener.get());
                 }
                 else {
-                    debug::log_error("UiSystem: listener element '{}' missing after reload of '{}'",
-                                     ui_listener.element_id,
-                                     document.path);
+                    log::ui.error("UiSystem: listener element '{}' missing after reload of '{}'",
+                                  ui_listener.element_id,
+                                  document.path);
                 }
             }
         }
@@ -496,7 +495,7 @@ namespace hob {
             m_base_stylesheet = std::move(base);
         }
         else {
-            debug::log_error("UiSystem: could not reload base stylesheet '{}'", UI_BASE_STYLESHEET);
+            log::ui.error("UiSystem: could not reload base stylesheet '{}'", UI_BASE_STYLESHEET);
         }
 
         for (auto& [id, document] : m_documents) {
@@ -590,7 +589,7 @@ namespace hob {
 
         Rml::ElementDocument* document = m_context->LoadDocument(path);
         if (document == nullptr) {
-            debug::log_error("UiSystem::instantiate_document: could not load '{}'", path);
+            log::ui.error("UiSystem::instantiate_document: could not load '{}'", path);
             return nullptr;
         }
 

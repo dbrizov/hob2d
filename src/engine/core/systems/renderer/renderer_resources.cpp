@@ -4,7 +4,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "renderer.h"
 
@@ -16,7 +16,8 @@ namespace hob {
         if (tex_it != m_textures.end()) {
             if (auto cached = tex_it->second.lock()) {
                 if (m_cvar_log_texture_ref) {
-                    debug::log("Renderer::get_or_load_texture cache hit: '{}' (rc={})", key, cached.use_count());
+                    log::renderer.info(
+                        "Renderer::get_or_load_texture cache hit: '{}' (rc={})", key, cached.use_count());
                 }
                 return cached;
             }
@@ -25,7 +26,7 @@ namespace hob {
         const std::filesystem::path full_path = PathUtils::get_assets_root_path() / path;
         SDL_Surface* surface = IMG_Load(full_path.string().c_str());
         if (!surface) {
-            debug::log_error("IMG_Load failed: {}", SDL_GetError());
+            log::renderer.error("IMG_Load failed: {}", SDL_GetError());
             return TextureRef();
         }
 
@@ -34,7 +35,7 @@ namespace hob {
             rgba = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
             SDL_DestroySurface(surface);
             if (!rgba) {
-                debug::log_error("SDL_ConvertSurface failed: {}", SDL_GetError());
+                log::renderer.error("SDL_ConvertSurface failed: {}", SDL_GetError());
                 return TextureRef();
             }
         }
@@ -54,7 +55,7 @@ namespace hob {
 
         SDL_GPUTexture* gpu_tex = SDL_CreateGPUTexture(m_gpu_device, &tci);
         if (!gpu_tex) {
-            debug::log_error("SDL_CreateGPUTexture failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUTexture failed: {}", SDL_GetError());
             SDL_DestroySurface(rgba);
             return TextureRef();
         }
@@ -71,7 +72,7 @@ namespace hob {
         m_textures.emplace(key, std::weak_ptr<Texture>(texture));
 
         if (m_cvar_log_texture_ref) {
-            debug::log("Renderer::get_or_load_texture loaded: '{}' (rc=1)", key);
+            log::renderer.info("Renderer::get_or_load_texture loaded: '{}' (rc=1)", key);
         }
 
         return texture;
@@ -90,7 +91,7 @@ namespace hob {
 
         SDL_GPUTexture* gpu_tex = SDL_CreateGPUTexture(m_gpu_device, &tci);
         if (!gpu_tex) {
-            debug::log_error("SDL_CreateGPUTexture (from rgba) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUTexture (from rgba) failed: {}", SDL_GetError());
             return TextureRef();
         }
 
@@ -104,7 +105,7 @@ namespace hob {
 
     void Renderer::release_texture(const Texture& texture) {
         if (m_cvar_log_texture_ref) {
-            debug::log("Renderer::release_texture: '{}' [destroyed]", texture.m_path);
+            log::renderer.info("Renderer::release_texture: '{}' [destroyed]", texture.m_path);
         }
 
         m_textures.erase(texture.m_path);
@@ -119,13 +120,13 @@ namespace hob {
         tbi.size = size;
         SDL_GPUTransferBuffer* tb = SDL_CreateGPUTransferBuffer(m_gpu_device, &tbi);
         if (!tb) {
-            debug::log_error("SDL_CreateGPUTransferBuffer failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUTransferBuffer failed: {}", SDL_GetError());
             return false;
         }
 
         void* map = SDL_MapGPUTransferBuffer(m_gpu_device, tb, false);
         if (!map) {
-            debug::log_error("SDL_MapGPUTransferBuffer failed: {}", SDL_GetError());
+            log::renderer.error("SDL_MapGPUTransferBuffer failed: {}", SDL_GetError());
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
             return false;
         }
@@ -166,13 +167,13 @@ namespace hob {
         tbi.size = size;
         SDL_GPUTransferBuffer* tb = SDL_CreateGPUTransferBuffer(m_gpu_device, &tbi);
         if (!tb) {
-            debug::log_error("SDL_CreateGPUTransferBuffer (texture) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUTransferBuffer (texture) failed: {}", SDL_GetError());
             return false;
         }
 
         void* map = SDL_MapGPUTransferBuffer(m_gpu_device, tb, false);
         if (!map) {
-            debug::log_error("SDL_MapGPUTransferBuffer (texture) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_MapGPUTransferBuffer (texture) failed: {}", SDL_GetError());
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
             return false;
         }

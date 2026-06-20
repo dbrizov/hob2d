@@ -10,12 +10,55 @@
 #include "engine/components/lua_script_component.h"
 #include "engine/core/debug.h"
 #include "engine/core/engine.h"
+#include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/console.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/entity/entity.h"
 
 namespace hob {
+    namespace {
+        int lua_panic_handler(lua_State* L) {
+            const char* message = lua_tostring(L, -1);
+            log::sol2.error("panic: {}", message ? message : "unknown error");
+            return 0;
+        }
+
+        void lua_warn_handler(void* ud, const char* message, int tocont) {
+            (void)ud;
+            static std::string buffer;
+            buffer += message;
+            if (!tocont) {
+                log::sol2.info("{}", buffer);
+                buffer.clear();
+            }
+        }
+
+        void install_lua_log_redirects(sol::state& lua) {
+            lua_State* L = lua.lua_state();
+            lua_atpanic(L, lua_panic_handler);
+            lua_setwarnf(L, lua_warn_handler, nullptr);
+
+            lua["print"] = [](sol::this_state ts, sol::variadic_args args) {
+                sol::state_view sv(ts);
+                const sol::protected_function tostring = sv["tostring"];
+                std::string out;
+                bool first = true;
+                for (auto v : args) {
+                    sol::protected_function_result r = tostring(sol::object(v));
+                    const std::string piece = r.valid() ? r.get<std::string>() : "<tostring failed>";
+                    if (!first) {
+                        out += '\t';
+                    }
+                    out += piece;
+                    first = false;
+                }
+
+                log::sol2.info("{}", out);
+            };
+        }
+    } // namespace
+
     LuaScriptSystem::LuaScriptSystem(Engine& engine)
         : m_engine(engine)
         , m_impl(std::make_unique<LuaScriptSystemImpl>()) {
@@ -29,6 +72,8 @@ namespace hob {
                            sol::lib::package,
                            sol::lib::coroutine,
                            sol::lib::debug);
+
+        install_lua_log_redirects(lua);
 
         // Make `require` find modules in scripts/engine/lib (e.g. vendored lldebugger).
         const std::string lib_path = (PathUtils::get_root_path() / "scripts" / "engine" / "lib" / "?.lua").string();
@@ -72,7 +117,7 @@ namespace hob {
             debug::print("[Lua] hot reload");
         }
         else {
-            debug::log_error("[Lua] hot reload failed");
+            log::lua.error("hot reload failed");
         }
 
         return success;
@@ -135,7 +180,7 @@ namespace hob {
         auto result = m_impl->lua.safe_script_file(full_path.string(), sol::script_pass_on_error);
         if (!result.valid()) {
             const sol::error err = result;
-            debug::log_error("Lua error in {}: {}", full_path.string(), err.what());
+            log::sol2.error("Lua error in {}: {}", full_path.string(), err.what());
             return false;
         }
 
@@ -146,7 +191,7 @@ namespace hob {
                                      const std::vector<std::string>& excludes) {
         const std::filesystem::path root = PathUtils::get_root_path() / relative_path;
         if (!std::filesystem::exists(root)) {
-            debug::log_error("LuaScriptSystem::run_folder: '{}' does not exist", root.string());
+            log::lua.error("LuaScriptSystem::run_folder: '{}' does not exist", root.string());
             return false;
         }
 
@@ -184,7 +229,7 @@ namespace hob {
             auto result = m_impl->lua.safe_script_file(file.string(), sol::script_pass_on_error);
             if (!result.valid()) {
                 const sol::error err = result;
-                debug::log_error("Lua error in {}: {}", file.string(), err.what());
+                log::sol2.error("Lua error in {}: {}", file.string(), err.what());
                 all_ok = false;
             }
         }

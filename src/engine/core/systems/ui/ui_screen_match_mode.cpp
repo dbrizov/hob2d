@@ -1,6 +1,6 @@
 #include "ui_screen_match_mode.h"
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 
 namespace hob {
     UiScreenMatchMode to_screen_match_mode(const std::string& value) {
@@ -17,7 +17,7 @@ namespace hob {
             return UiScreenMatchMode::shrink;
         }
 
-        debug::log_error("UiSystem: unknown screen_match_mode '{}', defaulting to 'expand'", value);
+        log::ui.error("UiSystem: unknown screen_match_mode '{}', defaulting to 'expand'", value);
         return UiScreenMatchMode::expand;
     }
 } // namespace hob

@@ -1,6 +1,6 @@
 #include "ui_system_interface.h"
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "engine/core/systems/timer.h"
 
 namespace hob {
@@ -13,10 +13,10 @@ namespace hob {
 
     bool UiSystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message) {
         if (type == Rml::Log::LT_ERROR || type == Rml::Log::LT_ASSERT) {
-            debug::log_error("[RmlUi] {}", message);
+            log::rmlui.error("{}", message);
         }
         else {
-            debug::log("[RmlUi] {}", message);
+            log::rmlui.info("{}", message);
         }
 
         return true;

@@ -5,8 +5,8 @@
 #include <box2d/box2d.h>
 
 #include "engine//components/transform_component.h"
-#include "engine/core/debug.h"
 #include "engine/core/engine.h"
+#include "engine/core/logging.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/entity/entity.h"
 
@@ -26,7 +26,7 @@ namespace hob {
                     parent_body != nullptr && parent_body->get_body_type() == BodyType::Static;
 
                 if (!parent_is_static) {
-                    debug::log_error(
+                    log::physics.error(
                         "RigidbodyComponent: dynamic body (entity_id = {}) is parented under a non-static transform; "
                         "parent motion will not drive the simulated body.",
                         get_entity().get_id());

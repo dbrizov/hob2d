@@ -2,8 +2,8 @@
 #include <unordered_map>
 #include <variant>
 
-#include "engine/core/debug.h"
 #include "engine/core/engine.h"
+#include "engine/core/logging.h"
 #include "engine/core/systems/ui/ui_system.h"
 #include "lua_meta.h"
 #include "lua_script_system.h"
@@ -73,7 +73,7 @@ namespace hob {
                         const sol::protected_function_result result = callback();
                         if (!result.valid()) {
                             const sol::error err = result;
-                            debug::log_error("UI event handler error: {}", err.what());
+                            log::ui.error("UI event handler error: {}", err.what());
                         }
                     });
                 },
@@ -118,7 +118,7 @@ namespace hob {
                         const sol::protected_function_result result = callback();
                         if (!result.valid()) {
                             const sol::error err = result;
-                            debug::log_error("UI data-event handler error: {}", err.what());
+                            log::ui.error("UI data-event handler error: {}", err.what());
                         }
                     });
                 },

@@ -4,7 +4,7 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlgpu3.h>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "sdl_context.h"
 
 namespace hob {
@@ -13,7 +13,7 @@ namespace hob {
         m_gpu_device = sdl_context.get_gpu_device();
 
         if (!window || !m_gpu_device) {
-            debug::log_error("ImGuiSystem init failed: window/GPU device is null");
+            log::imgui.error("ImGuiSystem init failed: window/GPU device is null");
             return;
         }
 
@@ -21,11 +21,11 @@ namespace hob {
 
         m_context = ImGui::CreateContext();
         if (!m_context) {
-            debug::log_error("ImGui_CreateContext failed");
+            log::imgui.error("ImGui_CreateContext failed");
             return;
         }
 
-        debug::log("ImGui_CreateContext()");
+        log::imgui.info("ImGui_CreateContext()");
 
         ImGuiIO& io = ImGui::GetIO();
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -39,13 +39,13 @@ namespace hob {
         ImGui::StyleColorsDark();
 
         if (!ImGui_ImplSDL3_InitForSDLGPU(window)) {
-            debug::log_error("ImGui_ImplSDL3_InitForSDLGPU failed");
+            log::imgui.error("ImGui_ImplSDL3_InitForSDLGPU failed");
             ImGui::DestroyContext(m_context);
             m_context = nullptr;
             return;
         }
 
-        debug::log("ImGui_ImplSDL3_InitForSDLGPU");
+        log::imgui.info("ImGui_ImplSDL3_InitForSDLGPU");
 
         ImGui_ImplSDLGPU3_InitInfo init_info{};
         init_info.Device = m_gpu_device;
@@ -53,14 +53,14 @@ namespace hob {
         init_info.MSAASamples = SDL_GPU_SAMPLECOUNT_1;
 
         if (!ImGui_ImplSDLGPU3_Init(&init_info)) {
-            debug::log_error("ImGui_ImplSDLGPU3_Init failed");
+            log::imgui.error("ImGui_ImplSDLGPU3_Init failed");
             ImGui_ImplSDL3_Shutdown();
             ImGui::DestroyContext(m_context);
             m_context = nullptr;
             return;
         }
 
-        debug::log("ImGui_ImplSDLGPU3_Init");
+        log::imgui.info("ImGui_ImplSDLGPU3_Init");
 
         m_is_initialized = true;
     }
@@ -71,14 +71,14 @@ namespace hob {
         }
 
         ImGui_ImplSDLGPU3_Shutdown();
-        debug::log("ImGui_ImplSDLGPU3_Shutdown");
+        log::imgui.info("ImGui_ImplSDLGPU3_Shutdown");
 
         ImGui_ImplSDL3_Shutdown();
-        debug::log("ImGui_ImplSDL3_Shutdown");
+        log::imgui.info("ImGui_ImplSDL3_Shutdown");
 
         ImGui::DestroyContext(m_context);
         m_context = nullptr;
-        debug::log("ImGui_DestroyContext");
+        log::imgui.info("ImGui_DestroyContext");
     }
 
     bool ImGuiSystem::is_initialized() const {

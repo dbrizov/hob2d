@@ -6,7 +6,7 @@
 
 #include <SDL3/SDL.h>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/core/systems/sdl_context.h"
@@ -116,7 +116,7 @@ namespace hob {
         SDL_ReleaseGPUShader(gpu_device, fs);
 
         if (!m_pipeline) {
-            debug::log_error("SDL_CreateGPUGraphicsPipeline (ui) failed: {}", SDL_GetError());
+            log::ui.error("SDL_CreateGPUGraphicsPipeline (ui) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -129,7 +129,7 @@ namespace hob {
         sci.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         m_sampler = SDL_CreateGPUSampler(gpu_device, &sci);
         if (!m_sampler) {
-            debug::log_error("SDL_CreateGPUSampler (ui) failed: {}", SDL_GetError());
+            log::ui.error("SDL_CreateGPUSampler (ui) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -144,7 +144,7 @@ namespace hob {
         tci.sample_count = SDL_GPU_SAMPLECOUNT_1;
         m_white_texture = SDL_CreateGPUTexture(gpu_device, &tci);
         if (!m_white_texture) {
-            debug::log_error("SDL_CreateGPUTexture (ui white) failed: {}", SDL_GetError());
+            log::ui.error("SDL_CreateGPUTexture (ui white) failed: {}", SDL_GetError());
             return false;
         }
 
@@ -210,7 +210,7 @@ namespace hob {
         SDL_GPUBuffer* ibo = SDL_CreateGPUBuffer(gpu_device, &ibci);
 
         if (!vbo || !ibo) {
-            debug::log_error("SDL_CreateGPUBuffer (ui geometry) failed: {}", SDL_GetError());
+            log::ui.error("SDL_CreateGPUBuffer (ui geometry) failed: {}", SDL_GetError());
             if (vbo) {
                 SDL_ReleaseGPUBuffer(gpu_device, vbo);
             }

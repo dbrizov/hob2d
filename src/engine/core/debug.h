@@ -1,9 +1,10 @@
 #pragma once
 
 #include <format>
-#include <iostream>
 #include <string>
+#include <utility>
 
+#include "engine/core/logging.h"
 #include "engine/math/color.h"
 #include "engine/math/vector2.h"
 
@@ -23,17 +24,6 @@ namespace hob {
         constexpr float MESSAGE_MARGIN_Y = 8.0f;
         constexpr float MESSAGE_FADE_DURATION = 0.3f;
         constexpr uint32_t MAX_ON_SCREEN_MESSAGES = 32;
-
-        // Console logging
-        template<typename... Args>
-        void log(std::format_string<Args...> fmt, Args&&... args) {
-            std::cout << std::format(fmt, std::forward<Args>(args)...) << std::endl;
-        }
-
-        template<typename... Args>
-        void log_error(std::format_string<Args...> fmt, Args&&... args) {
-            std::cerr << std::format(fmt, std::forward<Args>(args)...) << std::endl;
-        }
 
         // Debug primitives
         struct DebugLine {
@@ -84,7 +74,7 @@ namespace hob {
             template<typename... Args>
             void print_dispatch(const Color& color, float duration, std::format_string<Args...> fmt, Args&&... args) {
                 std::string text = std::format(fmt, std::forward<Args>(args)...);
-                log("{}", text);
+                log::info("{}", text);
                 add_on_screen_debug_message(std::move(text), color, duration);
             }
         } // namespace detail

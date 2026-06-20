@@ -5,12 +5,13 @@
 #include <nlohmann/json.hpp>
 
 #include "debug.h"
+#include "logging.h"
 
 namespace hob {
     EngineConfig::EngineConfig(const std::filesystem::path& json_path) {
         std::ifstream file(json_path);
         if (!file.is_open()) {
-            debug::log_error("Cannot open engine config file: {}", json_path.string());
+            log::engine.error("Cannot open engine config file: {}", json_path.string());
             return;
         }
 

@@ -1,6 +1,7 @@
 #include <string>
 
 #include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "engine/math/vector2.h"
 #include "lua_meta.h"
 #include "lua_script_system.h"
@@ -35,13 +36,13 @@ namespace hob {
             .func_sig(
                 "log",
                 [stringify_args](sol::this_state ts, sol::variadic_args args) {
-                    debug::log("{}", stringify_args(ts, args));
+                    log::info("{}", stringify_args(ts, args));
                 },
                 "(...: any)")
             .func_sig(
                 "log_error",
                 [stringify_args](sol::this_state ts, sol::variadic_args args) {
-                    debug::log_error("{}", stringify_args(ts, args));
+                    log::error("{}", stringify_args(ts, args));
                 },
                 "(...: any)")
             .func_sig(

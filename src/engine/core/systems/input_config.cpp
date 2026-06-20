@@ -8,7 +8,7 @@
 #include <SDL3/SDL_keyboard.h>
 #include <nlohmann/json.hpp>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 
 namespace hob {
     static std::optional<InputSource> parse_keyboard(const std::string& name) {
@@ -112,7 +112,7 @@ namespace hob {
         }
 
         if (!source.has_value()) {
-            debug::log_error("Unknown input source: {}", name);
+            log::input.error("Unknown input source: {}", name);
         }
 
         return source;
@@ -132,7 +132,7 @@ namespace hob {
     InputConfig::InputConfig(const std::filesystem::path& json_path) {
         std::ifstream file(json_path);
         if (!file.is_open()) {
-            debug::log_error("Cannot open input config file: {}", json_path.string());
+            log::input.error("Cannot open input config file: {}", json_path.string());
             return;
         }
 
@@ -176,7 +176,7 @@ namespace hob {
             if (cfg.contains("analog")) {
                 for (const auto& entry : cfg["analog"]) {
                     if (!entry.is_object() || !entry.contains("source")) {
-                        debug::log_error("Analog entry in axis '{}' must be an object with a 'source'; ignored",
+                        log::input.error("Analog entry in axis '{}' must be an object with a 'source'; ignored",
                                          axis_name);
                         continue;
                     }
@@ -188,7 +188,7 @@ namespace hob {
                     }
 
                     if (!source->is_analog) {
-                        debug::log_error("Digital source '{}' used as an analog binding; ignored", source_name);
+                        log::input.error("Digital source '{}' used as an analog binding; ignored", source_name);
                         continue;
                     }
 

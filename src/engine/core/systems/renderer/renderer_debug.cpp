@@ -3,7 +3,7 @@
 
 #include <imgui.h>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "engine/core/systems/console.h"
 #include "renderer.h"
 
@@ -113,11 +113,11 @@ namespace hob {
 
     void Renderer::debug_sprite_queue() {
         if (m_cvar_log_sprite_queue) {
-            debug::log("Renderer sprite order ({} draws):", m_sprite_draw_order.size());
+            log::renderer.info("Renderer sprite order ({} draws):", m_sprite_draw_order.size());
             for (size_t i = 0; i < m_sprite_draw_order.size(); ++i) {
                 const SpriteDrawData& draw = m_sprite_draws[m_sprite_draw_order[i]];
                 const char* tex_path = draw.texture ? draw.texture->get_path().c_str() : "<unknown>";
-                debug::log("  [{}] z={} shader={} tex={}", i, draw.z_index, draw.material.shader_id, tex_path);
+                log::renderer.info("  [{}] z={} shader={} tex={}", i, draw.z_index, draw.material.shader_id, tex_path);
             }
         }
 

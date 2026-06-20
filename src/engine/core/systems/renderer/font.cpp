@@ -7,7 +7,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 
-#include "engine/core/debug.h"
+#include "engine/core/logging.h"
 #include "renderer.h"
 
 namespace hob {
@@ -35,13 +35,13 @@ namespace hob {
         }
 
         if (!TTF_Init()) {
-            debug::log_error("TTF_Init failed: {}", SDL_GetError());
+            log::renderer.error("TTF_Init failed: {}", SDL_GetError());
             return false;
         }
 
         TTF_Font* font = TTF_OpenFont(ttf_path.string().c_str(), size_px);
         if (!font) {
-            debug::log_error("TTF_OpenFont('{}') failed: {}", ttf_path.string(), SDL_GetError());
+            log::renderer.error("TTF_OpenFont('{}') failed: {}", ttf_path.string(), SDL_GetError());
             TTF_Quit();
             return false;
         }
@@ -70,7 +70,7 @@ namespace hob {
         }
 
         if (baked.empty() || row_h == 0 || total_w == 0) {
-            debug::log_error("Font '{}' produced no glyphs", ttf_path.string());
+            log::renderer.error("Font '{}' produced no glyphs", ttf_path.string());
             TTF_CloseFont(font);
             TTF_Quit();
             return false;
@@ -141,7 +141,7 @@ namespace hob {
 
         m_atlas = SDL_CreateGPUTexture(m_gpu_device, &tci);
         if (!m_atlas) {
-            debug::log_error("SDL_CreateGPUTexture (font atlas) failed: {}", SDL_GetError());
+            log::renderer.error("SDL_CreateGPUTexture (font atlas) failed: {}", SDL_GetError());
             m_gpu_device = nullptr;
             m_glyphs.clear();
             TTF_Quit();
@@ -149,7 +149,7 @@ namespace hob {
         }
 
         if (!renderer.upload_texture_rgba(m_atlas, atlas_pixels.data(), m_atlas_width, m_atlas_height)) {
-            debug::log_error("Font atlas upload failed for '{}'", ttf_path.string());
+            log::renderer.error("Font atlas upload failed for '{}'", ttf_path.string());
             SDL_ReleaseGPUTexture(m_gpu_device, m_atlas);
             m_atlas = nullptr;
             m_gpu_device = nullptr;
