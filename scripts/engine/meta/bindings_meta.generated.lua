@@ -138,6 +138,11 @@ function UI.get(model, field) end
 ---@param value boolean|integer|number|string
 function UI.set(model, field, value) end
 
+---@param model integer
+---@param event string
+---@param fn fun()
+function UI.bind_event(model, event, fn) end
+
 -- Physics
 ---@class Physics
 Physics = {}

@@ -109,6 +109,19 @@ namespace hob {
                 [&ui](UiDataModelId model, const std::string& field, sol::object value) {
                     ui.set_model_value(model, field, lua_to_ui_value(value));
                 },
-                "(model: integer, field: string, value: boolean|integer|number|string)");
+                "(model: integer, field: string, value: boolean|integer|number|string)")
+            .func_sig(
+                "bind_event",
+                [&ui](UiDataModelId model, const std::string& event, sol::function fn) {
+                    ui.bind_model_event(model, event, [fn = std::move(fn)]() {
+                        const sol::protected_function callback = fn;
+                        const sol::protected_function_result result = callback();
+                        if (!result.valid()) {
+                            const sol::error err = result;
+                            debug::log_error("UI data-event handler error: {}", err.what());
+                        }
+                    });
+                },
+                "(model: integer, event: string, fn: fun())");
     }
 } // namespace hob

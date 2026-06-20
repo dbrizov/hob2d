@@ -5,6 +5,7 @@
 <body data-model="counter">
     <div id="counter_panel">
         <span>Count: {{ count }}</span>
+        <div id="increment_btn" data-event-click="increment()">+1</div>
     </div>
 </body>
 </rml>

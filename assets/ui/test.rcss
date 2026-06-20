@@ -22,9 +22,16 @@ body
     color: #ffffff;
     font-size: 22px;
     text-align: center;
+    transition: background-color 0.1s linear, transform 0.05s linear;
 }
 
 #btn:hover
 {
     background-color: #6a9bff;
+}
+
+#btn:active
+{
+    background-color: #a9c6ff;
+    transform: scale(0.95);
 }

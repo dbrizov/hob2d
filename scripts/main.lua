@@ -45,7 +45,7 @@ EntitySpawner.spawn_entity(Entities.StaticCircle, Vector2(5.0 * SCALE, 0.0), 0, 
 EntitySpawner.spawn_entity(Entities.TriggerCircle, Vector2(0.0, 4.0 * SCALE), 0, S)
 EntitySpawner.spawn_entity(Entities.TriggerCircle, Vector2(0.0, -4.0 * SCALE), 0, S)
 
--- UI test (Step 3): load and show the test document from Lua, log clicks from Lua
+-- UI test: load and show the test document from Lua, log clicks from Lua
 local ui_doc = UI.load_document("ui/test.rml")
 UI.show_document(ui_doc)
 
@@ -55,13 +55,14 @@ local btn_listener = UI.add_event_listener(btn, "click", function()
 end)
 -- UI.remove_event_listener(btn_listener)
 
--- UI data binding test (Step 4a): a C++-owned model bound to a label via data-text.
--- The model must be created before the document that references it is loaded.
+-- UI data binding test: a C++-owned model bound to a label via {{ count }}.
+-- The model (and its data-event callbacks) must be set up before the document loads.
 local counter_model = UI.create_model("counter", { count = 0 })
+UI.bind_event(counter_model, "increment", function()
+    UI.set(counter_model, "count", UI.get(counter_model, "count") + 1)
+end)
 local counter_doc = UI.load_document("ui/counter.rml")
 UI.show_document(counter_doc)
-UI.set(counter_model, "count", 42)
-Debug.log("[Lua] counter = " .. tostring(UI.get(counter_model, "count")))
 
 -- Dynamic entities for collision testing. With Y-up gravity these fall
 -- and pile up on the bottom wall and crates.

@@ -421,6 +421,19 @@ namespace hob {
         model->constructor->GetModelHandle().DirtyVariable(field);
     }
 
+    void UiSystem::bind_model_event(UiDataModelId id, const std::string& event, std::function<void()> callback) {
+        UiDataModel* model = find_model(id);
+        if (model == nullptr) {
+            debug::log_error("UiSystem::bind_model_event: invalid model {}", id);
+            return;
+        }
+
+        model->constructor->BindEventCallback(
+            event, [callback = std::move(callback)](Rml::DataModelHandle, Rml::Event&, const Rml::VariantList&) {
+                callback();
+            });
+    }
+
     void UiSystem::detach_listener(const UiListener& record) {
         if (const UiDocument* document = find_document(record.document_id)) {
             if (Rml::Element* element = document->rml_document->GetElementById(record.element_id)) {

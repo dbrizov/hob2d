@@ -6,7 +6,6 @@
 #include <string>
 #include <unordered_map>
 #include <variant>
-#include <vector>
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
@@ -142,6 +141,7 @@ namespace hob {
         void clear_data_models();
         UiValue get_model_value(UiDataModelId id, const std::string& field);
         void set_model_value(UiDataModelId id, const std::string& field, UiValue value);
+        void bind_model_event(UiDataModelId id, const std::string& event, std::function<void()> callback);
 
         void hot_reload_documents();
         void hot_reload_stylesheets();
