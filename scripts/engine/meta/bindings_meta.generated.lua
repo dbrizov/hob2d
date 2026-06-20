@@ -30,6 +30,33 @@ function Math.lerp(a, b, t) end
 ---@return number
 function Math.lerp_angle(a_deg, b_deg, t) end
 
+-- Camera
+---@class Camera
+Camera = {}
+
+---@return Entity?
+function Camera.get_active() end
+
+---@param world_pos Vector2
+---@return Vector2
+function Camera.world_to_screen(world_pos) end
+
+---@param screen_pos Vector2
+---@return Vector2
+function Camera.screen_to_world(screen_pos) end
+
+---@return Vector2
+function Camera.get_position() end
+
+---@param position Vector2
+function Camera.set_position(position) end
+
+---@return number
+function Camera.get_zoom() end
+
+---@param multiplier number
+function Camera.set_zoom(multiplier) end
+
 -- Timer
 ---@class Timer
 Timer = {}
@@ -109,33 +136,6 @@ function Scripts.run_file(relative_path) end
 ---@param excludes string[]?
 ---@return boolean
 function Scripts.run_folder(relative_path, excludes) end
-
--- Camera
----@class Camera
-Camera = {}
-
----@return Entity?
-function Camera.get_active() end
-
----@param world_pos Vector2
----@return Vector2
-function Camera.world_to_screen(world_pos) end
-
----@param screen_pos Vector2
----@return Vector2
-function Camera.screen_to_world(screen_pos) end
-
----@return Vector2
-function Camera.get_position() end
-
----@param position Vector2
-function Camera.set_position(position) end
-
----@return number
-function Camera.get_zoom() end
-
----@param multiplier number
-function Camera.set_zoom(multiplier) end
 
 -- Debug
 ---@class Debug

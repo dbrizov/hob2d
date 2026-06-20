@@ -166,7 +166,13 @@ namespace hob {
         bind_math();
         bind_entity();
         bind_components();
-        bind_systems();
+        bind_camera();
+        bind_renderer();
+        bind_timer();
+        bind_input();
+        bind_physics();
+        bind_entity_spawner();
+        bind_scripts();
         bind_assets();
         bind_debug();
     }
