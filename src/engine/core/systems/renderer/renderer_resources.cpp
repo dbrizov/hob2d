@@ -77,6 +77,31 @@ namespace hob {
         return texture;
     }
 
+    TextureRef Renderer::create_texture_from_rgba(const void* pixels, uint32_t width, uint32_t height) {
+        SDL_GPUTextureCreateInfo tci{};
+        tci.type = SDL_GPU_TEXTURETYPE_2D;
+        tci.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+        tci.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
+        tci.width = width;
+        tci.height = height;
+        tci.layer_count_or_depth = 1;
+        tci.num_levels = 1;
+        tci.sample_count = SDL_GPU_SAMPLECOUNT_1;
+
+        SDL_GPUTexture* gpu_tex = SDL_CreateGPUTexture(m_gpu_device, &tci);
+        if (!gpu_tex) {
+            debug::log_error("SDL_CreateGPUTexture (from rgba) failed: {}", SDL_GetError());
+            return TextureRef();
+        }
+
+        if (!upload_texture_rgba(gpu_tex, pixels, width, height)) {
+            SDL_ReleaseGPUTexture(m_gpu_device, gpu_tex);
+            return TextureRef();
+        }
+
+        return TextureRef(new Texture(*this, gpu_tex, width, height, ""));
+    }
+
     void Renderer::release_texture(const Texture& texture) {
         if (m_cvar_log_texture_ref) {
             debug::log("Renderer::release_texture: '{}' [destroyed]", texture.m_path);

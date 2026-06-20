@@ -3,6 +3,7 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
 
+#include "ui_file_interface.h"
 #include "ui_render_interface.h"
 #include "ui_system_interface.h"
 
@@ -18,6 +19,7 @@ namespace hob {
     class UiSystem {
         bool m_is_initialized = false;
 
+        UiFileInterface m_file_interface;
         UiSystemInterface m_system_interface;
         UiRenderInterface m_render_interface;
 

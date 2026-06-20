@@ -133,6 +133,10 @@ namespace hob {
         return Vector2(static_cast<float>(width), static_cast<float>(height));
     }
 
+    void SdlContext::get_window_size_px(int& width, int& height) const {
+        SDL_GetWindowSizeInPixels(m_window, &width, &height);
+    }
+
     float SdlContext::get_pixel_density() const {
         const float density = SDL_GetWindowPixelDensity(m_window);
         return (density > 0.0f) ? density : 1.0f;

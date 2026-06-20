@@ -16,6 +16,10 @@ namespace hob {
         }
     }
 
+    SDL_GPUTexture* Texture::get_gpu_texture() const {
+        return m_gpu_texture;
+    }
+
     uint32_t Texture::get_width() const {
         return m_width;
     }

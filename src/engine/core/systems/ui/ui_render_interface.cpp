@@ -166,6 +166,7 @@ namespace hob {
 
     void UiRenderInterface::begin_frame(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex) {
         m_active_cmd = cmd;
+        m_sdl_context.get_window_size_px(m_target_width, m_target_height);
 
         SDL_GPUColorTargetInfo ct{};
         ct.texture = swap_tex;
@@ -231,6 +232,14 @@ namespace hob {
 
         const auto* g = reinterpret_cast<const UiCompiledGeometry*>(geometry);
 
+        if (m_scissor_enabled) {
+            SDL_SetGPUScissor(m_active_pass, &m_scissor_rect);
+        }
+        else {
+            const SDL_Rect full{0, 0, m_target_width, m_target_height};
+            SDL_SetGPUScissor(m_active_pass, &full);
+        }
+
         SDL_GPUBufferBinding vb{};
         vb.buffer = g->vbo;
         vb.offset = 0;
@@ -241,10 +250,16 @@ namespace hob {
         ib.offset = 0;
         SDL_BindGPUIndexBuffer(m_active_pass, &ib, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-        // 2c resolves `texture` -> TextureRef; until then everything samples the 1x1 white default.
-        (void)texture;
+        SDL_GPUTexture* tex = m_white_texture;
+        if (texture != INVALID_TEXTURE_HANDLE) {
+            const auto it = m_textures.find(texture);
+            if (it != m_textures.end()) {
+                tex = it->second->get_gpu_texture();
+            }
+        }
+
         SDL_GPUTextureSamplerBinding ts{};
-        ts.texture = m_white_texture;
+        ts.texture = tex;
         ts.sampler = m_sampler;
         SDL_BindGPUFragmentSamplers(m_active_pass, 0, &ts, 1);
 
@@ -270,17 +285,48 @@ namespace hob {
     }
 
     Rml::TextureHandle UiRenderInterface::LoadTexture(Rml::Vector2i& texture_dimensions, const Rml::String& source) {
-        return 0;
+        TextureRef texture = m_renderer.get_or_load_texture(source);
+        if (!texture) {
+            return INVALID_TEXTURE_HANDLE;
+        }
+
+        texture_dimensions.x = static_cast<int>(texture->get_width());
+        texture_dimensions.y = static_cast<int>(texture->get_height());
+
+        const Rml::TextureHandle handle = m_next_texture_handle++;
+        m_textures.emplace(handle, std::move(texture));
+        return handle;
     }
 
     Rml::TextureHandle UiRenderInterface::GenerateTexture(Rml::Span<const Rml::byte> source,
                                                           Rml::Vector2i source_dimensions) {
-        return 0;
+        TextureRef texture = m_renderer.create_texture_from_rgba(
+            source.data(), static_cast<uint32_t>(source_dimensions.x), static_cast<uint32_t>(source_dimensions.y));
+        if (!texture) {
+            return INVALID_TEXTURE_HANDLE;
+        }
+
+        const Rml::TextureHandle handle = m_next_texture_handle++;
+        m_textures.emplace(handle, std::move(texture));
+        return handle;
     }
 
-    void UiRenderInterface::ReleaseTexture(Rml::TextureHandle texture) {}
+    void UiRenderInterface::ReleaseTexture(Rml::TextureHandle texture) {
+        m_textures.erase(texture);
+    }
 
-    void UiRenderInterface::EnableScissorRegion(bool enable) {}
+    void UiRenderInterface::EnableScissorRegion(bool enable) {
+        m_scissor_enabled = enable;
+    }
 
-    void UiRenderInterface::SetScissorRegion(Rml::Rectanglei region) {}
+    void UiRenderInterface::SetScissorRegion(Rml::Rectanglei region) {
+        const Vector2 logical = m_renderer.get_logical_size();
+        const float sx = (logical.x > 0.0f) ? static_cast<float>(m_target_width) / logical.x : 1.0f;
+        const float sy = (logical.y > 0.0f) ? static_cast<float>(m_target_height) / logical.y : 1.0f;
+
+        m_scissor_rect.x = static_cast<int>(region.Left() * sx);
+        m_scissor_rect.y = static_cast<int>(region.Top() * sy);
+        m_scissor_rect.w = static_cast<int>(region.Width() * sx);
+        m_scissor_rect.h = static_cast<int>(region.Height() * sy);
+    }
 } // namespace hob

@@ -1,18 +1,15 @@
 #include "ui_system.h"
 
-#include <filesystem>
-
 #include <RmlUi/Core.h>
 
 #include "engine/core/debug.h"
-#include "engine/core/path_utils.h"
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/core/systems/sdl_context.h"
 
 namespace hob {
     namespace {
-        constexpr std::string_view UI_FONT_PATH = "assets/builtin/fonts/jetbrains_mono_bold.ttf";
-        constexpr std::string_view UI_TEST_DOCUMENT = "assets/ui/test.rml";
+        constexpr const char* UI_FONT_PATH = "builtin/fonts/jetbrains_mono_bold.ttf";
+        constexpr const char* UI_TEST_DOCUMENT = "ui/test.rml";
         constexpr const char* UI_CONTEXT_NAME = "main";
     } // namespace
 
@@ -25,6 +22,7 @@ namespace hob {
             return;
         }
 
+        Rml::SetFileInterface(&m_file_interface);
         Rml::SetSystemInterface(&m_system_interface);
         Rml::SetRenderInterface(&m_render_interface);
 
@@ -35,9 +33,8 @@ namespace hob {
 
         debug::log("Rml::Initialise (RmlUi {})", Rml::GetVersion());
 
-        const std::filesystem::path font_path = PathUtils::get_root_path() / std::filesystem::path(UI_FONT_PATH);
-        if (!Rml::LoadFontFace(font_path.string())) {
-            debug::log_error("UiSystem init failed: could not load font '{}'", font_path.string());
+        if (!Rml::LoadFontFace(UI_FONT_PATH)) {
+            debug::log_error("UiSystem init failed: could not load font '{}'", UI_FONT_PATH);
             Rml::Shutdown();
             return;
         }
@@ -56,10 +53,9 @@ namespace hob {
 
         debug::log("Rml::CreateContext('{}', {}x{})", UI_CONTEXT_NAME, dimensions.x, dimensions.y);
 
-        const std::filesystem::path doc_path = PathUtils::get_root_path() / std::filesystem::path(UI_TEST_DOCUMENT);
-        Rml::ElementDocument* document = m_context->LoadDocument(doc_path.string());
+        Rml::ElementDocument* document = m_context->LoadDocument(UI_TEST_DOCUMENT);
         if (document == nullptr) {
-            debug::log_error("UiSystem: could not load document '{}'", doc_path.string());
+            debug::log_error("UiSystem: could not load document '{}'", UI_TEST_DOCUMENT);
         }
         else {
             document->Show();

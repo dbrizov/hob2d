@@ -14,5 +14,6 @@ namespace hob {
 
         double GetElapsedTime() override;
         bool LogMessage(Rml::Log::Type type, const Rml::String& message) override;
+        void JoinPath(Rml::String& translated_path, const Rml::String& document_path, const Rml::String& path) override;
     };
 } // namespace hob

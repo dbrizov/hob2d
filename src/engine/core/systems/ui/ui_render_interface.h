@@ -1,10 +1,13 @@
 #pragma once
 
+#include <unordered_map>
+
 #include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Vertex.h>
 #include <SDL3/SDL_gpu.h>
 
+#include "engine/core/systems/renderer/texture.h"
 #include "engine/math/matrix4x4.h"
 
 namespace hob {
@@ -12,6 +15,8 @@ namespace hob {
     class Renderer;
 
     class UiRenderInterface : public Rml::RenderInterface {
+        static constexpr Rml::TextureHandle INVALID_TEXTURE_HANDLE = 0;
+
         const SdlContext& m_sdl_context;
         Renderer& m_renderer;
 
@@ -22,6 +27,14 @@ namespace hob {
 
         SDL_GPUCommandBuffer* m_active_cmd = nullptr;
         SDL_GPURenderPass* m_active_pass = nullptr;
+        int m_target_width = 0;
+        int m_target_height = 0;
+
+        bool m_scissor_enabled = false;
+        SDL_Rect m_scissor_rect{};
+
+        std::unordered_map<Rml::TextureHandle, TextureRef> m_textures;
+        Rml::TextureHandle m_next_texture_handle = INVALID_TEXTURE_HANDLE + 1;
 
         bool m_is_initialized = false;
 

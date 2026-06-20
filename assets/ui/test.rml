@@ -1,8 +1,8 @@
 <rml>
 <head>
-    <link type="text/rcss" href="test.rcss"/>
+    <link type="text/rcss" href="ui/test.rcss"/>
 </head>
 <body>
-    <div id="box"></div>
+    <div id="box">Hello, RmlUi! This line is long enough to be clipped.</div>
 </body>
 </rml>

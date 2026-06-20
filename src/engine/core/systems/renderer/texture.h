@@ -11,8 +11,6 @@ namespace hob {
     class Texture;
     using TextureRef = std::shared_ptr<Texture>;
 
-    // GPU texture resource. Owned via std::shared_ptr; destructor releases the GPU
-    // handle and removes the cache entry from the Renderer.
     class Texture {
         Renderer* m_renderer = nullptr;
         SDL_GPUTexture* m_gpu_texture = nullptr;
@@ -31,6 +29,7 @@ namespace hob {
         Texture(Texture&&) = delete;
         Texture& operator=(Texture&&) = delete;
 
+        SDL_GPUTexture* get_gpu_texture() const;
         uint32_t get_width() const;
         uint32_t get_height() const;
         const std::string& get_path() const;

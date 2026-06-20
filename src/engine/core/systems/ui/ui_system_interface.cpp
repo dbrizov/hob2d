@@ -21,4 +21,10 @@ namespace hob {
 
         return true;
     }
+
+    void UiSystemInterface::JoinPath(Rml::String& translated_path,
+                                     const Rml::String& document_path,
+                                     const Rml::String& path) {
+        translated_path = path;
+    }
 } // namespace hob

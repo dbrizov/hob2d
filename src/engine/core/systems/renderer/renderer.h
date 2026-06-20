@@ -166,6 +166,7 @@ namespace hob {
         void render_debug_text_pass();
 
         TextureRef get_or_load_texture(const std::string& path);
+        TextureRef create_texture_from_rgba(const void* pixels, uint32_t width, uint32_t height);
         ShaderId get_or_build_sprite_shader(const std::string& path);
 
         SDL_GPUShader* load_shader(const std::filesystem::path& hlsl_path, SDL_ShaderCross_ShaderStage stage);

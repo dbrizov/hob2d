@@ -29,6 +29,7 @@ namespace hob {
         SDL_GPUDevice* get_gpu_device() const;
 
         Vector2 get_window_size() const;
+        void get_window_size_px(int& width, int& height) const;
         float get_pixel_density() const;
     };
 } // namespace hob
