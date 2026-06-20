@@ -1,7 +1,6 @@
 #include <string>
 
 #include "engine/core/debug.h"
-#include "engine/core/logging.h"
 #include "engine/math/vector2.h"
 #include "lua_meta.h"
 #include "lua_script_system.h"
@@ -13,38 +12,7 @@ namespace hob {
         sol::state& m_lua = m_impl->lua;
         LuaMetaRegistry& m_meta = m_impl->meta;
 
-        auto stringify_args = [](sol::this_state ts, sol::variadic_args args) -> std::string {
-            lua_State* L = ts;
-            sol::state_view sv(L);
-            const sol::protected_function tostring = sv["tostring"];
-            std::string out;
-            bool first = true;
-            for (auto v : args) {
-                sol::protected_function_result r = tostring(sol::object(v));
-                const std::string piece = r.valid() ? r.get<std::string>() : "<tostring failed>";
-                if (!first) {
-                    out += '\t';
-                }
-                out += piece;
-                first = false;
-            }
-
-            return out;
-        };
-
         bind_table(m_lua, m_meta, "Debug")
-            .func_sig(
-                "log",
-                [stringify_args](sol::this_state ts, sol::variadic_args args) {
-                    log::info("{}", stringify_args(ts, args));
-                },
-                "(...: any)")
-            .func_sig(
-                "log_error",
-                [stringify_args](sol::this_state ts, sol::variadic_args args) {
-                    log::error("{}", stringify_args(ts, args));
-                },
-                "(...: any)")
             .func_sig(
                 "print",
                 [](sol::this_state ts,

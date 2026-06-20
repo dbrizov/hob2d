@@ -58,6 +58,7 @@ namespace hob {
         void bind_scripts();
         void bind_assets();
         void bind_debug();
+        void bind_logging();
 
         void dump_component_schemas();
         void dump_path_schemas();

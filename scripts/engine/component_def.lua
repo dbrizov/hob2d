@@ -46,7 +46,7 @@ _G.__live_component_instances = _G.__live_component_instances or setmetatable({}
 _G.DefineComponent = setmetatable({}, {
     __newindex = function(_, name, def)
         if type(def) ~= "table" then
-            Debug.log_error("DefineComponent." .. tostring(name) .. " must be assigned a table")
+            Log.error("DefineComponent." .. tostring(name) .. " must be assigned a table")
             return
         end
 
@@ -94,7 +94,7 @@ local function build_class(name)
     end
 
     if pending.building then
-        Debug.log_error("DefineComponent." .. name .. ": cyclic inheritance detected")
+        Log.error("DefineComponent." .. name .. ": cyclic inheritance detected")
         return pending.class
     end
     pending.building = true
@@ -108,12 +108,12 @@ local function build_class(name)
     -- Parent entries that collide are skipped (override semantics).
     if def.__parent then
         if type(def.__parent) ~= "string" then
-            Debug.log_error("DefineComponent." .. name .. ": __parent must be a string component name")
+            Log.error("DefineComponent." .. name .. ": __parent must be a string component name")
         else
             build_class(def.__parent)
             local parent = _G.__component_registry[def.__parent]
             if not parent then
-                Debug.log_error("DefineComponent." .. name .. ": parent '" .. def.__parent .. "' is not registered")
+                Log.error("DefineComponent." .. name .. ": parent '" .. def.__parent .. "' is not registered")
             else
                 for k, v in pairs(parent) do
                     if k ~= "__index" and k ~= "new" then

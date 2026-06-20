@@ -195,12 +195,6 @@ function Scripts.run_folder(relative_path, excludes) end
 ---@class Debug
 Debug = {}
 
----@vararg any
-function Debug.log(...) end
-
----@vararg any
-function Debug.log_error(...) end
-
 ---@param message string
 ---@param color Color?
 ---@param duration number?
@@ -220,6 +214,16 @@ function Debug.draw_line(from, to, color, duration, thickness) end
 ---@param thickness number?
 ---@param segments integer?
 function Debug.draw_circle(center, radius, color, duration, thickness, segments) end
+
+-- Log
+---@class Log
+Log = {}
+
+---@vararg any
+function Log.info(...) end
+
+---@vararg any
+function Log.error(...) end
 
 -- BodyType
 ---@enum BodyType

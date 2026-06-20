@@ -261,5 +261,6 @@ namespace hob {
         bind_scripts();
         bind_assets();
         bind_debug();
+        bind_logging();
     }
 } // namespace hob

@@ -32,7 +32,7 @@ local function install_factory_registry(registry_name, schema)
     local function build(name)
         local def = defs[name]
         if not def then
-            Debug.log_error(schema.lua_type .. " '" .. name .. "' is not defined")
+            Log.error(schema.lua_type .. " '" .. name .. "' is not defined")
             return nil
         end
 
@@ -43,7 +43,7 @@ local function install_factory_registry(registry_name, schema)
 
         local ctor = _G[schema.lua_type]
         if ctor == nil then
-            Debug.log_error("Factory type '" .. schema.lua_type .. "' is not bound in Lua")
+            Log.error("Factory type '" .. schema.lua_type .. "' is not bound in Lua")
             return nil
         end
 
@@ -64,7 +64,7 @@ local function install_factory_registry(registry_name, schema)
     _G[schema.define] = setmetatable({}, {
         __newindex = function(_, name, def)
             if type(def) ~= "table" then
-                Debug.log_error(schema.define .. "." .. tostring(name) .. " must be assigned a table")
+                Log.error(schema.define .. "." .. tostring(name) .. " must be assigned a table")
                 return
             end
 
@@ -89,7 +89,7 @@ end
 function _G.__install_factory_registries()
     local schemas = _G.__factory_schemas
     if schemas == nil then
-        Debug.log_error(
+        Log.error(
             "__install_factory_registries: __factory_schemas is missing (did factory_schemas.generated.lua run?)")
         return
     end

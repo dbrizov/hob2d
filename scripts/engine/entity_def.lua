@@ -27,7 +27,7 @@ _G.__entity_prefab_by_id = _G.__entity_prefab_by_id or {}
 _G.DefineEntity = setmetatable({}, {
     __newindex = function(_, name, def)
         if type(def) ~= "table" then
-            Debug.log_error("DefineEntity." .. tostring(name) .. " must be assigned a table")
+            Log.error("DefineEntity." .. tostring(name) .. " must be assigned a table")
             return
         end
 
@@ -88,7 +88,7 @@ local function apply_setters(component, section, setters)
     for prop, value in pairs(section) do
         local setter = setters[prop]
         if setter == nil then
-            Debug.log_error("Unknown prefab property '" .. tostring(prop) .. "' for component")
+            Log.error("Unknown prefab property '" .. tostring(prop) .. "' for component")
         else
             call_setter(component, setter, unwrap_def(value))
         end
@@ -218,7 +218,7 @@ local spawn_entity_c = EntitySpawner.spawn_entity_c
 EntitySpawner.spawn_entity = function(name, position, rotation_deg, scale)
     local prefab = _G.__entity_prefab_registry[name]
     if not prefab then
-        Debug.log_error("EntitySpawner.spawn_entity: prefab '" .. name .. "' is not registered")
+        Log.error("EntitySpawner.spawn_entity: prefab '" .. name .. "' is not registered")
         return nil
     end
 

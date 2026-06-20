@@ -37,7 +37,7 @@ local function install_path_registry(define_name, registry_name, type_label)
         __tostring = function(self)
             local path = store[self.__name]
             if not path then
-                Debug.log_error(type_label .. " '" .. self.__name .. "' is not defined")
+                Log.error(type_label .. " '" .. self.__name .. "' is not defined")
                 return ""
             end
 
@@ -46,7 +46,7 @@ local function install_path_registry(define_name, registry_name, type_label)
         __unwrap = function(self)
             local path = store[self.__name]
             if not path then
-                Debug.log_error(type_label .. " '" .. self.__name .. "' is not defined")
+                Log.error(type_label .. " '" .. self.__name .. "' is not defined")
                 return ""
             end
 
@@ -57,7 +57,7 @@ local function install_path_registry(define_name, registry_name, type_label)
     _G[define_name] = setmetatable({}, {
         __newindex = function(_, name, def)
             if def == nil then
-                Debug.log_error(define_name .. "." .. tostring(name) .. " must not be nil")
+                Log.error(define_name .. "." .. tostring(name) .. " must not be nil")
                 return
             end
 
@@ -82,7 +82,7 @@ end
 function _G.__install_path_registries()
     local schemas = _G.__path_schemas
     if schemas == nil then
-        Debug.log_error("__install_path_registries: __path_schemas is missing (did path_schemas.generated.lua run?)")
+        Log.error("__install_path_registries: __path_schemas is missing (did path_schemas.generated.lua run?)")
         return
     end
 
