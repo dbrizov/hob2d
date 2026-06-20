@@ -9,7 +9,6 @@
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
 #include "engine/math/matrix2x3.h"
-#include "path_utils.h"
 
 namespace hob {
     Engine::Engine(const EngineConfig& config)
@@ -68,7 +67,7 @@ namespace hob {
             const float scaled_delta_time = delta_time * m_timer.get_time_scale();
 
 #ifndef NDEBUG
-            poll_script_hot_reload(delta_time);
+            m_lua_script_system.poll_hot_reload(delta_time);
             m_ui_system.poll_hot_reload(delta_time);
 #endif
 
@@ -251,45 +250,4 @@ namespace hob {
         return result;
     }
 
-#ifndef NDEBUG
-    void Engine::poll_script_hot_reload(float delta_time) {
-        constexpr float POLL_INTERVAL = 0.5f;
-        m_script_watch_accumulator += delta_time;
-        if (m_script_watch_accumulator < POLL_INTERVAL) {
-            return;
-        }
-        m_script_watch_accumulator = 0.0f;
-
-        const std::filesystem::path scripts_root = PathUtils::get_root_path() / "scripts";
-
-        std::filesystem::file_time_type newest = std::filesystem::file_time_type::min();
-        std::error_code ec;
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(scripts_root, ec)) {
-            if (ec) {
-                return;
-            }
-
-            if (!entry.is_regular_file() || entry.path().extension() != ".lua") {
-                continue;
-            }
-
-            const std::filesystem::file_time_type t = entry.last_write_time(ec);
-            if (!ec && t > newest) {
-                newest = t;
-            }
-        }
-
-        // First poll just records the baseline; never reload on startup.
-        if (!m_has_script_write_baseline) {
-            m_last_script_write_time = newest;
-            m_has_script_write_baseline = true;
-            return;
-        }
-
-        if (newest > m_last_script_write_time) {
-            m_last_script_write_time = newest;
-            m_lua_script_system.hot_reload();
-        }
-    }
-#endif
 } // namespace hob

@@ -84,11 +84,9 @@ namespace hob {
         int m_last_window_width = 0;
         int m_last_window_height = 0;
 
-#ifndef NDEBUG
         std::filesystem::file_time_type m_last_rcss_write_time{};
         bool m_has_rcss_write_baseline = false;
         float m_rcss_watch_accumulator = 0.0f;
-#endif
 
     public:
         UiSystem(const UiSystemConfig& config, const SdlContext& sdl_context, Renderer& renderer, const Timer& timer);
@@ -120,23 +118,18 @@ namespace hob {
         void remove_event_listener(UiListenerId id);
         void clear_event_listeners();
 
-#ifndef NDEBUG
+        void hot_reload_stylesheets();
         void poll_hot_reload(float delta_time);
-#endif
 
     private:
+        void detach_listener(const UiListener& record);
+
         UiDocument* find_document(UiDocumentId id);
         UiElement* find_element(UiElementId id);
-
-        void detach_listener(const UiListener& record);
 
         void apply_base_stylesheet(Rml::ElementDocument& document) const;
 
         Vector2 compute_effective_logical_size(int window_width, int window_height) const;
         void update_logical_size();
-
-#ifndef NDEBUG
-        void reload_stylesheets();
-#endif
     };
 } // namespace hob

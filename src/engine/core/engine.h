@@ -1,7 +1,5 @@
 #pragma once
 
-#include <filesystem>
-
 #include "systems/console.h"
 #include "systems/entity_spawner.h"
 #include "systems/imgui_system.h"
@@ -32,12 +30,6 @@ namespace hob {
 
         CameraComponent* m_active_camera = nullptr;
 
-#ifndef NDEBUG
-        std::filesystem::file_time_type m_last_script_write_time{};
-        bool m_has_script_write_baseline = false;
-        float m_script_watch_accumulator = 0.0f;
-#endif
-
     public:
         explicit Engine(const EngineConfig& config);
         ~Engine();
@@ -65,9 +57,5 @@ namespace hob {
         void flush_debug_draws_to_renderer(float delta_time);
 
         static bool has_moving_physics_body(const Entity& entity);
-
-#ifndef NDEBUG
-        void poll_script_hot_reload(float delta_time);
-#endif
     };
 } // namespace hob
