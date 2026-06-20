@@ -96,8 +96,8 @@ namespace hob {
             debug::log_error("UiSystem: could not load base stylesheet '{}'", UI_BASE_STYLESHEET);
         }
 
-        const Vector2 logical_size = m_renderer.get_logical_size();
-        const Rml::Vector2i dimensions(static_cast<int>(logical_size.x), static_cast<int>(logical_size.y));
+        const Rml::Vector2i dimensions(static_cast<int>(m_reference_resolution.x),
+                                       static_cast<int>(m_reference_resolution.y));
 
         m_context = Rml::CreateContext(UI_CONTEXT_NAME, dimensions);
         if (m_context == nullptr) {
@@ -107,6 +107,8 @@ namespace hob {
         }
 
         debug::log("Rml::CreateContext('{}', {}x{})", UI_CONTEXT_NAME, dimensions.x, dimensions.y);
+
+        update_logical_size();
 
         Rml::ElementDocument* document = m_context->LoadDocument(UI_TEST_DOCUMENT);
         if (document == nullptr) {
@@ -148,7 +150,7 @@ namespace hob {
         switch (event.type) {
             case SDL_EVENT_MOUSE_MOTION: {
                 const Vector2 window_size = m_sdl_context.get_window_size();
-                const Vector2 logical_size = m_renderer.get_logical_size();
+                const Vector2 logical_size = m_render_interface.get_logical_size();
                 const float sx = (window_size.x > 0.0f) ? logical_size.x / window_size.x : 1.0f;
                 const float sy = (window_size.y > 0.0f) ? logical_size.y / window_size.y : 1.0f;
                 m_context->ProcessMouseMove(static_cast<int>(event.motion.x * sx),
@@ -183,6 +185,7 @@ namespace hob {
             return;
         }
 
+        update_logical_size();
         m_context->Update();
     }
 
@@ -209,5 +212,46 @@ namespace hob {
         }
 
         document.SetStyleSheetContainer(combined);
+    }
+
+    Vector2 UiSystem::compute_effective_logical_size(int window_width, int window_height) const {
+        if (window_width <= 0 || window_height <= 0) {
+            return m_reference_resolution;
+        }
+
+        const float window_aspect = static_cast<float>(window_width) / static_cast<float>(window_height);
+        const float reference_aspect = m_reference_resolution.x / m_reference_resolution.y;
+
+        UiScreenMatchMode mode = m_screen_match_mode;
+        if (mode == UiScreenMatchMode::expand) {
+            mode =
+                (window_aspect > reference_aspect) ? UiScreenMatchMode::match_height : UiScreenMatchMode::match_width;
+        }
+        else if (mode == UiScreenMatchMode::shrink) {
+            mode =
+                (window_aspect > reference_aspect) ? UiScreenMatchMode::match_width : UiScreenMatchMode::match_height;
+        }
+
+        if (mode == UiScreenMatchMode::match_width) {
+            return Vector2(m_reference_resolution.x, m_reference_resolution.x / window_aspect);
+        }
+
+        return Vector2(m_reference_resolution.y * window_aspect, m_reference_resolution.y);
+    }
+
+    void UiSystem::update_logical_size() {
+        int window_width = 0;
+        int window_height = 0;
+        m_sdl_context.get_window_size_px(window_width, window_height);
+        if (window_width == m_last_window_width && window_height == m_last_window_height) {
+            return;
+        }
+
+        m_last_window_width = window_width;
+        m_last_window_height = window_height;
+
+        const Vector2 logical_size = compute_effective_logical_size(window_width, window_height);
+        m_render_interface.set_logical_size(logical_size);
+        m_context->SetDimensions(Rml::Vector2i(static_cast<int>(logical_size.x), static_cast<int>(logical_size.y)));
     }
 } // namespace hob

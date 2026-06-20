@@ -9,6 +9,8 @@
 #include "ui_render_interface.h"
 #include "ui_system_interface.h"
 
+#include "engine/math/vector2.h"
+
 namespace Rml {
     class Context;
     class EventListener;
@@ -20,6 +22,13 @@ namespace hob {
     class SdlContext;
     class Renderer;
     class Timer;
+
+    enum class UiScreenMatchMode {
+        match_width,
+        match_height,
+        expand,
+        shrink,
+    };
 
     class UiSystem {
         const SdlContext& m_sdl_context;
@@ -34,6 +43,11 @@ namespace hob {
         Rml::Context* m_context = nullptr;
         std::unique_ptr<Rml::EventListener> m_click_listener;
         std::shared_ptr<Rml::StyleSheetContainer> m_base_stylesheet;
+
+        Vector2 m_reference_resolution{1920.0f, 1080.0f};
+        UiScreenMatchMode m_screen_match_mode = UiScreenMatchMode::expand;
+        int m_last_window_width = 0;
+        int m_last_window_height = 0;
 
     public:
         UiSystem(const SdlContext& sdl_context, Renderer& renderer, const Timer& timer);
@@ -55,5 +69,7 @@ namespace hob {
 
     private:
         void apply_base_stylesheet(Rml::ElementDocument& document) const;
+        Vector2 compute_effective_logical_size(int window_width, int window_height) const;
+        void update_logical_size();
     };
 } // namespace hob

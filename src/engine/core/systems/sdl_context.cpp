@@ -31,7 +31,7 @@ namespace hob {
         m_window = SDL_CreateWindow(graphics_config.window_title.c_str(),
                                     window_width_points,
                                     window_height_points,
-                                    SDL_WINDOW_HIGH_PIXEL_DENSITY);
+                                    SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
 
         if (!m_window) {
             debug::log_error("SDL_CreateWindow Error: {}", SDL_GetError());

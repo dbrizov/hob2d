@@ -9,6 +9,7 @@
 
 #include "engine/core/systems/renderer/texture.h"
 #include "engine/math/matrix4x4.h"
+#include "engine/math/vector2.h"
 
 namespace hob {
     class SdlContext;
@@ -24,6 +25,7 @@ namespace hob {
         SDL_GPUSampler* m_sampler = nullptr;
         SDL_GPUTexture* m_white_texture = nullptr;
         Matrix4x4 m_projection;
+        Vector2 m_logical_size;
 
         SDL_GPUCommandBuffer* m_active_cmd = nullptr;
         SDL_GPURenderPass* m_active_pass = nullptr;
@@ -44,6 +46,9 @@ namespace hob {
 
         bool init();
         bool is_initialized() const;
+
+        Vector2 get_logical_size() const;
+        void set_logical_size(const Vector2& size);
 
         void begin_frame(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex);
         void end_frame();

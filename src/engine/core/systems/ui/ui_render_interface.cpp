@@ -153,15 +153,21 @@ namespace hob {
             return false;
         }
 
-        const Vector2 logical_size = m_renderer.get_logical_size();
-        m_projection = Renderer::ortho_top_left_y_flipped(logical_size.x, logical_size.y);
-
         m_is_initialized = true;
         return true;
     }
 
     bool UiRenderInterface::is_initialized() const {
         return m_is_initialized;
+    }
+
+    Vector2 UiRenderInterface::get_logical_size() const {
+        return m_logical_size;
+    }
+
+    void UiRenderInterface::set_logical_size(const Vector2& size) {
+        m_logical_size = size;
+        m_projection = Renderer::ortho_top_left_y_flipped(size.x, size.y);
     }
 
     void UiRenderInterface::begin_frame(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex) {
@@ -320,13 +326,12 @@ namespace hob {
     }
 
     void UiRenderInterface::SetScissorRegion(Rml::Rectanglei region) {
-        const Vector2 logical = m_renderer.get_logical_size();
-        const float sx = (logical.x > 0.0f) ? static_cast<float>(m_target_width) / logical.x : 1.0f;
-        const float sy = (logical.y > 0.0f) ? static_cast<float>(m_target_height) / logical.y : 1.0f;
+        const float sx = (m_logical_size.x > 0.0f) ? static_cast<float>(m_target_width) / m_logical_size.x : 1.0f;
+        const float sy = (m_logical_size.y > 0.0f) ? static_cast<float>(m_target_height) / m_logical_size.y : 1.0f;
 
-        m_scissor_rect.x = static_cast<int>(region.Left() * sx);
-        m_scissor_rect.y = static_cast<int>(region.Top() * sy);
-        m_scissor_rect.w = static_cast<int>(region.Width() * sx);
-        m_scissor_rect.h = static_cast<int>(region.Height() * sy);
+        m_scissor_rect.x = static_cast<int>(static_cast<float>(region.Left()) * sx);
+        m_scissor_rect.y = static_cast<int>(static_cast<float>(region.Top()) * sy);
+        m_scissor_rect.w = static_cast<int>(static_cast<float>(region.Width()) * sx);
+        m_scissor_rect.h = static_cast<int>(static_cast<float>(region.Height()) * sy);
     }
 } // namespace hob
