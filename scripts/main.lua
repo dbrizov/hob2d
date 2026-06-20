@@ -45,9 +45,15 @@ EntitySpawner.spawn_entity(Entities.StaticCircle, Vector2(5.0 * SCALE, 0.0), 0, 
 EntitySpawner.spawn_entity(Entities.TriggerCircle, Vector2(0.0, 4.0 * SCALE), 0, S)
 EntitySpawner.spawn_entity(Entities.TriggerCircle, Vector2(0.0, -4.0 * SCALE), 0, S)
 
--- UI test (Step 3a): load and show the test document from Lua
+-- UI test (Step 3): load and show the test document from Lua, log clicks from Lua
 local ui_doc = UI.load_document("ui/test.rml")
 UI.show_document(ui_doc)
+
+local btn = UI.get_element(ui_doc, "btn")
+local btn_listener = UI.add_event_listener(btn, "click", function()
+    Debug.log("[Lua] button clicked")
+end)
+-- UI.remove_event_listener(btn_listener)
 
 -- Dynamic entities for collision testing. With Y-up gravity these fall
 -- and pile up on the bottom wall and crates.

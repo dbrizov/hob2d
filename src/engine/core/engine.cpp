@@ -30,6 +30,10 @@ namespace hob {
         // In particular - LuaScriptComponent's sol::table must release its Lua registry slot before
         // LuaScriptSystem destroys the lua_State.
         m_entity_spawner.clear();
+
+        // UI event listeners hold Lua callbacks; release them here for the same reason -
+        // UiSystem outlives LuaScriptSystem in member-destruction order.
+        m_ui_system.clear_event_listeners();
     }
 
     void Engine::run() {

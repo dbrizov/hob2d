@@ -16,6 +16,20 @@ namespace hob {
         constexpr const char* UI_BASE_STYLESHEET = "builtin/ui/base.rcss";
         constexpr const char* UI_CONTEXT_NAME = "main";
 
+        class CallbackListener : public Rml::EventListener {
+            std::function<void()> m_callback;
+
+        public:
+            explicit CallbackListener(std::function<void()> callback)
+                : m_callback(std::move(callback)) {}
+
+            void ProcessEvent(Rml::Event& event) override {
+                if (m_callback) {
+                    m_callback();
+                }
+            }
+        };
+
         int to_rml_key_modifiers() {
             const SDL_Keymod mod = SDL_GetModState();
             int result = 0;
@@ -213,9 +227,76 @@ namespace hob {
         }
     }
 
+    UiElementId UiSystem::get_element(UiDocumentId document_id, const std::string& element_id) {
+        UiDocument* document = find_document(document_id);
+        if (document == nullptr) {
+            debug::log_error("UiSystem::get_element: invalid document {}", document_id);
+            return INVALID_UI_ELEMENT_ID;
+        }
+
+        Rml::Element* element = document->rml_document->GetElementById(element_id);
+        if (element == nullptr) {
+            debug::log_error("UiSystem::get_element: no element '{}' in document {}", element_id, document_id);
+            return INVALID_UI_ELEMENT_ID;
+        }
+
+        const UiElementId id = m_next_element_id++;
+        m_elements.emplace(id, UiElement{document_id, element_id, element});
+        return id;
+    }
+
+    UiListenerId UiSystem::add_event_listener(UiElementId element_id,
+                                              const std::string& event,
+                                              std::function<void()> callback) {
+        UiElement* element = find_element(element_id);
+        if (element == nullptr) {
+            debug::log_error("UiSystem::add_event_listener: invalid element {}", element_id);
+            return INVALID_UI_LISTENER_ID;
+        }
+
+        auto listener = std::make_unique<CallbackListener>(std::move(callback));
+        element->rml_element->AddEventListener(event, listener.get());
+
+        const UiListenerId id = m_next_listener_id++;
+        m_listeners.emplace(id, UiListener{element->document_id, element->element_id, event, std::move(listener)});
+        return id;
+    }
+
+    void UiSystem::remove_event_listener(UiListenerId id) {
+        const auto it = m_listeners.find(id);
+        if (it == m_listeners.end()) {
+            debug::log_error("UiSystem::remove_event_listener: invalid listener {}", id);
+            return;
+        }
+
+        detach_listener(it->second);
+        m_listeners.erase(it);
+    }
+
+    void UiSystem::clear_event_listeners() {
+        for (auto& [id, record] : m_listeners) {
+            detach_listener(record);
+        }
+
+        m_listeners.clear();
+    }
+
+    void UiSystem::detach_listener(const UiListener& record) {
+        if (const UiDocument* document = find_document(record.document_id)) {
+            if (Rml::Element* element = document->rml_document->GetElementById(record.element_id)) {
+                element->RemoveEventListener(record.event, record.listener.get());
+            }
+        }
+    }
+
     UiDocument* UiSystem::find_document(UiDocumentId id) {
         const auto it = m_documents.find(id);
         return (it != m_documents.end()) ? &it->second : nullptr;
+    }
+
+    UiElement* UiSystem::find_element(UiElementId id) {
+        const auto it = m_elements.find(id);
+        return (it != m_elements.end()) ? &it->second : nullptr;
     }
 
     void UiSystem::apply_base_stylesheet(Rml::ElementDocument& document) const {

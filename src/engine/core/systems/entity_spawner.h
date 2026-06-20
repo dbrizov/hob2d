@@ -70,10 +70,6 @@ namespace hob {
         void resolve_destroy_requests();
         void resolve_ticking_sync_requests();
 
-        // Destroy every live and pending entity, calling exit_play on those in play.
-        // Call this before Engine's other subsystems start tearing down so that
-        // components which hold references into other subsystems (e.g. LuaScriptComponent
-        // owns a sol::table tied to the Lua state) are destroyed while those subsystems are still alive.
         void clear();
     };
 } // namespace hob

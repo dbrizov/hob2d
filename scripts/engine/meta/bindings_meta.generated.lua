@@ -97,11 +97,25 @@ UI = {}
 ---@return integer
 function UI.load_document(path) end
 
----@param doc integer
-function UI.show_document(doc) end
+---@param document integer
+function UI.show_document(document) end
 
----@param doc integer
-function UI.hide_document(doc) end
+---@param document integer
+function UI.hide_document(document) end
+
+---@param document integer
+---@param element_id string
+---@return integer
+function UI.get_element(document, element_id) end
+
+---@param element integer
+---@param event string
+---@param fn fun()
+---@return integer
+function UI.add_event_listener(element, event, fn) end
+
+---@param listener integer
+function UI.remove_event_listener(listener) end
 
 -- Physics
 ---@class Physics
