@@ -61,7 +61,7 @@ namespace hob {
         bool m_shadercross_initialized = false;
         bool m_is_initialized = false;
 
-        float m_frame_time = 0.0f;
+        float m_play_time = 0.0f;
 
         std::unordered_map<std::string, std::weak_ptr<Texture>> m_textures;
 
@@ -130,7 +130,7 @@ namespace hob {
 
         bool is_initialized() const;
 
-        void set_frame_time(float time);
+        void set_play_time(float time);
 
         Vector2 get_logical_size() const;
 

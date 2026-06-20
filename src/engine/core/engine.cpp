@@ -91,7 +91,7 @@ namespace hob {
                 m_console.draw();
             }
 
-            m_renderer.set_frame_time(m_timer.get_play_time());
+            m_renderer.set_play_time(m_timer.get_play_time());
             if (m_renderer.acquire_command_buffer()) {
                 m_renderer.render_world_pass();
                 m_renderer.render_blit_pass();

@@ -135,8 +135,8 @@ namespace hob {
         return m_is_initialized;
     }
 
-    void Renderer::set_frame_time(float time) {
-        m_frame_time = time;
+    void Renderer::set_play_time(float time) {
+        m_play_time = time;
     }
 
     Vector2 Renderer::get_logical_size() const {

@@ -335,7 +335,7 @@ namespace hob {
         const uint32_t tex_h = texture.get_height();
         fsu.texel_size[0] = tex_w > 0 ? 1.0f / static_cast<float>(tex_w) : 0.0f;
         fsu.texel_size[1] = tex_h > 0 ? 1.0f / static_cast<float>(tex_h) : 0.0f;
-        fsu.time = m_frame_time;
+        fsu.time = m_play_time;
         SDL_PushGPUFragmentUniformData(m_command_buffer, 0, &fsu, sizeof(fsu));
     }
 } // namespace hob
