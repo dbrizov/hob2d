@@ -27,6 +27,15 @@ namespace hob {
             graphics_config.vsync_enabled = g.value("vsync_enabled", graphics_config.vsync_enabled);
         }
 
+        if (json.contains("ui")) {
+            const auto& u = json["ui"];
+            ui_system_config.reference_width = u.value("reference_width", ui_system_config.reference_width);
+            ui_system_config.reference_height = u.value("reference_height", ui_system_config.reference_height);
+            if (u.contains("screen_match_mode")) {
+                ui_system_config.screen_match_mode = to_screen_match_mode(u["screen_match_mode"].get<std::string>());
+            }
+        }
+
         if (json.contains("physics")) {
             const auto& p = json["physics"];
             if (p.contains("gravity")) {
@@ -39,15 +48,6 @@ namespace hob {
             physics_config.sub_steps_per_tick = p.value("sub_steps_per_tick", physics_config.sub_steps_per_tick);
             physics_config.interpolation_enabled =
                 p.value("interpolation_enabled", physics_config.interpolation_enabled);
-        }
-
-        if (json.contains("ui")) {
-            const auto& u = json["ui"];
-            ui_system_config.reference_width = u.value("reference_width", ui_system_config.reference_width);
-            ui_system_config.reference_height = u.value("reference_height", ui_system_config.reference_height);
-            if (u.contains("screen_match_mode")) {
-                ui_system_config.screen_match_mode = to_screen_match_mode(u["screen_match_mode"].get<std::string>());
-            }
         }
     }
 } // namespace hob

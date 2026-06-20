@@ -17,6 +17,12 @@ namespace hob {
         bool vsync_enabled = true;
     };
 
+    struct UiSystemConfig {
+        uint32_t reference_width = 1920;
+        uint32_t reference_height = 1080;
+        UiScreenMatchMode screen_match_mode = UiScreenMatchMode::expand;
+    };
+
     struct PhysicsConfig {
         Vector2 gravity = Vector2(0.0f, -9.81f);
         uint32_t ticks_per_second = 60;
@@ -24,16 +30,10 @@ namespace hob {
         bool interpolation_enabled = true;
     };
 
-    struct UiSystemConfig {
-        uint32_t reference_width = 1920;
-        uint32_t reference_height = 1080;
-        UiScreenMatchMode screen_match_mode = UiScreenMatchMode::expand;
-    };
-
     struct EngineConfig {
         GraphicsConfig graphics_config;
-        PhysicsConfig physics_config;
         UiSystemConfig ui_system_config;
+        PhysicsConfig physics_config;
 
         EngineConfig() = default;
         explicit EngineConfig(const std::filesystem::path& json_path);
