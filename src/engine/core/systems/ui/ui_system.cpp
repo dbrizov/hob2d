@@ -14,15 +14,7 @@ namespace hob {
     namespace {
         constexpr const char* UI_FONT_PATH = "builtin/fonts/jetbrains_mono_bold.ttf";
         constexpr const char* UI_BASE_STYLESHEET = "builtin/ui/base.rcss";
-        constexpr const char* UI_TEST_DOCUMENT = "ui/test.rml";
         constexpr const char* UI_CONTEXT_NAME = "main";
-
-        class ClickLogger : public Rml::EventListener {
-        public:
-            void ProcessEvent(Rml::Event& event) override {
-                debug::log("[UI] click: '{}'", event.GetCurrentElement()->GetId());
-            }
-        };
 
         int to_rml_key_modifiers() {
             const SDL_Keymod mod = SDL_GetModState();
@@ -117,22 +109,6 @@ namespace hob {
 
         update_logical_size();
 
-        Rml::ElementDocument* document = m_context->LoadDocument(UI_TEST_DOCUMENT);
-        if (document == nullptr) {
-            debug::log_error("UiSystem: could not load document '{}'", UI_TEST_DOCUMENT);
-        }
-        else {
-            apply_base_stylesheet(*document);
-            document->Show();
-            debug::log("Rml::LoadDocument('{}')", UI_TEST_DOCUMENT);
-
-            Rml::Element* button = document->GetElementById("btn");
-            if (button != nullptr) {
-                m_click_listener = std::make_unique<ClickLogger>();
-                button->AddEventListener("click", m_click_listener.get());
-            }
-        }
-
         m_is_initialized = true;
     }
 
@@ -204,6 +180,42 @@ namespace hob {
         m_render_interface.begin_frame(cmd, swap_tex);
         m_context->Render();
         m_render_interface.end_frame();
+    }
+
+    UiDocumentId UiSystem::load_document(const std::string& path) {
+        if (m_context == nullptr) {
+            return INVALID_UI_DOCUMENT_ID;
+        }
+
+        Rml::ElementDocument* document = m_context->LoadDocument(path);
+        if (document == nullptr) {
+            debug::log_error("UiSystem::load_document: could not load '{}'", path);
+            return INVALID_UI_DOCUMENT_ID;
+        }
+
+        apply_base_stylesheet(*document);
+
+        const UiDocumentId id = m_next_document_id++;
+        m_documents.emplace(id, UiDocument{document, path});
+        debug::log("UiSystem::load_document('{}') -> {}", path, id);
+        return id;
+    }
+
+    void UiSystem::show_document(UiDocumentId id) {
+        if (const UiDocument* document = find_document(id)) {
+            document->rml_document->Show();
+        }
+    }
+
+    void UiSystem::hide_document(UiDocumentId id) {
+        if (const UiDocument* document = find_document(id)) {
+            document->rml_document->Hide();
+        }
+    }
+
+    UiDocument* UiSystem::find_document(UiDocumentId id) {
+        const auto it = m_documents.find(id);
+        return (it != m_documents.end()) ? &it->second : nullptr;
     }
 
     void UiSystem::apply_base_stylesheet(Rml::ElementDocument& document) const {

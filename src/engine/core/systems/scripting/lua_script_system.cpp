@@ -170,6 +170,7 @@ namespace hob {
         bind_renderer();
         bind_timer();
         bind_input();
+        bind_ui();
         bind_physics();
         bind_entity_spawner();
         bind_scripts();

@@ -47,6 +47,7 @@ namespace hob {
         void bind_renderer();
         void bind_timer();
         void bind_input();
+        void bind_ui();
         void bind_physics();
         void bind_entity_spawner();
         void bind_scripts();

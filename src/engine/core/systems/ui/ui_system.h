@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
@@ -13,7 +15,6 @@
 
 namespace Rml {
     class Context;
-    class EventListener;
     class ElementDocument;
     class StyleSheetContainer;
 } // namespace Rml
@@ -23,6 +24,14 @@ namespace hob {
     class SdlContext;
     class Renderer;
     class Timer;
+
+    using UiDocumentId = int64_t;
+    constexpr UiDocumentId INVALID_UI_DOCUMENT_ID = -1;
+
+    struct UiDocument {
+        Rml::ElementDocument* rml_document = nullptr;
+        std::string path;
+    };
 
     class UiSystem {
         const SdlContext& m_sdl_context;
@@ -35,8 +44,10 @@ namespace hob {
         UiRenderInterface m_render_interface;
 
         Rml::Context* m_context = nullptr;
-        std::unique_ptr<Rml::EventListener> m_click_listener;
         std::shared_ptr<Rml::StyleSheetContainer> m_base_stylesheet;
+
+        std::unordered_map<UiDocumentId, UiDocument> m_documents;
+        UiDocumentId m_next_document_id = 0;
 
         Vector2 m_reference_resolution;
         UiScreenMatchMode m_screen_match_mode;
@@ -61,7 +72,12 @@ namespace hob {
 
         void render_pass(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex);
 
+        UiDocumentId load_document(const std::string& path);
+        void show_document(UiDocumentId id);
+        void hide_document(UiDocumentId id);
+
     private:
+        UiDocument* find_document(UiDocumentId id);
         void apply_base_stylesheet(Rml::ElementDocument& document) const;
         Vector2 compute_effective_logical_size(int window_width, int window_height) const;
         void update_logical_size();

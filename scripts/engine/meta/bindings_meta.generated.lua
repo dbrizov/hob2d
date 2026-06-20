@@ -89,6 +89,20 @@ function Input.get_mouse_screen_position() end
 ---@return boolean
 function Input.is_gamepad_connected() end
 
+-- UI
+---@class UI
+UI = {}
+
+---@param path string
+---@return integer
+function UI.load_document(path) end
+
+---@param doc integer
+function UI.show_document(doc) end
+
+---@param doc integer
+function UI.hide_document(doc) end
+
 -- Physics
 ---@class Physics
 Physics = {}
