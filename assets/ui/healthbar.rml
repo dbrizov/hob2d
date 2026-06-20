@@ -1,0 +1,11 @@
+<rml>
+<head>
+    <link type="text/rcss" href="ui/healthbar.rcss"/>
+</head>
+<body data-model="player_hud">
+    <div id="healthbar">
+        <div id="health_fill" data-style-width="fill_width"></div>
+        <span id="health_text">{{ health }} / {{ max_health }}</span>
+    </div>
+</body>
+</rml>

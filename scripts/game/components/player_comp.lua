@@ -19,9 +19,25 @@ function Player:init()
     self.camera_zoom_time = 0.0
     self.camera_min_zoom = 0.5
     self.camera_max_zoom = 2.0
+
+    self.max_health = 100
+    self.health = self.max_health
+    self.health_regen = 12.0 -- per second
+    self.fire_damage = 15
+    self.hud_model = nil
+    self.hud_doc = nil
 end
 
 function Player:enter_play()
+    -- The data model must exist before the document that binds to it loads.
+    self.hud_model = UI.create_model("player_hud", {
+        health = self.health,
+        max_health = self.max_health,
+        fill_width = "100%",
+    })
+    self.hud_doc = UI.load_document("ui/healthbar.rml")
+    UI.show_document(self.hud_doc)
+
     local input = self.entity:get_input()
 
     self.x_axis_id = input:bind_axis("horizontal", function(axis)
@@ -41,7 +57,7 @@ function Player:enter_play()
     end)
 
     self.fire_action_id = input:bind_action("fire", InputEventType.Pressed, function()
-        -- Debug.print("fire")
+        self:set_health(self.health - self.fire_damage)
     end)
 
     self.slow_motion_action_id = input:bind_action("slow_motion", InputEventType.Pressed, function()
@@ -58,6 +74,12 @@ function Player:exit_play()
     input:unbind_axis("aim_y", self.aim_y_axis_id)
     input:unbind_action("fire", self.fire_action_id)
     input:unbind_action("slow_motion", self.slow_motion_action_id)
+
+    -- Unload the document before destroying the model it binds to.
+    UI.unload_document(self.hud_doc)
+    UI.destroy_model(self.hud_model)
+    self.hud_doc = nil
+    self.hud_model = nil
 end
 
 function Player:physics_tick(fixed_delta_time)
@@ -66,6 +88,10 @@ end
 
 function Player:late_tick(delta_time)
     self:update_animation()
+
+    if self.health < self.max_health then
+        self:set_health(self.health + self.health_regen * delta_time)
+    end
 
     local position = self.entity:get_transform():get_position()
     self:update_camera_position(position, delta_time)
@@ -92,6 +118,17 @@ function Player:debug_draw_tick(delta_time)
     else
         Debug.draw_line(player_pos, mouse_world, Color.green())
     end
+end
+
+function Player:set_health(value)
+    self.health = math.max(0, math.min(self.max_health, value))
+    if self.hud_model == nil then
+        return
+    end
+
+    local percent = math.floor(self.health / self.max_health * 100)
+    UI.set(self.hud_model, "health", math.floor(self.health))
+    UI.set(self.hud_model, "fill_width", string.format("%d%%", percent))
 end
 
 function Player:update_animation()
