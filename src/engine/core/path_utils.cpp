@@ -36,4 +36,10 @@ namespace hob {
         std::filesystem::path input_config_path = root_path / "config" / "input_config.json";
         return input_config_path;
     }
+
+    std::filesystem::path PathUtils::get_log_path() {
+        const std::filesystem::path root_path = get_root_path();
+        std::filesystem::path log_path = root_path / "hob2d.log";
+        return log_path;
+    }
 } // namespace hob
