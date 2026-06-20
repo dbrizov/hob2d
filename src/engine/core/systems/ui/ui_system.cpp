@@ -162,6 +162,10 @@ namespace hob {
             return;
         }
 
+        Rml::RemoveContext(UI_CONTEXT_NAME);
+        m_context = nullptr;
+        log::ui.info("Rml::RemoveContext('{}')", UI_CONTEXT_NAME);
+
         Rml::Shutdown();
         log::ui.info("Rml::Shutdown");
     }
@@ -235,7 +239,6 @@ namespace hob {
 
         const UiDocumentId id = m_next_document_id++;
         m_documents.emplace(id, UiDocument{document, path});
-        log::ui.info("UiSystem::load_document('{}') -> {}", path, id);
         return id;
     }
 
@@ -359,7 +362,6 @@ namespace hob {
                 });
         }
 
-        log::ui.info("UiSystem::create_model('{}') -> {}", name, id);
         return id;
     }
 
