@@ -69,6 +69,7 @@ namespace hob {
 
 #ifndef NDEBUG
             poll_script_hot_reload(delta_time);
+            m_ui_system.poll_hot_reload(delta_time);
 #endif
 
             if (!m_console.is_open()) {

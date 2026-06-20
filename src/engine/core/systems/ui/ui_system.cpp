@@ -1,5 +1,6 @@
 #include "ui_system.h"
 
+#include <filesystem>
 #include <memory>
 
 #include <RmlUi/Core.h>
@@ -7,6 +8,7 @@
 
 #include "engine/core/debug.h"
 #include "engine/core/engine_config.h"
+#include "engine/core/path_utils.h"
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/core/systems/sdl_context.h"
 
@@ -354,4 +356,64 @@ namespace hob {
         m_render_interface.set_logical_size(logical_size);
         m_context->SetDimensions(Rml::Vector2i(static_cast<int>(logical_size.x), static_cast<int>(logical_size.y)));
     }
+
+#ifndef NDEBUG
+    void UiSystem::poll_hot_reload(float delta_time) {
+        constexpr float POLL_INTERVAL = 0.5f;
+        m_rcss_watch_accumulator += delta_time;
+        if (m_rcss_watch_accumulator < POLL_INTERVAL) {
+            return;
+        }
+        m_rcss_watch_accumulator = 0.0f;
+
+        const std::filesystem::path assets_root = PathUtils::get_assets_root_path();
+
+        std::filesystem::file_time_type newest = std::filesystem::file_time_type::min();
+        std::error_code ec;
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(assets_root, ec)) {
+            if (ec) {
+                return;
+            }
+
+            if (!entry.is_regular_file() || entry.path().extension() != ".rcss") {
+                continue;
+            }
+
+            const std::filesystem::file_time_type t = entry.last_write_time(ec);
+            if (!ec && t > newest) {
+                newest = t;
+            }
+        }
+
+        // First poll just records the baseline; never reload on startup.
+        if (!m_has_rcss_write_baseline) {
+            m_last_rcss_write_time = newest;
+            m_has_rcss_write_baseline = true;
+            return;
+        }
+
+        if (newest > m_last_rcss_write_time) {
+            m_last_rcss_write_time = newest;
+            reload_stylesheets();
+        }
+    }
+
+    void UiSystem::reload_stylesheets() {
+        Rml::Factory::ClearStyleSheetCache();
+
+        if (auto base = Rml::Factory::InstanceStyleSheetFile(UI_BASE_STYLESHEET)) {
+            m_base_stylesheet = std::move(base);
+        }
+        else {
+            debug::log_error("UiSystem: could not reload base stylesheet '{}'", UI_BASE_STYLESHEET);
+        }
+
+        for (auto& [id, document] : m_documents) {
+            document.rml_document->ReloadStyleSheet();
+            apply_base_stylesheet(*document.rml_document);
+        }
+
+        debug::print("[UI] RCSS hot reload");
+    }
+#endif
 } // namespace hob
