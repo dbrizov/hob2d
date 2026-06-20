@@ -199,17 +199,10 @@ namespace hob {
     }
 
     UiDocumentId UiSystem::load_document(const std::string& path) {
-        if (m_context == nullptr) {
-            return INVALID_UI_DOCUMENT_ID;
-        }
-
-        Rml::ElementDocument* document = m_context->LoadDocument(path);
+        Rml::ElementDocument* document = instantiate_document(path);
         if (document == nullptr) {
-            debug::log_error("UiSystem::load_document: could not load '{}'", path);
             return INVALID_UI_DOCUMENT_ID;
         }
-
-        apply_base_stylesheet(*document);
 
         const UiDocumentId id = m_next_document_id++;
         m_documents.emplace(id, UiDocument{document, path});
@@ -291,6 +284,53 @@ namespace hob {
         }
     }
 
+    void UiSystem::hot_reload_documents() {
+        Rml::Factory::ClearStyleSheetCache();
+
+        for (auto& [doc_id, document] : m_documents) {
+            Rml::ElementDocument* old_document = document.rml_document;
+
+            // Load the new document before unloading the old one, so a syntax error
+            // mid-edit leaves the existing document intact.
+            Rml::ElementDocument* new_document = instantiate_document(document.path);
+            if (new_document == nullptr) {
+                continue;
+            }
+
+            if (old_document->IsVisible()) {
+                new_document->Show();
+            }
+
+            m_context->UnloadDocument(old_document);
+            document.rml_document = new_document;
+
+            // Re-resolve element handles and re-attach listeners against the rebuilt tree
+            // (the old Rml::Element* are now destroyed). Handle ids stay stable for Lua.
+            for (auto& [id, ui_element] : m_elements) {
+                if (ui_element.document_id == doc_id) {
+                    ui_element.rml_element = new_document->GetElementById(ui_element.element_id);
+                }
+            }
+
+            for (auto& [id, ui_listener] : m_listeners) {
+                if (ui_listener.document_id != doc_id) {
+                    continue;
+                }
+
+                if (Rml::Element* target = new_document->GetElementById(ui_listener.element_id)) {
+                    target->AddEventListener(ui_listener.event, ui_listener.listener.get());
+                }
+                else {
+                    debug::log_error("UiSystem: listener element '{}' missing after reload of '{}'",
+                                     ui_listener.element_id,
+                                     document.path);
+                }
+            }
+        }
+
+        debug::print("[UI] RML hot reload");
+    }
+
     void UiSystem::hot_reload_stylesheets() {
         Rml::Factory::ClearStyleSheetCache();
 
@@ -311,40 +351,61 @@ namespace hob {
 
     void UiSystem::poll_hot_reload(float delta_time) {
         constexpr float POLL_INTERVAL = 0.5f;
-        m_rcss_watch_accumulator += delta_time;
-        if (m_rcss_watch_accumulator < POLL_INTERVAL) {
+        m_asset_watch_accumulator += delta_time;
+        if (m_asset_watch_accumulator < POLL_INTERVAL) {
             return;
         }
-        m_rcss_watch_accumulator = 0.0f;
+        m_asset_watch_accumulator = 0.0f;
 
         const std::filesystem::path assets_root = PathUtils::get_assets_root_path();
 
-        std::filesystem::file_time_type newest = std::filesystem::file_time_type::min();
+        std::filesystem::file_time_type newest_rml = std::filesystem::file_time_type::min();
+        std::filesystem::file_time_type newest_rcss = std::filesystem::file_time_type::min();
         std::error_code ec;
         for (const auto& entry : std::filesystem::recursive_directory_iterator(assets_root, ec)) {
             if (ec) {
                 return;
             }
 
-            if (!entry.is_regular_file() || entry.path().extension() != ".rcss") {
+            if (!entry.is_regular_file()) {
+                continue;
+            }
+
+            const std::filesystem::path ext = entry.path().extension();
+            std::filesystem::file_time_type* bucket = nullptr;
+            if (ext == ".rml") {
+                bucket = &newest_rml;
+            }
+            else if (ext == ".rcss") {
+                bucket = &newest_rcss;
+            }
+            else {
                 continue;
             }
 
             const std::filesystem::file_time_type t = entry.last_write_time(ec);
-            if (!ec && t > newest) {
-                newest = t;
+            if (!ec && t > *bucket) {
+                *bucket = t;
             }
         }
 
         // First poll just records the baseline; never reload on startup.
-        if (!m_has_rcss_write_baseline) {
-            m_last_rcss_write_time = newest;
-            m_has_rcss_write_baseline = true;
+        if (!m_has_asset_write_baseline) {
+            m_last_rml_write_time = newest_rml;
+            m_last_rcss_write_time = newest_rcss;
+            m_has_asset_write_baseline = true;
             return;
         }
 
-        if (newest > m_last_rcss_write_time) {
-            m_last_rcss_write_time = newest;
+        // An .rml change triggers a full document reload, which re-reads linked .rcss too,
+        // so absorb the .rcss baseline to avoid a redundant stylesheet reload next frame.
+        if (newest_rml > m_last_rml_write_time) {
+            m_last_rml_write_time = newest_rml;
+            m_last_rcss_write_time = newest_rcss;
+            hot_reload_documents();
+        }
+        else if (newest_rcss > m_last_rcss_write_time) {
+            m_last_rcss_write_time = newest_rcss;
             hot_reload_stylesheets();
         }
     }
@@ -357,6 +418,21 @@ namespace hob {
     UiElement* UiSystem::find_element(UiElementId id) {
         const auto it = m_elements.find(id);
         return (it != m_elements.end()) ? &it->second : nullptr;
+    }
+
+    Rml::ElementDocument* UiSystem::instantiate_document(const std::string& path) {
+        if (m_context == nullptr) {
+            return nullptr;
+        }
+
+        Rml::ElementDocument* document = m_context->LoadDocument(path);
+        if (document == nullptr) {
+            debug::log_error("UiSystem::instantiate_document: could not load '{}'", path);
+            return nullptr;
+        }
+
+        apply_base_stylesheet(*document);
+        return document;
     }
 
     void UiSystem::apply_base_stylesheet(Rml::ElementDocument& document) const {
