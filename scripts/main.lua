@@ -55,6 +55,14 @@ local btn_listener = UI.add_event_listener(btn, "click", function()
 end)
 -- UI.remove_event_listener(btn_listener)
 
+-- UI data binding test (Step 4a): a C++-owned model bound to a label via data-text.
+-- The model must be created before the document that references it is loaded.
+local counter_model = UI.create_model("counter", { count = 0 })
+local counter_doc = UI.load_document("ui/counter.rml")
+UI.show_document(counter_doc)
+UI.set(counter_model, "count", 42)
+Debug.log("[Lua] counter = " .. tostring(UI.get(counter_model, "count")))
+
 -- Dynamic entities for collision testing. With Y-up gravity these fall
 -- and pile up on the bottom wall and crates.
 -- local dyn_y = (ARENA_HALF_H - 1) * SCALE

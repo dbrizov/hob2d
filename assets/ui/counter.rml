@@ -1,0 +1,10 @@
+<rml>
+<head>
+    <link type="text/rcss" href="ui/counter.rcss"/>
+</head>
+<body data-model="counter">
+    <div id="counter_panel">
+        <span>Count: {{ count }}</span>
+    </div>
+</body>
+</rml>

@@ -68,6 +68,36 @@ namespace hob {
                     return -1;
             }
         }
+
+        Rml::Variant to_rml_variant(const UiValue& value) {
+            switch (value.index()) {
+                case 0:
+                    return Rml::Variant(std::get<bool>(value));
+                case 1:
+                    return Rml::Variant(std::get<int64_t>(value));
+                case 2:
+                    return Rml::Variant(std::get<double>(value));
+                default:
+                    return Rml::Variant(std::get<std::string>(value));
+            }
+        }
+
+        UiValue from_rml_variant(const Rml::Variant& variant) {
+            switch (variant.GetType()) {
+                case Rml::Variant::BOOL:
+                    return variant.Get<bool>();
+                case Rml::Variant::INT:
+                    return static_cast<int64_t>(variant.Get<int>());
+                case Rml::Variant::INT64:
+                    return variant.Get<int64_t>();
+                case Rml::Variant::FLOAT:
+                    return static_cast<double>(variant.Get<float>());
+                case Rml::Variant::DOUBLE:
+                    return variant.Get<double>();
+                default:
+                    return variant.Get<Rml::String>();
+            }
+        }
     } // namespace
 
     UiSystem::UiSystem(const UiSystemConfig& config,
@@ -210,6 +240,28 @@ namespace hob {
         return id;
     }
 
+    void UiSystem::unload_document(UiDocumentId id) {
+        const auto it = m_documents.find(id);
+        if (it == m_documents.end()) {
+            debug::log_error("UiSystem::unload_document: invalid document {}", id);
+            return;
+        }
+
+        // Unload first, then drop our records: unloading touches the listeners, and our records
+        // own them - freeing them earlier would leave RmlUi using freed memory.
+        m_context->UnloadDocument(it->second.rml_document);
+
+        for (auto l_it = m_listeners.begin(); l_it != m_listeners.end();) {
+            l_it = (l_it->second.document_id == id) ? m_listeners.erase(l_it) : std::next(l_it);
+        }
+
+        for (auto e_it = m_elements.begin(); e_it != m_elements.end();) {
+            e_it = (e_it->second.document_id == id) ? m_elements.erase(e_it) : std::next(e_it);
+        }
+
+        m_documents.erase(it);
+    }
+
     void UiSystem::show_document(UiDocumentId id) {
         if (const UiDocument* document = find_document(id)) {
             document->rml_document->Show();
@@ -274,6 +326,99 @@ namespace hob {
         }
 
         m_listeners.clear();
+    }
+
+    UiDataModelId UiSystem::create_model(const std::string& name,
+                                         const std::unordered_map<std::string, UiValue>& fields) {
+        if (m_context == nullptr) {
+            return INVALID_UI_DATA_MODEL_ID;
+        }
+
+        Rml::DataModelConstructor constructor = m_context->CreateDataModel(name);
+        if (!constructor) {
+            debug::log_error("UiSystem::create_model: could not create data model '{}'", name);
+            return INVALID_UI_DATA_MODEL_ID;
+        }
+
+        const UiDataModelId id = m_next_model_id++;
+        UiDataModel& model = m_models[id];
+        model.name = name;
+        model.values = fields;
+        model.constructor = std::make_unique<Rml::DataModelConstructor>(constructor);
+
+        // Bind each field through getter/setter into our C++-owned storage. The map nodes
+        // are address-stable, so capturing the slot pointer is safe for the model's lifetime.
+        for (auto& [field, value] : model.values) {
+            UiValue* slot = &value;
+            model.constructor->BindFunc(
+                field,
+                [slot](Rml::Variant& out) {
+                    out = to_rml_variant(*slot);
+                },
+                [slot](const Rml::Variant& in) {
+                    *slot = from_rml_variant(in);
+                });
+        }
+
+        debug::log("UiSystem::create_model('{}') -> {}", name, id);
+        return id;
+    }
+
+    void UiSystem::destroy_model(UiDataModelId id) {
+        const auto it = m_models.find(id);
+        if (it == m_models.end()) {
+            debug::log_error("UiSystem::destroy_model: invalid model {}", id);
+            return;
+        }
+
+        if (m_context != nullptr) {
+            m_context->RemoveDataModel(it->second.name);
+        }
+
+        m_models.erase(it);
+    }
+
+    void UiSystem::clear_data_models() {
+        if (m_context != nullptr) {
+            for (auto& [id, model] : m_models) {
+                m_context->RemoveDataModel(model.name);
+            }
+        }
+
+        m_models.clear();
+    }
+
+    UiValue UiSystem::get_model_value(UiDataModelId id, const std::string& field) {
+        UiDataModel* model = find_model(id);
+        if (model == nullptr) {
+            debug::log_error("UiSystem::get_model_value: invalid model {}", id);
+            return UiValue{};
+        }
+
+        const auto it = model->values.find(field);
+        if (it == model->values.end()) {
+            debug::log_error("UiSystem::get_model_value: model {} has no field '{}'", id, field);
+            return UiValue{};
+        }
+
+        return it->second;
+    }
+
+    void UiSystem::set_model_value(UiDataModelId id, const std::string& field, UiValue value) {
+        UiDataModel* model = find_model(id);
+        if (model == nullptr) {
+            debug::log_error("UiSystem::set_model_value: invalid model {}", id);
+            return;
+        }
+
+        const auto it = model->values.find(field);
+        if (it == model->values.end()) {
+            debug::log_error("UiSystem::set_model_value: model {} has no field '{}'", id, field);
+            return;
+        }
+
+        it->second = std::move(value);
+        model->constructor->GetModelHandle().DirtyVariable(field);
     }
 
     void UiSystem::detach_listener(const UiListener& record) {
@@ -418,6 +563,11 @@ namespace hob {
     UiElement* UiSystem::find_element(UiElementId id) {
         const auto it = m_elements.find(id);
         return (it != m_elements.end()) ? &it->second : nullptr;
+    }
+
+    UiDataModel* UiSystem::find_model(UiDataModelId id) {
+        const auto it = m_models.find(id);
+        return (it != m_models.end()) ? &it->second : nullptr;
     }
 
     Rml::ElementDocument* UiSystem::instantiate_document(const std::string& path) {

@@ -1,0 +1,16 @@
+body
+{
+    font-family: "JetBrains Mono";
+}
+
+#counter_panel
+{
+    position: absolute;
+    left: 100px;
+    top: 340px;
+    width: 300px;
+    padding: 16px;
+    background-color: #204020;
+    color: #ffffff;
+    font-size: 24px;
+}

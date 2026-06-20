@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include <SDL3/SDL_events.h>
@@ -18,6 +19,7 @@
 
 namespace Rml {
     class Context;
+    class DataModelConstructor;
     class Element;
     class ElementDocument;
     class EventListener;
@@ -39,6 +41,12 @@ namespace hob {
     using UiListenerId = int64_t;
     constexpr UiListenerId INVALID_UI_LISTENER_ID = -1;
 
+    using UiDataModelId = int64_t;
+    constexpr UiDataModelId INVALID_UI_DATA_MODEL_ID = -1;
+
+    // Scalar value stored in a data model field. Matches the Lua scalar types.
+    using UiValue = std::variant<bool, int64_t, double, std::string>;
+
     struct UiDocument {
         Rml::ElementDocument* rml_document = nullptr;
         std::string path;
@@ -55,6 +63,12 @@ namespace hob {
         std::string element_id;
         std::string event;
         std::unique_ptr<Rml::EventListener> listener;
+    };
+
+    struct UiDataModel {
+        std::string name;
+        std::unique_ptr<Rml::DataModelConstructor> constructor;
+        std::unordered_map<std::string, UiValue> values;
     };
 
     class UiSystem {
@@ -78,6 +92,9 @@ namespace hob {
 
         std::unordered_map<UiListenerId, UiListener> m_listeners;
         UiListenerId m_next_listener_id = 0;
+
+        std::unordered_map<UiDataModelId, UiDataModel> m_models;
+        UiDataModelId m_next_model_id = 0;
 
         Vector2 m_reference_resolution;
         UiScreenMatchMode m_screen_match_mode;
@@ -108,6 +125,7 @@ namespace hob {
         void render_pass(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex);
 
         UiDocumentId load_document(const std::string& path);
+        void unload_document(UiDocumentId id);
         void show_document(UiDocumentId id);
         void hide_document(UiDocumentId id);
 
@@ -119,6 +137,12 @@ namespace hob {
         void remove_event_listener(UiListenerId id);
         void clear_event_listeners();
 
+        UiDataModelId create_model(const std::string& name, const std::unordered_map<std::string, UiValue>& fields);
+        void destroy_model(UiDataModelId id);
+        void clear_data_models();
+        UiValue get_model_value(UiDataModelId id, const std::string& field);
+        void set_model_value(UiDataModelId id, const std::string& field, UiValue value);
+
         void hot_reload_documents();
         void hot_reload_stylesheets();
         void poll_hot_reload(float delta_time);
@@ -128,6 +152,7 @@ namespace hob {
 
         UiDocument* find_document(UiDocumentId id);
         UiElement* find_element(UiElementId id);
+        UiDataModel* find_model(UiDataModelId id);
 
         Rml::ElementDocument* instantiate_document(const std::string& path);
         void apply_base_stylesheet(Rml::ElementDocument& document) const;

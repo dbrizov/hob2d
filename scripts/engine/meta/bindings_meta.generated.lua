@@ -98,6 +98,9 @@ UI = {}
 function UI.load_document(path) end
 
 ---@param document integer
+function UI.unload_document(document) end
+
+---@param document integer
 function UI.show_document(document) end
 
 ---@param document integer
@@ -116,6 +119,24 @@ function UI.add_event_listener(element, event, fn) end
 
 ---@param listener integer
 function UI.remove_event_listener(listener) end
+
+---@param name string
+---@param fields table<string, boolean|integer|number|string>
+---@return integer
+function UI.create_model(name, fields) end
+
+---@param model integer
+function UI.destroy_model(model) end
+
+---@param model integer
+---@param field string
+---@return boolean|integer|number|string
+function UI.get(model, field) end
+
+---@param model integer
+---@param field string
+---@param value boolean|integer|number|string
+function UI.set(model, field, value) end
 
 -- Physics
 ---@class Physics
