@@ -16,5 +16,10 @@
     "ticks_per_second": 60,
     "sub_steps_per_tick": 4,
     "interpolation_enabled": true
+  },
+  "ui": {
+    "reference_width": 1920,
+    "reference_height": 1080,
+    "screen_match_mode": "expand"
   }
 }

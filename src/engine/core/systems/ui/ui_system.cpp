@@ -6,6 +6,7 @@
 #include <SDL3/SDL.h>
 
 #include "engine/core/debug.h"
+#include "engine/core/engine_config.h"
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/core/systems/sdl_context.h"
 
@@ -61,11 +62,17 @@ namespace hob {
         }
     } // namespace
 
-    UiSystem::UiSystem(const SdlContext& sdl_context, Renderer& renderer, const Timer& timer)
+    UiSystem::UiSystem(const UiSystemConfig& config,
+                       const SdlContext& sdl_context,
+                       Renderer& renderer,
+                       const Timer& timer)
         : m_sdl_context(sdl_context)
         , m_renderer(renderer)
         , m_system_interface(timer)
-        , m_render_interface(sdl_context, renderer) {
+        , m_render_interface(sdl_context, renderer)
+        , m_reference_resolution(static_cast<float>(config.reference_width),
+                                 static_cast<float>(config.reference_height))
+        , m_screen_match_mode(config.screen_match_mode) {
 
         if (!m_render_interface.init()) {
             debug::log_error("UiSystem init failed: render interface init failed");

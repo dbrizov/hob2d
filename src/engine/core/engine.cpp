@@ -19,7 +19,7 @@ namespace hob {
         , m_renderer(config, m_sdl_context, m_console)
         , m_timer(config)
         , m_input(m_sdl_context, m_renderer)
-        , m_ui_system(m_sdl_context, m_renderer, m_timer)
+        , m_ui_system(config.ui_system_config, m_sdl_context, m_renderer, m_timer)
         , m_physics(config, m_console)
         , m_entity_spawner(*this)
         , m_lua_script_system(*this) {}

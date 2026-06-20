@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <string>
 
+#include "engine/core/systems/ui/ui_screen_match_mode.h"
 #include "engine/math/vector2.h"
 
 namespace hob {
@@ -23,9 +24,16 @@ namespace hob {
         bool interpolation_enabled = true;
     };
 
+    struct UiSystemConfig {
+        uint32_t reference_width = 1920;
+        uint32_t reference_height = 1080;
+        UiScreenMatchMode screen_match_mode = UiScreenMatchMode::expand;
+    };
+
     struct EngineConfig {
         GraphicsConfig graphics_config;
         PhysicsConfig physics_config;
+        UiSystemConfig ui_system_config;
 
         EngineConfig() = default;
         explicit EngineConfig(const std::filesystem::path& json_path);

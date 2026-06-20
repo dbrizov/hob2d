@@ -5,11 +5,11 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
 
+#include "engine/math/vector2.h"
 #include "ui_file_interface.h"
 #include "ui_render_interface.h"
+#include "ui_screen_match_mode.h"
 #include "ui_system_interface.h"
-
-#include "engine/math/vector2.h"
 
 namespace Rml {
     class Context;
@@ -19,16 +19,10 @@ namespace Rml {
 } // namespace Rml
 
 namespace hob {
+    struct UiSystemConfig;
     class SdlContext;
     class Renderer;
     class Timer;
-
-    enum class UiScreenMatchMode {
-        match_width,
-        match_height,
-        expand,
-        shrink,
-    };
 
     class UiSystem {
         const SdlContext& m_sdl_context;
@@ -44,13 +38,13 @@ namespace hob {
         std::unique_ptr<Rml::EventListener> m_click_listener;
         std::shared_ptr<Rml::StyleSheetContainer> m_base_stylesheet;
 
-        Vector2 m_reference_resolution{1920.0f, 1080.0f};
-        UiScreenMatchMode m_screen_match_mode = UiScreenMatchMode::expand;
+        Vector2 m_reference_resolution;
+        UiScreenMatchMode m_screen_match_mode;
         int m_last_window_width = 0;
         int m_last_window_height = 0;
 
     public:
-        UiSystem(const SdlContext& sdl_context, Renderer& renderer, const Timer& timer);
+        UiSystem(const UiSystemConfig& config, const SdlContext& sdl_context, Renderer& renderer, const Timer& timer);
         ~UiSystem();
 
         UiSystem(const UiSystem&) = delete;
