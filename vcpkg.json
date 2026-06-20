@@ -25,6 +25,7 @@
         "sdlgpu3-binding"
       ]
     },
+    "rmlui",
     "lua",
     "sol2"
   ]

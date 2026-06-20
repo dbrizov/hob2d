@@ -87,7 +87,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE SDL3_image::SDL3_image)
 find_package(SDL3_ttf CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3_ttf::SDL3_ttf)
 
-# Find and link SDL3_shadercross (runtime HLSL -> DXIL/SPIR-V/MSL).
+# Find and link SDL3_shadercross.
 find_package(SDL3_shadercross CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3_shadercross::SDL3_shadercross)
 
@@ -95,9 +95,13 @@ target_link_libraries(${PROJECT_NAME} PRIVATE SDL3_shadercross::SDL3_shadercross
 find_package(box2d CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE box2d::box2d)
 
-# Find and link imgui
+# Find and link imgui.
 find_package(imgui CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui::imgui)
+
+# Find and link RmlUi.
+find_package(RmlUi CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE RmlUi::Core)
 
 # Find and link Lua + sol2.
 find_package(Lua REQUIRED)
