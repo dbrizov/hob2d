@@ -1,7 +1,7 @@
 #pragma once
 
 namespace hob {
-    struct EngineConfig;
+    struct GraphicsConfig;
 
     class Timer {
         uint32_t m_target_fps;
@@ -16,7 +16,7 @@ namespace hob {
         uint64_t m_last_frame_start_ticks;
 
     public:
-        explicit Timer(const EngineConfig& config);
+        explicit Timer(const GraphicsConfig& graphics_config);
 
         uint32_t get_fps() const;
         void set_fps(uint32_t fps);

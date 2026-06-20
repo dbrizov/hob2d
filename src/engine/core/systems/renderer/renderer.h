@@ -20,7 +20,7 @@
 #include "texture.h"
 
 namespace hob {
-    struct EngineConfig;
+    struct GraphicsConfig;
     class SdlContext;
     class Console;
 
@@ -120,7 +120,7 @@ namespace hob {
         bool m_cvar_show_sprite_queue = false;
 
     public:
-        Renderer(const EngineConfig& config, const SdlContext& sdl_context, Console& console);
+        Renderer(const GraphicsConfig& graphics_config, const SdlContext& sdl_context, Console& console);
         ~Renderer();
 
         Renderer(const Renderer&) = delete;

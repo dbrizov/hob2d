@@ -5,9 +5,9 @@
 #include "engine/core/engine_config.h"
 
 namespace hob {
-    Timer::Timer(const EngineConfig& config)
-        : m_target_fps(config.graphics_config.target_fps)
-        , m_vsync_enabled(config.graphics_config.vsync_enabled)
+    Timer::Timer(const GraphicsConfig& graphics_config)
+        : m_target_fps(graphics_config.target_fps)
+        , m_vsync_enabled(graphics_config.vsync_enabled)
         , m_time_scale(1.0f)
         , m_play_time(0.0f)
         , m_delta_time(0.0f)

@@ -44,13 +44,13 @@ namespace hob {
         return m_id;
     }
 
-    Physics::Physics(const EngineConfig& config, Console& console)
-        : m_physics_world(config.physics_config.gravity)
+    Physics::Physics(const PhysicsConfig& physics_config, Console& console)
+        : m_physics_world(physics_config.gravity)
         , m_accumulator(0.0f)
-        , m_fixed_delta_time(delta_time_from_ticks(config.physics_config.ticks_per_second))
-        , m_sub_steps_per_tick(config.physics_config.sub_steps_per_tick)
+        , m_fixed_delta_time(delta_time_from_ticks(physics_config.ticks_per_second))
+        , m_sub_steps_per_tick(physics_config.sub_steps_per_tick)
         , m_interpolation_fraction(0.0f)
-        , m_interpolation_enabled(config.physics_config.interpolation_enabled) {
+        , m_interpolation_enabled(physics_config.interpolation_enabled) {
         register_cvars(console);
     }
 
