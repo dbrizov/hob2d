@@ -202,61 +202,61 @@ namespace hob {
         m_has_sprite_view_projection = true;
     }
 
-    SpriteDrawHandle Renderer::register_sprite_draw() {
-        const int64_t index = static_cast<int64_t>(m_sprite_draws.size());
+    SpriteDrawId Renderer::register_sprite_draw() {
+        const SpriteDrawIndex index = static_cast<SpriteDrawIndex>(m_sprite_draws.size());
         m_sprite_draws.emplace_back();
 
-        SpriteDrawHandle handle;
-        if (!m_free_handles.empty()) {
-            handle = m_free_handles.back();
-            m_free_handles.pop_back();
-            m_handle_to_index[handle] = index;
+        SpriteDrawId draw_id;
+        if (!m_sprite_draw_free_ids.empty()) {
+            draw_id = m_sprite_draw_free_ids.back();
+            m_sprite_draw_free_ids.pop_back();
+            m_sprite_draw_id_to_index[draw_id] = index;
         }
         else {
-            handle = static_cast<SpriteDrawHandle>(m_handle_to_index.size());
-            m_handle_to_index.push_back(index);
+            draw_id = static_cast<SpriteDrawId>(m_sprite_draw_id_to_index.size());
+            m_sprite_draw_id_to_index.push_back(index);
         }
 
-        m_index_to_handle.push_back(handle);
-        return handle;
+        m_sprite_draw_index_to_id.push_back(draw_id);
+        return draw_id;
     }
 
-    void Renderer::unregister_sprite_draw(SpriteDrawHandle handle) {
-        if (handle < 0 || handle >= static_cast<SpriteDrawHandle>(m_handle_to_index.size())) {
+    void Renderer::unregister_sprite_draw(SpriteDrawId draw_id) {
+        if (draw_id < 0 || draw_id >= static_cast<SpriteDrawId>(m_sprite_draw_id_to_index.size())) {
             return;
         }
 
-        const int64_t index = m_handle_to_index[handle];
-        if (index == INVALID_SPRITE_DRAW_HANDLE) {
+        const SpriteDrawIndex index = m_sprite_draw_id_to_index[draw_id];
+        if (index == INVALID_SPRITE_DRAW_INDEX) {
             return;
         }
 
-        // Swap-pop the packed draw, then fix up the moved element's handle->index mapping.
-        const int64_t last_index = static_cast<int64_t>(m_sprite_draws.size()) - 1;
+        // Swap-pop the packed draw, then fix up the moved element's id->index mapping.
+        const SpriteDrawIndex last_index = static_cast<SpriteDrawIndex>(m_sprite_draws.size()) - 1;
         if (index != last_index) {
             m_sprite_draws[index] = std::move(m_sprite_draws[last_index]);
-            const SpriteDrawHandle moved_handle = m_index_to_handle[last_index];
-            m_index_to_handle[index] = moved_handle;
-            m_handle_to_index[moved_handle] = index;
+            const SpriteDrawId moved_id = m_sprite_draw_index_to_id[last_index];
+            m_sprite_draw_index_to_id[index] = moved_id;
+            m_sprite_draw_id_to_index[moved_id] = index;
         }
 
         m_sprite_draws.pop_back();
-        m_index_to_handle.pop_back();
-        m_handle_to_index[handle] = INVALID_SPRITE_DRAW_HANDLE;
-        m_free_handles.push_back(handle);
+        m_sprite_draw_index_to_id.pop_back();
+        m_sprite_draw_id_to_index[draw_id] = INVALID_SPRITE_DRAW_INDEX;
+        m_sprite_draw_free_ids.push_back(draw_id);
     }
 
-    void Renderer::update_sprite_draw(SpriteDrawHandle handle, const SpriteDrawData& draw) {
-        if (handle < 0 || handle >= static_cast<SpriteDrawHandle>(m_handle_to_index.size())) {
+    void Renderer::update_sprite_draw(SpriteDrawId draw_id, const SpriteDrawData& draw_data) {
+        if (draw_id < 0 || draw_id >= static_cast<SpriteDrawId>(m_sprite_draw_id_to_index.size())) {
             return;
         }
 
-        const int64_t index = m_handle_to_index[handle];
-        if (index == INVALID_SPRITE_DRAW_HANDLE) {
+        const SpriteDrawIndex index = m_sprite_draw_id_to_index[draw_id];
+        if (index == INVALID_SPRITE_DRAW_INDEX) {
             return;
         }
 
-        m_sprite_draws[index] = draw;
+        m_sprite_draws[index] = draw_data;
     }
 
     void Renderer::draw_debug_line(const Vector2& screen_start,

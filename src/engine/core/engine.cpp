@@ -225,7 +225,7 @@ namespace hob {
                                          (texture_height / sprite_ppm) * tr_scale.y * sp_scale.y);
             }
 
-            m_renderer.update_sprite_draw(sprite_comp->get_sprite_draw_handle(), draw_data);
+            m_renderer.update_sprite_draw(sprite_comp->get_sprite_draw_id(), draw_data);
         }
     }
 

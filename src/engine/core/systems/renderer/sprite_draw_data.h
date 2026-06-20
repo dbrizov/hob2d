@@ -1,12 +1,17 @@
 #pragma once
 
+#include <limits>
+
 #include "engine/math/vector2.h"
 #include "material.h"
 #include "texture.h"
 
 namespace hob {
-    using SpriteDrawHandle = int64_t;
-    constexpr SpriteDrawHandle INVALID_SPRITE_DRAW_HANDLE = -1;
+    using SpriteDrawId = int64_t;
+    constexpr SpriteDrawId INVALID_SPRITE_DRAW_ID = -1;
+
+    using SpriteDrawIndex = uint32_t;
+    constexpr SpriteDrawIndex INVALID_SPRITE_DRAW_INDEX = std::numeric_limits<SpriteDrawIndex>::max();
 
     struct SpriteDrawData {
         TextureRef texture;

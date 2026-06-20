@@ -13,23 +13,23 @@ namespace hob {
         : Component(entity) {}
 
     void SpriteComponent::enter_play() {
-        m_sprite_draw_handle = get_engine().get_renderer().register_sprite_draw();
+        m_sprite_draw_id = get_engine().get_renderer().register_sprite_draw();
         get_engine().get_entity_spawner().register_sprite(this);
         m_render_dirty = true;
     }
 
     void SpriteComponent::exit_play() {
         get_engine().get_entity_spawner().unregister_sprite(this);
-        get_engine().get_renderer().unregister_sprite_draw(m_sprite_draw_handle);
-        m_sprite_draw_handle = INVALID_SPRITE_DRAW_HANDLE;
+        get_engine().get_renderer().unregister_sprite_draw(m_sprite_draw_id);
+        m_sprite_draw_id = INVALID_SPRITE_DRAW_ID;
     }
 
     std::string SpriteComponent::to_string() const {
         return std::format("SpriteComponent(entity_id = {})", get_entity().get_id());
     }
 
-    SpriteDrawHandle SpriteComponent::get_sprite_draw_handle() const {
-        return m_sprite_draw_handle;
+    SpriteDrawId SpriteComponent::get_sprite_draw_id() const {
+        return m_sprite_draw_id;
     }
 
     bool SpriteComponent::consume_render_dirty() {

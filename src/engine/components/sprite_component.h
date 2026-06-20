@@ -22,7 +22,7 @@ namespace hob {
         int m_pixels_per_meter = 64;
 
         // A handle to the Renderer's sprite draw data.
-        SpriteDrawHandle m_sprite_draw_handle = INVALID_SPRITE_DRAW_HANDLE;
+        SpriteDrawId m_sprite_draw_id = INVALID_SPRITE_DRAW_ID;
 
         // Slot in EntitySpawner's sprite registry.
         SpriteIndex m_sprite_index = INVALID_SPRITE_INDEX;
@@ -41,7 +41,7 @@ namespace hob {
 
         std::string to_string() const override;
 
-        SpriteDrawHandle get_sprite_draw_handle() const;
+        SpriteDrawId get_sprite_draw_id() const;
 
         bool consume_render_dirty();
 

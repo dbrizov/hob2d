@@ -79,9 +79,9 @@ namespace hob {
         SDL_GPUTexture* m_swap_texture = nullptr;
 
         std::vector<SpriteDrawData> m_sprite_draws;
-        std::vector<int64_t> m_handle_to_index;
-        std::vector<SpriteDrawHandle> m_index_to_handle;
-        std::vector<SpriteDrawHandle> m_free_handles;
+        std::vector<SpriteDrawIndex> m_sprite_draw_id_to_index;
+        std::vector<SpriteDrawId> m_sprite_draw_index_to_id;
+        std::vector<SpriteDrawId> m_sprite_draw_free_ids;
         std::vector<uint32_t> m_sprite_draw_order;
 
         std::vector<DebugLineVertex> m_pending_debug_line_vertices;
@@ -147,9 +147,9 @@ namespace hob {
 
         void set_sprite_view_projection(const Matrix4x4& view_projection);
 
-        SpriteDrawHandle register_sprite_draw();
-        void unregister_sprite_draw(SpriteDrawHandle handle);
-        void update_sprite_draw(SpriteDrawHandle handle, const SpriteDrawData& draw);
+        SpriteDrawId register_sprite_draw();
+        void unregister_sprite_draw(SpriteDrawId draw_id);
+        void update_sprite_draw(SpriteDrawId draw_id, const SpriteDrawData& draw_data);
 
         void draw_debug_line(const Vector2& screen_start,
                              const Vector2& screen_end,
