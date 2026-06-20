@@ -47,6 +47,16 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E echo "Synced scripts to $<TARGET_FILE_DIR:${PROJECT_NAME}>/scripts"
 )
 
+# Copy the (redistributable, Release) MSVC C++ runtime DLLs next to the executable.
+if (MSVC)
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE) # we copy manually, no install() rule
+    include(InstallRequiredSystemLibraries)
+    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} "$<TARGET_FILE_DIR:${PROJECT_NAME}>/"
+            COMMAND_EXPAND_LISTS
+            COMMAND ${CMAKE_COMMAND} -E echo "Copied MSVC runtime DLLs next to $<TARGET_FILE_DIR:${PROJECT_NAME}>")
+endif ()
+
 # On macOS, DXC ships as libdxcompiler.dylib with install name
 # @rpath/libdxcompiler.dylib (provided by the arm64-osx directx-dxc overlay port).
 # Add @executable_path to the rpath and copy the dylib next to the executable so
@@ -140,19 +150,7 @@ target_precompile_headers(${PROJECT_NAME} PRIVATE
         <unordered_set>
         <cstdint>
 
-        # Graphics / windowing.
+        # Third party libraries.
         <SDL3/SDL.h>
-        <SDL3_image/SDL_image.h>
-        <SDL3_ttf/SDL_ttf.h>
-
-        # UI.
-        <imgui.h>
-        <imgui_impl_sdl3.h>
-        <imgui_impl_sdlgpu3.h>
-
-        # Physics.
-        <box2d/box2d.h>
-
-        # Scripting (heaviest single header in the project).
         <sol/sol.hpp>
 )
