@@ -19,6 +19,7 @@ namespace hob {
         , m_renderer(config, m_sdl_context, m_console)
         , m_timer(config)
         , m_input(m_sdl_context, m_renderer)
+        , m_ui_system(m_sdl_context, m_renderer, m_timer)
         , m_physics(config, m_console)
         , m_entity_spawner(*this)
         , m_lua_script_system(*this) {}
@@ -42,6 +43,7 @@ namespace hob {
             while (SDL_PollEvent(&event)) {
                 m_imgui_system.process_event(event);
                 m_input.process_event(event);
+                m_ui_system.process_event(event);
 
                 if (event.type == SDL_EVENT_QUIT) {
                     is_running = false;
@@ -79,6 +81,8 @@ namespace hob {
                 entity->late_tick(scaled_delta_time);
             }
 
+            m_ui_system.tick();
+
 #ifndef NDEBUG
             for (Entity* entity : entities) {
                 entity->debug_draw_tick(scaled_delta_time);
@@ -97,6 +101,7 @@ namespace hob {
                 m_renderer.render_blit_pass();
                 m_renderer.render_debug_lines_pass();
                 m_renderer.render_debug_text_pass();
+                m_ui_system.render_pass(m_renderer.get_command_buffer(), m_renderer.get_swap_texture());
                 m_imgui_system.render_pass(m_renderer.get_command_buffer(), m_renderer.get_swap_texture());
 
                 m_renderer.submit_command_buffer();
@@ -133,6 +138,10 @@ namespace hob {
 
     Input& Engine::get_input() {
         return m_input;
+    }
+
+    UiSystem& Engine::get_ui_system() {
+        return m_ui_system;
     }
 
     Physics& Engine::get_physics() {

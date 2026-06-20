@@ -11,6 +11,7 @@
 #include "systems/scripting/lua_script_system.h"
 #include "systems/sdl_context.h"
 #include "systems/timer.h"
+#include "systems/ui/ui_system.h"
 
 namespace hob {
     struct EngineConfig;
@@ -24,6 +25,7 @@ namespace hob {
         Renderer m_renderer;
         Timer m_timer;
         Input m_input;
+        UiSystem m_ui_system;
         Physics m_physics;
         EntitySpawner m_entity_spawner;
         LuaScriptSystem m_lua_script_system;
@@ -49,6 +51,7 @@ namespace hob {
         Renderer& get_renderer();
         Timer& get_timer();
         Input& get_input();
+        UiSystem& get_ui_system();
         Physics& get_physics();
         EntitySpawner& get_entity_spawner();
         LuaScriptSystem& get_lua_script_system();
