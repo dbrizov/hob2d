@@ -1,0 +1,9 @@
+/* RmlUi ships no user-agent stylesheet, so without these every element falls back to
+   display: inline (the CSS initial value). These give the expected block/inline defaults. */
+
+body, div, p, section, header, footer, nav, article, main { display: block; }
+h1, h2, h3, h4, h5, h6 { display: block; }
+ul, ol, li { display: block; }
+
+span, a, em, strong, b, i { display: inline; }
+img { display: inline-block; }

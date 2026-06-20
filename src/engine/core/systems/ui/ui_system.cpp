@@ -1,6 +1,9 @@
 #include "ui_system.h"
 
+#include <memory>
+
 #include <RmlUi/Core.h>
+#include <SDL3/SDL.h>
 
 #include "engine/core/debug.h"
 #include "engine/core/systems/renderer/renderer.h"
@@ -9,12 +12,59 @@
 namespace hob {
     namespace {
         constexpr const char* UI_FONT_PATH = "builtin/fonts/jetbrains_mono_bold.ttf";
+        constexpr const char* UI_BASE_STYLESHEET = "builtin/ui/base.rcss";
         constexpr const char* UI_TEST_DOCUMENT = "ui/test.rml";
         constexpr const char* UI_CONTEXT_NAME = "main";
+
+        class ClickLogger : public Rml::EventListener {
+        public:
+            void ProcessEvent(Rml::Event& event) override {
+                debug::log("[UI] click: '{}'", event.GetCurrentElement()->GetId());
+            }
+        };
+
+        int to_rml_key_modifiers() {
+            const SDL_Keymod mod = SDL_GetModState();
+            int result = 0;
+            if (mod & SDL_KMOD_CTRL) {
+                result |= Rml::Input::KM_CTRL;
+            }
+            if (mod & SDL_KMOD_SHIFT) {
+                result |= Rml::Input::KM_SHIFT;
+            }
+            if (mod & SDL_KMOD_ALT) {
+                result |= Rml::Input::KM_ALT;
+            }
+            if (mod & SDL_KMOD_GUI) {
+                result |= Rml::Input::KM_META;
+            }
+            if (mod & SDL_KMOD_CAPS) {
+                result |= Rml::Input::KM_CAPSLOCK;
+            }
+            if (mod & SDL_KMOD_NUM) {
+                result |= Rml::Input::KM_NUMLOCK;
+            }
+            return result;
+        }
+
+        int to_rml_mouse_button(uint8_t sdl_button) {
+            switch (sdl_button) {
+                case SDL_BUTTON_LEFT:
+                    return 0;
+                case SDL_BUTTON_RIGHT:
+                    return 1;
+                case SDL_BUTTON_MIDDLE:
+                    return 2;
+                default:
+                    return -1;
+            }
+        }
     } // namespace
 
     UiSystem::UiSystem(const SdlContext& sdl_context, Renderer& renderer, const Timer& timer)
-        : m_system_interface(timer)
+        : m_sdl_context(sdl_context)
+        , m_renderer(renderer)
+        , m_system_interface(timer)
         , m_render_interface(sdl_context, renderer) {
 
         if (!m_render_interface.init()) {
@@ -41,7 +91,12 @@ namespace hob {
 
         debug::log("Rml::LoadFontFace('{}')", UI_FONT_PATH);
 
-        const Vector2 logical_size = renderer.get_logical_size();
+        m_base_stylesheet = Rml::Factory::InstanceStyleSheetFile(UI_BASE_STYLESHEET);
+        if (!m_base_stylesheet) {
+            debug::log_error("UiSystem: could not load base stylesheet '{}'", UI_BASE_STYLESHEET);
+        }
+
+        const Vector2 logical_size = m_renderer.get_logical_size();
         const Rml::Vector2i dimensions(static_cast<int>(logical_size.x), static_cast<int>(logical_size.y));
 
         m_context = Rml::CreateContext(UI_CONTEXT_NAME, dimensions);
@@ -58,8 +113,15 @@ namespace hob {
             debug::log_error("UiSystem: could not load document '{}'", UI_TEST_DOCUMENT);
         }
         else {
+            apply_base_stylesheet(*document);
             document->Show();
             debug::log("Rml::LoadDocument('{}')", UI_TEST_DOCUMENT);
+
+            Rml::Element* button = document->GetElementById("btn");
+            if (button != nullptr) {
+                m_click_listener = std::make_unique<ClickLogger>();
+                button->AddEventListener("click", m_click_listener.get());
+            }
         }
 
         m_is_initialized = true;
@@ -78,7 +140,43 @@ namespace hob {
         return m_is_initialized;
     }
 
-    void UiSystem::process_event(const SDL_Event& event) {}
+    void UiSystem::process_event(const SDL_Event& event) {
+        if (m_context == nullptr) {
+            return;
+        }
+
+        switch (event.type) {
+            case SDL_EVENT_MOUSE_MOTION: {
+                const Vector2 window_size = m_sdl_context.get_window_size();
+                const Vector2 logical_size = m_renderer.get_logical_size();
+                const float sx = (window_size.x > 0.0f) ? logical_size.x / window_size.x : 1.0f;
+                const float sy = (window_size.y > 0.0f) ? logical_size.y / window_size.y : 1.0f;
+                m_context->ProcessMouseMove(static_cast<int>(event.motion.x * sx),
+                                            static_cast<int>(event.motion.y * sy),
+                                            to_rml_key_modifiers());
+                break;
+            }
+            case SDL_EVENT_MOUSE_BUTTON_DOWN: {
+                const int button = to_rml_mouse_button(event.button.button);
+                if (button >= 0) {
+                    m_context->ProcessMouseButtonDown(button, to_rml_key_modifiers());
+                }
+                break;
+            }
+            case SDL_EVENT_MOUSE_BUTTON_UP: {
+                const int button = to_rml_mouse_button(event.button.button);
+                if (button >= 0) {
+                    m_context->ProcessMouseButtonUp(button, to_rml_key_modifiers());
+                }
+                break;
+            }
+            case SDL_EVENT_MOUSE_WHEEL:
+                m_context->ProcessMouseWheel(-event.wheel.y, to_rml_key_modifiers());
+                break;
+            default:
+                break;
+        }
+    }
 
     void UiSystem::tick() {
         if (m_context == nullptr) {
@@ -96,5 +194,20 @@ namespace hob {
         m_render_interface.begin_frame(cmd, swap_tex);
         m_context->Render();
         m_render_interface.end_frame();
+    }
+
+    void UiSystem::apply_base_stylesheet(Rml::ElementDocument& document) const {
+        if (!m_base_stylesheet) {
+            return;
+        }
+
+        // Base first (lowest priority), the document's own styles merged on top.
+        auto combined = Rml::MakeShared<Rml::StyleSheetContainer>();
+        combined->MergeStyleSheetContainer(*m_base_stylesheet);
+        if (const Rml::StyleSheetContainer* document_stylesheet = document.GetStyleSheetContainer()) {
+            combined->MergeStyleSheetContainer(*document_stylesheet);
+        }
+
+        document.SetStyleSheetContainer(combined);
     }
 } // namespace hob

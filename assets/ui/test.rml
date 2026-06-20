@@ -3,6 +3,8 @@
     <link type="text/rcss" href="ui/test.rcss"/>
 </head>
 <body>
-    <div id="box">Hello, RmlUi! This line is long enough to be clipped.</div>
+    <div id="box">
+        <div id="btn">Click me</div>
+    </div>
 </body>
 </rml>
