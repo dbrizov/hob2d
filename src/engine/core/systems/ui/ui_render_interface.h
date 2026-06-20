@@ -3,6 +3,9 @@
 #include <RmlUi/Core/RenderInterface.h>
 #include <RmlUi/Core/Types.h>
 #include <RmlUi/Core/Vertex.h>
+#include <SDL3/SDL_gpu.h>
+
+#include "engine/math/matrix4x4.h"
 
 namespace hob {
     class SdlContext;
@@ -12,8 +15,25 @@ namespace hob {
         const SdlContext& m_sdl_context;
         Renderer& m_renderer;
 
+        SDL_GPUGraphicsPipeline* m_pipeline = nullptr;
+        SDL_GPUSampler* m_sampler = nullptr;
+        SDL_GPUTexture* m_white_texture = nullptr;
+        Matrix4x4 m_projection;
+
+        SDL_GPUCommandBuffer* m_active_cmd = nullptr;
+        SDL_GPURenderPass* m_active_pass = nullptr;
+
+        bool m_is_initialized = false;
+
     public:
         UiRenderInterface(const SdlContext& sdl_context, Renderer& renderer);
+        ~UiRenderInterface() override;
+
+        bool init();
+        bool is_initialized() const;
+
+        void begin_frame(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex);
+        void end_frame();
 
         Rml::CompiledGeometryHandle CompileGeometry(Rml::Span<const Rml::Vertex> vertices,
                                                     Rml::Span<const int> indices) override;

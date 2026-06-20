@@ -12,12 +12,18 @@
 namespace hob {
     namespace {
         constexpr std::string_view UI_FONT_PATH = "assets/builtin/fonts/jetbrains_mono_bold.ttf";
+        constexpr std::string_view UI_TEST_DOCUMENT = "assets/ui/test.rml";
         constexpr const char* UI_CONTEXT_NAME = "main";
     } // namespace
 
     UiSystem::UiSystem(const SdlContext& sdl_context, Renderer& renderer, const Timer& timer)
         : m_system_interface(timer)
         , m_render_interface(sdl_context, renderer) {
+
+        if (!m_render_interface.init()) {
+            debug::log_error("UiSystem init failed: render interface init failed");
+            return;
+        }
 
         Rml::SetSystemInterface(&m_system_interface);
         Rml::SetRenderInterface(&m_render_interface);
@@ -50,6 +56,16 @@ namespace hob {
 
         debug::log("Rml::CreateContext('{}', {}x{})", UI_CONTEXT_NAME, dimensions.x, dimensions.y);
 
+        const std::filesystem::path doc_path = PathUtils::get_root_path() / std::filesystem::path(UI_TEST_DOCUMENT);
+        Rml::ElementDocument* document = m_context->LoadDocument(doc_path.string());
+        if (document == nullptr) {
+            debug::log_error("UiSystem: could not load document '{}'", doc_path.string());
+        }
+        else {
+            document->Show();
+            debug::log("Rml::LoadDocument('{}')", UI_TEST_DOCUMENT);
+        }
+
         m_is_initialized = true;
     }
 
@@ -81,6 +97,8 @@ namespace hob {
             return;
         }
 
+        m_render_interface.begin_frame(cmd, swap_tex);
         m_context->Render();
+        m_render_interface.end_frame();
     }
 } // namespace hob

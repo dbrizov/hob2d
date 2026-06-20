@@ -24,57 +24,54 @@ namespace hob {
             f.read(contents.data(), size);
             return contents;
         }
-
-        SDL_GPUShader* load_shader(SDL_GPUDevice* device,
-                                   const std::filesystem::path& hlsl_path,
-                                   SDL_ShaderCross_ShaderStage stage) {
-            const std::string source = read_text_file(hlsl_path);
-            if (source.empty()) {
-                debug::log_error("Failed to read shader: {}", hlsl_path.string());
-                return nullptr;
-            }
-
-            SDL_ShaderCross_HLSL_Info hlsl_info{};
-            hlsl_info.source = source.c_str();
-            hlsl_info.entrypoint = "main";
-            hlsl_info.shader_stage = stage;
-
-            size_t spirv_size = 0;
-            void* spirv = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &spirv_size);
-            if (!spirv) {
-                debug::log_error("CompileSPIRVFromHLSL failed for {}: {}", hlsl_path.string(), SDL_GetError());
-                return nullptr;
-            }
-
-            SDL_ShaderCross_GraphicsShaderMetadata* meta =
-                SDL_ShaderCross_ReflectGraphicsSPIRV(static_cast<Uint8*>(spirv), spirv_size, 0);
-            if (!meta) {
-                debug::log_error("ReflectGraphicsSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
-                SDL_free(spirv);
-                return nullptr;
-            }
-
-            SDL_ShaderCross_SPIRV_Info sp_info{};
-            sp_info.bytecode = static_cast<Uint8*>(spirv);
-            sp_info.bytecode_size = spirv_size;
-            sp_info.entrypoint = "main";
-            sp_info.shader_stage = stage;
-
-            SDL_GPUShader* shader =
-                SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(device, &sp_info, &meta->resource_info, 0);
-
-            SDL_free(spirv);
-            SDL_free(meta);
-
-            if (!shader) {
-                debug::log_error(
-                    "CompileGraphicsShaderFromSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
-                return nullptr;
-            }
-
-            return shader;
-        }
     } // namespace
+
+    SDL_GPUShader* Renderer::load_shader(const std::filesystem::path& hlsl_path, SDL_ShaderCross_ShaderStage stage) {
+        const std::string source = read_text_file(hlsl_path);
+        if (source.empty()) {
+            debug::log_error("Failed to read shader: {}", hlsl_path.string());
+            return nullptr;
+        }
+
+        SDL_ShaderCross_HLSL_Info hlsl_info{};
+        hlsl_info.source = source.c_str();
+        hlsl_info.entrypoint = "main";
+        hlsl_info.shader_stage = stage;
+
+        size_t spirv_size = 0;
+        void* spirv = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &spirv_size);
+        if (!spirv) {
+            debug::log_error("CompileSPIRVFromHLSL failed for {}: {}", hlsl_path.string(), SDL_GetError());
+            return nullptr;
+        }
+
+        SDL_ShaderCross_GraphicsShaderMetadata* meta =
+            SDL_ShaderCross_ReflectGraphicsSPIRV(static_cast<Uint8*>(spirv), spirv_size, 0);
+        if (!meta) {
+            debug::log_error("ReflectGraphicsSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
+            SDL_free(spirv);
+            return nullptr;
+        }
+
+        SDL_ShaderCross_SPIRV_Info sp_info{};
+        sp_info.bytecode = static_cast<Uint8*>(spirv);
+        sp_info.bytecode_size = spirv_size;
+        sp_info.entrypoint = "main";
+        sp_info.shader_stage = stage;
+
+        SDL_GPUShader* shader =
+            SDL_ShaderCross_CompileGraphicsShaderFromSPIRV(m_gpu_device, &sp_info, &meta->resource_info, 0);
+
+        SDL_free(spirv);
+        SDL_free(meta);
+
+        if (!shader) {
+            debug::log_error("CompileGraphicsShaderFromSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
+            return nullptr;
+        }
+
+        return shader;
+    }
 
     ShaderId Renderer::get_or_build_sprite_shader(const std::string& path) {
         if (path.empty()) {
@@ -205,15 +202,13 @@ namespace hob {
     bool Renderer::init_blit_pipeline() {
         const std::filesystem::path shader_dir = PathUtils::get_assets_root_path() / BUILTIN_SHADERS_DIR;
 
-        SDL_GPUShader* vs =
-            load_shader(m_gpu_device, shader_dir / "blit.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
+        SDL_GPUShader* vs = load_shader(shader_dir / "blit.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
         if (!vs) {
             return false;
         }
 
-        SDL_GPUShader* fs =
-            load_shader(m_gpu_device, shader_dir / "blit.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
+        SDL_GPUShader* fs = load_shader(shader_dir / "blit.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
 
         if (!fs) {
             SDL_ReleaseGPUShader(m_gpu_device, vs);
@@ -253,15 +248,13 @@ namespace hob {
     bool Renderer::init_debug_line_pipeline() {
         const std::filesystem::path shader_dir = PathUtils::get_assets_root_path() / BUILTIN_SHADERS_DIR;
 
-        SDL_GPUShader* vs =
-            load_shader(m_gpu_device, shader_dir / "line.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
+        SDL_GPUShader* vs = load_shader(shader_dir / "line.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
         if (!vs) {
             return false;
         }
 
-        SDL_GPUShader* fs =
-            load_shader(m_gpu_device, shader_dir / "line.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
+        SDL_GPUShader* fs = load_shader(shader_dir / "line.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
 
         if (!fs) {
             SDL_ReleaseGPUShader(m_gpu_device, vs);
@@ -346,15 +339,13 @@ namespace hob {
     bool Renderer::init_debug_text_pipeline() {
         const std::filesystem::path shader_dir = PathUtils::get_assets_root_path() / BUILTIN_SHADERS_DIR;
 
-        SDL_GPUShader* vs =
-            load_shader(m_gpu_device, shader_dir / "debug_text.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
+        SDL_GPUShader* vs = load_shader(shader_dir / "debug_text.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
         if (!vs) {
             return false;
         }
 
-        SDL_GPUShader* fs =
-            load_shader(m_gpu_device, shader_dir / "debug_text.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
+        SDL_GPUShader* fs = load_shader(shader_dir / "debug_text.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
 
         if (!fs) {
             SDL_ReleaseGPUShader(m_gpu_device, vs);
@@ -495,12 +486,12 @@ namespace hob {
         const std::filesystem::path vert_path = assets_root / (path + ".vert.hlsl");
         const std::filesystem::path frag_path = assets_root / (path + ".frag.hlsl");
 
-        SDL_GPUShader* vs = load_shader(m_gpu_device, vert_path, SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
+        SDL_GPUShader* vs = load_shader(vert_path, SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
         if (!vs) {
             return nullptr;
         }
 
-        SDL_GPUShader* fs = load_shader(m_gpu_device, frag_path, SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
+        SDL_GPUShader* fs = load_shader(frag_path, SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
         if (!fs) {
             SDL_ReleaseGPUShader(m_gpu_device, vs);
             return nullptr;

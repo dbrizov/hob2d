@@ -41,7 +41,7 @@ function Player:enter_play()
     end)
 
     self.fire_action_id = input:bind_action("fire", InputEventType.Pressed, function()
-        Debug.print("fire")
+        -- Debug.print("fire")
     end)
 
     self.slow_motion_action_id = input:bind_action("slow_motion", InputEventType.Pressed, function()

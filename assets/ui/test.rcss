@@ -1,0 +1,14 @@
+body
+{
+    font-family: "JetBrains Mono";
+}
+
+#box
+{
+    position: absolute;
+    left: 100px;
+    top: 100px;
+    width: 300px;
+    height: 200px;
+    background-color: #3070ff;
+}

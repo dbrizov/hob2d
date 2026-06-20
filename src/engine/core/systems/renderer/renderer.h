@@ -9,6 +9,7 @@
 #include <vector>
 
 #include <SDL3/SDL_gpu.h>
+#include <SDL3_shadercross/SDL_shadercross.h>
 
 #include "engine/math/color.h"
 #include "engine/math/matrix4x4.h"
@@ -167,14 +168,15 @@ namespace hob {
         TextureRef get_or_load_texture(const std::string& path);
         ShaderId get_or_build_sprite_shader(const std::string& path);
 
+        SDL_GPUShader* load_shader(const std::filesystem::path& hlsl_path, SDL_ShaderCross_ShaderStage stage);
+        bool upload_buffer(SDL_GPUBuffer* dst_buffer, const void* data, uint32_t size);
+        bool upload_texture_rgba(SDL_GPUTexture* dst_texture, const void* pixels, uint32_t width, uint32_t height);
+
     private:
         friend class Texture;
         friend class Font;
 
         void release_texture(const Texture& texture);
-
-        bool upload_buffer(SDL_GPUBuffer* dst_buffer, const void* data, uint32_t size);
-        bool upload_texture_rgba(SDL_GPUTexture* dst_texture, const void* pixels, uint32_t width, uint32_t height);
 
         bool init_offscreen_target();
         bool init_samplers();

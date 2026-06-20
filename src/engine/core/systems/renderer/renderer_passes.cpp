@@ -11,13 +11,11 @@ namespace hob {
             return {c.r, c.g, c.b, c.a};
         }
 
-        // Byte layout for the world sprite vertex shader (cbuffer @ b0, space1):
-        //  - world sprite.vert.hlsl: { view_proj, world_pos, size(meters), pivot(fraction), rotation }
-        // HLSL default packing: float2 pairs share a 16-byte slot.
+        // HLSL rounds the cbuffer size up to a 16-byte boundary.
         struct SpriteVSUniforms {
             float proj[16]; // 0..64
             float position[2]; // 64..72
-            float size[2]; // 72..80   (packs with position)
+            float size[2]; // 72..80
             float pivot[2]; // 80..88
             float rotation; // 88..92
             float _pad; // 92..96
@@ -25,7 +23,7 @@ namespace hob {
 
         static_assert(sizeof(SpriteVSUniforms) == 96);
 
-        // Must match the HLSL cbuffer layout in sprite.frag.hlsl (cbuffer @ b0, space3).
+        // HLSL rounds the cbuffer size up to a 16-byte boundary.
         struct SpriteFSUniforms {
             float tint[4]; // 0..16
             float outline_color[4]; // 16..32
