@@ -386,11 +386,18 @@ figure {
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 144px;
+    gap: 72px;
     background: var(--surface-2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 28px 20px;
+}
+
+/* Demo media (video / screenshot): native size on desktop (crisp), shrinks to fit on mobile. */
+.demo-media {
+    max-width: 100%;
+    height: auto;
+    display: block;
 }
 
 /* Healthbar demo — mirrors assets/ui/healthbar.rcss */
