@@ -35,7 +35,7 @@ namespace hob {
         void poll_hot_reload(float delta_time);
 
     private:
-        void refresh_lua_component_hook_caches();
+        void refresh_lua_component_class_caches();
 
         bool run_file(const std::filesystem::path& relative_path);
         bool run_folder(const std::filesystem::path& relative_path, const std::vector<std::string>& excludes = {});

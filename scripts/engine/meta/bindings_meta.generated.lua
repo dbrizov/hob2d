@@ -374,6 +374,7 @@ _G.Circle = Circle
 ---@field b number
 ---@field a number
 ---@overload fun(): Color
+---@overload fun(r: number, g: number, b: number): Color
 ---@overload fun(r: number, g: number, b: number, a: number): Color
 local Color = {}
 
@@ -468,6 +469,9 @@ function Entity:get_lua_component(class_name) end
 
 ---@return LuaComponent[]
 function Entity:get_lua_components() end
+
+---@return Component[]
+function Entity:get_components() end
 
 ---@return RigidbodyComponent?
 function Entity:add_rigidbody() end

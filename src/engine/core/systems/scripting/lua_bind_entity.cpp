@@ -144,6 +144,17 @@ namespace hob {
                     return out;
                 },
                 "(): LuaComponent[]")
+            .method_sig(
+                "get_components",
+                [](const EntityRef& r) -> std::vector<Component*> {
+                    Entity* e = r.resolve();
+                    if (e == nullptr) {
+                        return {};
+                    }
+
+                    return e->get_components<Component>();
+                },
+                "(): Component[]")
             .op_tostring([](const EntityRef& r) {
                 Entity* e = r.resolve();
                 return e ? e->to_string() : std::format("Entity(invalid, id = {})", r.get_id());

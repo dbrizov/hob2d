@@ -65,7 +65,14 @@ namespace hob {
         return *m_impl;
     }
 
-    void LuaScriptComponent::refresh_hook_cache() {
+    void LuaScriptComponent::refresh_class_cache() {
+        if (!m_impl->lua_instance.valid()) {
+            return;
+        }
+
+        const sol::optional<int> priority = m_impl->lua_instance["priority"];
+        m_priority = priority.value_or(component_priority::CP_DEFAULT);
+
         m_impl->init = resolve_hook(m_impl->lua_instance, "init");
         m_impl->enter_play = resolve_hook(m_impl->lua_instance, "enter_play");
         m_impl->exit_play = resolve_hook(m_impl->lua_instance, "exit_play");
@@ -133,7 +140,7 @@ namespace hob {
         m_impl->lua_instance["entity"] = EntityRef(get_entity().get_id(), get_engine().get_entity_spawner());
         m_impl->lua_instance["class_name"] = m_class_name;
 
-        refresh_hook_cache();
+        refresh_class_cache();
 
         invoke_hook(m_impl->init, m_impl->lua_instance, "init");
     }

@@ -10,7 +10,7 @@ namespace hob {
         void emit_ctor_overloads(std::ostringstream& out, const LuaUsertypeInfo& ut) {
             for (const auto& c : ut.ctors) {
                 const bool use_explicit_names = c.arg_names.size() == c.args.size();
-                const bool use_field_names = !use_explicit_names && c.args.size() == ut.fields.size();
+                const bool use_field_names = !use_explicit_names && c.args.size() <= ut.fields.size();
                 out << "---@overload fun(";
                 for (std::size_t i = 0; i < c.args.size(); ++i) {
                     if (i > 0) {

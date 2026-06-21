@@ -113,8 +113,8 @@ namespace hob {
     bool LuaScriptSystem::hot_reload() {
         const bool success = run_file("scripts/engine/hot_reload.lua");
         if (success) {
-            refresh_lua_component_hook_caches();
-            debug::print("[Lua] hot reload");
+            refresh_lua_component_class_caches();
+            debug::print(Color::white(), 5.0f, "[Lua] hot reload");
         }
         else {
             log::lua.error("hot reload failed");
@@ -163,13 +163,19 @@ namespace hob {
         }
     }
 
-    void LuaScriptSystem::refresh_lua_component_hook_caches() {
+    void LuaScriptSystem::refresh_lua_component_class_caches() {
         std::vector<Entity*> entities;
         m_engine.get_entity_spawner().get_entities(entities);
 
         for (Entity* entity : entities) {
-            for (LuaScriptComponent* component : entity->get_components<LuaScriptComponent>()) {
-                component->refresh_hook_cache();
+            const std::vector<LuaScriptComponent*> components = entity->get_components<LuaScriptComponent>();
+            for (LuaScriptComponent* component : components) {
+                component->refresh_class_cache();
+            }
+
+            // Priorities may have changed during refresh; re-sort so execution order stays correct.
+            if (!components.empty()) {
+                entity->sort_components();
             }
         }
     }

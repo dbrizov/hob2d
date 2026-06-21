@@ -80,7 +80,6 @@ namespace hob {
         template<ComponentType T>
         std::vector<T*> get_components() const;
 
-    private:
         void sort_components();
     };
 

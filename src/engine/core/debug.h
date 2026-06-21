@@ -19,10 +19,9 @@ namespace hob {
         constexpr int DEFAULT_CIRCLE_SEGMENTS = 16;
 
         constexpr Color DEFAULT_MESSAGE_COLOR = Color::white();
-        constexpr float DEFAULT_MESSAGE_DURATION = 5.0f;
+        constexpr float DEFAULT_MESSAGE_DURATION = 0.0f;
         constexpr float MESSAGE_MARGIN_X = 8.0f;
         constexpr float MESSAGE_MARGIN_Y = 8.0f;
-        constexpr float MESSAGE_FADE_DURATION = 0.3f;
         constexpr uint32_t MAX_ON_SCREEN_MESSAGES = 32;
 
         // Debug primitives

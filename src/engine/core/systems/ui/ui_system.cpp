@@ -542,7 +542,7 @@ namespace hob {
             }
         }
 
-        debug::print("[UI] RML hot reload");
+        debug::print(Color::white(), 5.0f, "[UI] RML hot reload");
     }
 
     void UiSystem::hot_reload_stylesheets() {
@@ -560,7 +560,7 @@ namespace hob {
             apply_base_stylesheet(*document.rml_document);
         }
 
-        debug::print("[UI] RCSS hot reload");
+        debug::print(Color::white(), 5.0f, "[UI] RCSS hot reload");
     }
 
     void UiSystem::poll_hot_reload(float delta_time) {

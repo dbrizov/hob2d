@@ -21,9 +21,19 @@
 -- `Materials.Foo`, `AnimationClips.Foo`, etc.
 _G.__factory_alias_names = _G.__factory_alias_names or {}
 
+-- Per-registry cache-clear callbacks, invoked by __clear_factory_caches() on hot reload so
+-- redefined factory objects (e.g. DefineMaterial) rebuild lazily from their updated defs.
+_G.__factory_cache_clearers = {}
+
 local function install_factory_registry(registry_name, schema)
     local defs = {}
     local built = {}
+
+    _G.__factory_cache_clearers[#_G.__factory_cache_clearers + 1] = function()
+        for name in pairs(built) do
+            built[name] = nil
+        end
+    end
 
     local names = {}
     local seen = {}
@@ -84,6 +94,13 @@ local function install_factory_registry(registry_name, schema)
             return wrapper
         end,
     })
+end
+
+-- Drop every cached factory object so redefined defs (materials, animation clips, ...) rebuild.
+function _G.__clear_factory_caches()
+    for _, clear in ipairs(_G.__factory_cache_clearers) do
+        clear()
+    end
 end
 
 function _G.__install_factory_registries()

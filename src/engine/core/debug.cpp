@@ -72,10 +72,7 @@ namespace hob::debug {
         const float margin_x = MESSAGE_MARGIN_X * scale_factor;
         float pen_y = MESSAGE_MARGIN_Y * scale_factor;
         for (const DebugMessage& msg : messages) {
-            const float fade = std::clamp(msg.duration / MESSAGE_FADE_DURATION, 0.0f, 1.0f);
-            Color c = msg.color;
-            c.a *= fade;
-            renderer.draw_debug_text(Vector2(margin_x, pen_y), msg.text, c, scale_factor);
+            renderer.draw_debug_text(Vector2(margin_x, pen_y), msg.text, msg.color, scale_factor);
             pen_y += base_line_height * scale_factor;
         }
 

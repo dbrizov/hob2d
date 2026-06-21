@@ -74,7 +74,7 @@ namespace hob {
             .field("radius", &Circle::radius);
 
         bind_usertype<Color>(m_lua, m_meta)
-            .ctors<sol::types<>, sol::types<float, float, float, float>>()
+            .ctors<sol::types<>, sol::types<float, float, float>, sol::types<float, float, float, float>>()
             .field("r", &Color::r)
             .field("g", &Color::g)
             .field("b", &Color::b)
