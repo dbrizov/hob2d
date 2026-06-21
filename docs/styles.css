@@ -9,6 +9,17 @@
     --accent: #f59e0b;
     --accent-2: #fbbf24;
     --accent-soft: rgba(245, 158, 11, 0.14);
+
+    /* Syntax highlighting — Ayu Dark palette */
+    --syntax-comment: #5c6773;
+    --syntax-keyword: #ff8f40;
+    --syntax-class: #59c2ff;
+    --syntax-fn: #ffb454;
+    --syntax-prop: #ffd173;
+    --syntax-string: #aad94c;
+    --syntax-number: #d2a6ff;
+    --syntax-tag: #5ccfe6;
+
     --radius: 14px;
     --maxw: 1080px;
     --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -286,48 +297,49 @@ pre {
     color: #d7dde6;
 }
 
-/* Syntax highlighting — Ayu Dark palette */
+/* Syntax highlighting — tokens use the --syntax-* palette in :root */
 pre .cmt {
-    color: #5c6773;
+    color: var(--syntax-comment);
     font-style: italic;
 }
 
 pre .kw {
-    color: #ff8f40;
+    color: var(--syntax-keyword);
 }
 
 pre .cls {
-    color: #59c2ff;
+    color: var(--syntax-class);
 }
 
 pre .fn {
-    color: #ffb454;
+    color: var(--syntax-fn);
 }
 
 pre .prop {
-    color: #ffd173;
+    color: var(--syntax-prop);
 }
 
 pre .str {
-    color: #aad94c;
+    color: var(--syntax-string);
 }
 
 pre .num {
-    color: #d2a6ff;
+    color: var(--syntax-number);
 }
 
 pre .tag {
-    color: #5ccfe6;
+    color: var(--syntax-tag);
 }
 
 pre .attr {
-    color: #ffd173;
+    color: var(--syntax-prop);
 }
 
 code {
     font-family: var(--mono);
     font-size: 0.9em;
     background: var(--surface-2);
+    color: var(--syntax-keyword);
     padding: 2px 6px;
     border-radius: 6px;
 }
