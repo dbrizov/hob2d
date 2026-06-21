@@ -106,8 +106,8 @@ namespace hob {
                 m_renderer.render_world_pass();
                 m_renderer.render_blit_pass();
                 m_renderer.render_debug_lines_pass();
-                m_renderer.render_debug_text_pass();
                 m_ui_system.render_pass(m_renderer.get_command_buffer(), m_renderer.get_swap_texture());
+                m_renderer.render_debug_text_pass();
                 m_imgui_system.render_pass(m_renderer.get_command_buffer(), m_renderer.get_swap_texture());
 
                 m_renderer.submit_command_buffer();

@@ -220,7 +220,8 @@ Debug = {}
 ---@param message string
 ---@param color Color?
 ---@param duration number?
-function Debug.print(message, color, duration) end
+---@param log boolean?
+function Debug.print(message, color, duration, log) end
 
 ---@param from Vector2
 ---@param to Vector2

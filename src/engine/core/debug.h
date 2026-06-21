@@ -20,6 +20,7 @@ namespace hob {
 
         constexpr Color DEFAULT_MESSAGE_COLOR = Color::white();
         constexpr float DEFAULT_MESSAGE_DURATION = 0.0f;
+        constexpr bool DEFAULT_MESSAGE_LOG = false;
         constexpr float MESSAGE_MARGIN_X = 8.0f;
         constexpr float MESSAGE_MARGIN_Y = 8.0f;
         constexpr uint32_t MAX_ON_SCREEN_MESSAGES = 32;
@@ -71,21 +72,30 @@ namespace hob {
             void add_on_screen_debug_message(std::string text, const Color& color, float duration);
 
             template<typename... Args>
-            void print_dispatch(const Color& color, float duration, std::format_string<Args...> fmt, Args&&... args) {
+            void print_dispatch(
+                const Color& color, float duration, bool log, std::format_string<Args...> fmt, Args&&... args) {
                 std::string text = std::format(fmt, std::forward<Args>(args)...);
-                log::info("{}", text);
+                if (log) {
+                    log::info("{}", text);
+                }
                 add_on_screen_debug_message(std::move(text), color, duration);
             }
         } // namespace detail
 
         template<typename... Args>
         void print(std::format_string<Args...> fmt, Args&&... args) {
-            detail::print_dispatch(DEFAULT_MESSAGE_COLOR, DEFAULT_MESSAGE_DURATION, fmt, std::forward<Args>(args)...);
+            detail::print_dispatch(
+                DEFAULT_MESSAGE_COLOR, DEFAULT_MESSAGE_DURATION, DEFAULT_MESSAGE_LOG, fmt, std::forward<Args>(args)...);
         }
 
         template<typename... Args>
         void print(const Color& color, float duration, std::format_string<Args...> fmt, Args&&... args) {
-            detail::print_dispatch(color, duration, fmt, std::forward<Args>(args)...);
+            detail::print_dispatch(color, duration, DEFAULT_MESSAGE_LOG, fmt, std::forward<Args>(args)...);
+        }
+
+        template<typename... Args>
+        void print(const Color& color, float duration, bool log, std::format_string<Args...> fmt, Args&&... args) {
+            detail::print_dispatch(color, duration, log, fmt, std::forward<Args>(args)...);
         }
     } // namespace debug
 } // namespace hob

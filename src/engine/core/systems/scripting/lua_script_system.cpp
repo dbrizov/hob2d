@@ -114,7 +114,7 @@ namespace hob {
         const bool success = run_file("scripts/engine/hot_reload.lua");
         if (success) {
             refresh_lua_component_class_caches();
-            debug::print(Color::white(), 5.0f, "[Lua] hot reload");
+            debug::print(Color::white(), 5.0f, true, "[Lua] hot reload");
         }
         else {
             log::lua.error("hot reload failed");

@@ -18,14 +18,16 @@ namespace hob {
                 [](sol::this_state ts,
                    const std::string& message,
                    sol::optional<Color> color,
-                   sol::optional<float> duration) {
+                   sol::optional<float> duration,
+                   sol::optional<bool> log) {
                     (void)ts;
                     debug::print(color.value_or(debug::DEFAULT_MESSAGE_COLOR),
                                  duration.value_or(debug::DEFAULT_MESSAGE_DURATION),
+                                 log.value_or(debug::DEFAULT_MESSAGE_LOG),
                                  "{}",
                                  message);
                 },
-                "(message: string, color: Color?, duration: number?)")
+                "(message: string, color: Color?, duration: number?, log: boolean?)")
             .func_sig(
                 "draw_line",
                 [](const Vector2& from,
