@@ -11,6 +11,7 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3_shadercross/SDL_shadercross.h>
 
+#include "engine/core/screen_match_mode.h"
 #include "engine/math/color.h"
 #include "engine/math/matrix4x4.h"
 #include "engine/math/vector2.h"
@@ -56,8 +57,10 @@ namespace hob {
 
         const SdlContext& m_sdl_context;
         SDL_GPUDevice* m_gpu_device = nullptr;
-        uint32_t m_logical_width;
-        uint32_t m_logical_height;
+        Vector2 m_logical_size;
+        Vector2 m_reference_size;
+        ScreenMatchMode m_screen_match_mode = ScreenMatchMode::expand;
+        float m_render_scale = 1.0f;
 
         bool m_shadercross_initialized = false;
         bool m_is_initialized = false;
@@ -135,6 +138,8 @@ namespace hob {
 
         Vector2 get_logical_size() const;
 
+        void on_window_resized(int window_width, int window_height);
+
         static Matrix4x4 ortho_top_left(float w, float h);
         static Matrix4x4 ortho_top_left_y_flipped(float w, float h);
 
@@ -178,6 +183,8 @@ namespace hob {
         friend class Font;
 
         void release_texture(const Texture& texture);
+
+        bool update_logical_size(int window_width, int window_height);
 
         bool init_offscreen_target();
         bool init_samplers();

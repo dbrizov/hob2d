@@ -22,8 +22,12 @@ namespace hob {
             graphics_config.window_title = g.value("window_title", graphics_config.window_title);
             graphics_config.window_width = g.value("window_width", graphics_config.window_width);
             graphics_config.window_height = g.value("window_height", graphics_config.window_height);
-            graphics_config.logical_width = g.value("logical_width", graphics_config.logical_width);
-            graphics_config.logical_height = g.value("logical_height", graphics_config.logical_height);
+            graphics_config.reference_width = g.value("reference_width", graphics_config.reference_width);
+            graphics_config.reference_height = g.value("reference_height", graphics_config.reference_height);
+            if (g.contains("screen_match_mode")) {
+                graphics_config.screen_match_mode = to_screen_match_mode(g["screen_match_mode"].get<std::string>());
+            }
+            graphics_config.render_scale = g.value("render_scale", graphics_config.render_scale);
             graphics_config.target_fps = g.value("target_fps", graphics_config.target_fps);
             graphics_config.vsync_enabled = g.value("vsync_enabled", graphics_config.vsync_enabled);
         }

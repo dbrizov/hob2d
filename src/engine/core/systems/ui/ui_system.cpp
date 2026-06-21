@@ -109,8 +109,7 @@ namespace hob {
         , m_renderer(renderer)
         , m_system_interface(timer)
         , m_render_interface(sdl_context, renderer)
-        , m_reference_resolution(static_cast<float>(config.reference_width),
-                                 static_cast<float>(config.reference_height))
+        , m_reference_size(static_cast<float>(config.reference_width), static_cast<float>(config.reference_height))
         , m_screen_match_mode(config.screen_match_mode) {
 
         if (!m_render_interface.init()) {
@@ -140,8 +139,7 @@ namespace hob {
             log::ui.error("UiSystem: could not load base stylesheet '{}'", UI_BASE_STYLESHEET);
         }
 
-        const Rml::Vector2i dimensions(static_cast<int>(m_reference_resolution.x),
-                                       static_cast<int>(m_reference_resolution.y));
+        const Rml::Vector2i dimensions(static_cast<int>(m_reference_size.x), static_cast<int>(m_reference_size.y));
 
         m_context = Rml::CreateContext(UI_CONTEXT_NAME, dimensions);
         if (m_context == nullptr) {
@@ -671,31 +669,6 @@ namespace hob {
         document.SetStyleSheetContainer(combined);
     }
 
-    Vector2 UiSystem::compute_effective_logical_size(int window_width, int window_height) const {
-        if (window_width <= 0 || window_height <= 0) {
-            return m_reference_resolution;
-        }
-
-        const float window_aspect = static_cast<float>(window_width) / static_cast<float>(window_height);
-        const float reference_aspect = m_reference_resolution.x / m_reference_resolution.y;
-
-        UiScreenMatchMode mode = m_screen_match_mode;
-        if (mode == UiScreenMatchMode::expand) {
-            mode =
-                (window_aspect > reference_aspect) ? UiScreenMatchMode::match_height : UiScreenMatchMode::match_width;
-        }
-        else if (mode == UiScreenMatchMode::shrink) {
-            mode =
-                (window_aspect > reference_aspect) ? UiScreenMatchMode::match_width : UiScreenMatchMode::match_height;
-        }
-
-        if (mode == UiScreenMatchMode::match_width) {
-            return Vector2(m_reference_resolution.x, m_reference_resolution.x / window_aspect);
-        }
-
-        return Vector2(m_reference_resolution.y * window_aspect, m_reference_resolution.y);
-    }
-
     void UiSystem::update_logical_size() {
         int window_width = 0;
         int window_height = 0;
@@ -707,7 +680,8 @@ namespace hob {
         m_last_window_width = window_width;
         m_last_window_height = window_height;
 
-        const Vector2 logical_size = compute_effective_logical_size(window_width, window_height);
+        const Vector2 logical_size =
+            compute_logical_size(window_width, window_height, m_reference_size, m_screen_match_mode);
         m_render_interface.set_logical_size(logical_size);
         m_context->SetDimensions(Rml::Vector2i(static_cast<int>(logical_size.x), static_cast<int>(logical_size.y)));
     }

@@ -1,3 +1,5 @@
+#include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -99,12 +101,20 @@ namespace hob {
     }
 
     bool Renderer::init_offscreen_target() {
+        if (m_offscreen_color) {
+            SDL_ReleaseGPUTexture(m_gpu_device, m_offscreen_color);
+            m_offscreen_color = nullptr;
+        }
+
+        const uint32_t tex_width = std::max(1u, static_cast<uint32_t>(std::round(m_logical_size.x * m_render_scale)));
+        const uint32_t tex_height = std::max(1u, static_cast<uint32_t>(std::round(m_logical_size.y * m_render_scale)));
+
         SDL_GPUTextureCreateInfo tci{};
         tci.type = SDL_GPU_TEXTURETYPE_2D;
         tci.format = m_offscreen_format;
         tci.usage = SDL_GPU_TEXTUREUSAGE_COLOR_TARGET | SDL_GPU_TEXTUREUSAGE_SAMPLER;
-        tci.width = m_logical_width;
-        tci.height = m_logical_height;
+        tci.width = tex_width;
+        tci.height = tex_height;
         tci.layer_count_or_depth = 1;
         tci.num_levels = 1;
         tci.sample_count = SDL_GPU_SAMPLECOUNT_1;

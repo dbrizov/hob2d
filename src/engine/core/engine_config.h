@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <string>
 
-#include "engine/core/systems/ui/ui_screen_match_mode.h"
+#include "engine/core/screen_match_mode.h"
 #include "engine/math/vector2.h"
 
 namespace hob {
@@ -11,8 +11,10 @@ namespace hob {
         std::string window_title = "Hob2D";
         uint32_t window_width = 1152;
         uint32_t window_height = 648;
-        uint32_t logical_width = 1152;
-        uint32_t logical_height = 648;
+        uint32_t reference_width = 1920;
+        uint32_t reference_height = 1080;
+        ScreenMatchMode screen_match_mode = ScreenMatchMode::expand;
+        float render_scale = 1.0f;
         uint32_t target_fps = 60;
         bool vsync_enabled = true;
     };
@@ -20,7 +22,7 @@ namespace hob {
     struct UiSystemConfig {
         uint32_t reference_width = 1920;
         uint32_t reference_height = 1080;
-        UiScreenMatchMode screen_match_mode = UiScreenMatchMode::expand;
+        ScreenMatchMode screen_match_mode = ScreenMatchMode::expand;
     };
 
     struct PhysicsConfig {

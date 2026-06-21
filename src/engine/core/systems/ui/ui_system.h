@@ -10,10 +10,10 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
 
+#include "engine/core/screen_match_mode.h"
 #include "engine/math/vector2.h"
 #include "ui_file_interface.h"
 #include "ui_render_interface.h"
-#include "ui_screen_match_mode.h"
 #include "ui_system_interface.h"
 
 namespace Rml {
@@ -95,8 +95,8 @@ namespace hob {
         std::unordered_map<UiDataModelId, UiDataModel> m_models;
         UiDataModelId m_next_model_id = 0;
 
-        Vector2 m_reference_resolution;
-        UiScreenMatchMode m_screen_match_mode;
+        Vector2 m_reference_size;
+        ScreenMatchMode m_screen_match_mode;
         int m_last_window_width = 0;
         int m_last_window_height = 0;
 
@@ -165,7 +165,6 @@ namespace hob {
         Rml::ElementDocument* instantiate_document(const std::string& path);
         void apply_base_stylesheet(Rml::ElementDocument& document) const;
 
-        Vector2 compute_effective_logical_size(int window_width, int window_height) const;
         void update_logical_size();
     };
 } // namespace hob

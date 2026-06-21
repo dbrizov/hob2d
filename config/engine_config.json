@@ -3,8 +3,10 @@
     "window_title": "Hob2D",
     "window_width": 1152,
     "window_height": 648,
-    "logical_width": 1920,
-    "logical_height": 1080,
+    "reference_width": 1920,
+    "reference_height": 1080,
+    "screen_match_mode": "expand",
+    "render_scale": 1.0,
     "target_fps": 60,
     "vsync_enabled": false
   },
