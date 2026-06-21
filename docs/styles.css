@@ -215,12 +215,6 @@ a:hover {
     margin-top: 32px;
 }
 
-.hero-platforms-label {
-    font-size: 0.95rem;
-    color: var(--muted);
-    letter-spacing: 0.02em;
-}
-
 .hero-platforms img {
     width: 32px;
     height: 32px;
