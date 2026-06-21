@@ -26,10 +26,10 @@ namespace hob {
 
         Matrix4x4 build_sprite_view_projection() const;
 
-        Vector2 world_to_screen(const Vector2& world_position) const;
-        Vector2 world_to_screen(const Vector2& world_position, const Vector2& camera_position) const;
+        Vector2 world_to_screen(const Vector2& world_pos) const;
+        Vector2 world_to_screen(const Vector2& world_pos, const Vector2& camera_pos) const;
 
-        Vector2 screen_to_world(const Vector2& screen_position) const;
-        Vector2 screen_to_world(const Vector2& screen_position, const Vector2& camera_position) const;
+        Vector2 screen_to_world(const Vector2& screen_pos) const;
+        Vector2 screen_to_world(const Vector2& screen_pos, const Vector2& camera_pos) const;
     };
 } // namespace hob

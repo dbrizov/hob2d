@@ -93,6 +93,10 @@ function Input.is_gamepad_connected() end
 ---@class UI
 UI = {}
 
+---@param world_pos Vector2
+---@return Vector2
+function UI.world_to_ui(world_pos) end
+
 ---@param path string
 ---@return integer
 function UI.load_document(path) end
@@ -110,6 +114,16 @@ function UI.hide_document(document) end
 ---@param element_id string
 ---@return integer
 function UI.get_element(document, element_id) end
+
+---@param element integer
+---@param property string
+---@return string
+function UI.get_element_property(element, property) end
+
+---@param element integer
+---@param property string
+---@param value string
+function UI.set_element_property(element, property, value) end
 
 ---@param element integer
 ---@param event string

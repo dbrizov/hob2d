@@ -21,5 +21,5 @@ DefineEntity.Enemy = {
         },
         default_clip = "idle",
     },
-    lua_components = { Components.ContactLogger },
+    lua_components = { Components.ContactLogger, Components.EnemyHealthbar },
 }

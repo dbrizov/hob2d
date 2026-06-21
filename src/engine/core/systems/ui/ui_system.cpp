@@ -231,6 +231,15 @@ namespace hob {
         m_render_interface.end_frame();
     }
 
+    Vector2 UiSystem::screen_to_ui(const Vector2& screen_pos) const {
+        const Vector2 renderer_size = m_renderer.get_logical_size();
+        const Vector2 ui_size = m_render_interface.get_logical_size();
+        const float x = (renderer_size.x > 0.0f) ? ((screen_pos.x / renderer_size.x) * ui_size.x) : screen_pos.x;
+        const float y = (renderer_size.y > 0.0f) ? ((screen_pos.y / renderer_size.y) * ui_size.y) : screen_pos.y;
+
+        return Vector2(x, y);
+    }
+
     UiDocumentId UiSystem::load_document(const std::string& path) {
         Rml::ElementDocument* document = instantiate_document(path);
         if (document == nullptr) {
@@ -292,6 +301,27 @@ namespace hob {
         const UiElementId id = m_next_element_id++;
         m_elements.emplace(id, UiElement{document_id, element_id, element});
         return id;
+    }
+
+    std::string UiSystem::get_element_property(UiElementId id, const std::string& property) {
+        UiElement* element = find_element(id);
+        if (element == nullptr) {
+            log::ui.error("UiSystem::get_element_property: invalid element {}", id);
+            return {};
+        }
+
+        const Rml::Property* prop = element->rml_element->GetProperty(property);
+        return (prop != nullptr) ? prop->ToString() : std::string{};
+    }
+
+    void UiSystem::set_element_property(UiElementId id, const std::string& property, const std::string& value) {
+        UiElement* element = find_element(id);
+        if (element == nullptr) {
+            log::ui.error("UiSystem::set_element_property: invalid element {}", id);
+            return;
+        }
+
+        element->rml_element->SetProperty(property, value);
     }
 
     UiListenerId UiSystem::add_event_listener(UiElementId element_id,

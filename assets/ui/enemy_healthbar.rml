@@ -1,0 +1,10 @@
+<rml>
+<head>
+    <link type="text/rcss" href="ui/enemy_healthbar.rcss"/>
+</head>
+<body>
+    <div id="enemy_healthbar">
+        <div id="enemy_health_fill"></div>
+    </div>
+</body>
+</rml>

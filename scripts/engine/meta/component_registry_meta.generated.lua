@@ -7,5 +7,6 @@
 ---@class Components
 ---@field Character string
 ---@field ContactLogger string
+---@field EnemyHealthbar string
 ---@field Player string
 Components = {}

@@ -1,0 +1,16 @@
+#enemy_healthbar
+{
+    position: absolute;
+    width: 64px;
+    height: 8px;
+    background-color: #200000;
+    border: 1px #000000;
+}
+
+#enemy_health_fill
+{
+    width: 100%;
+    height: 100%;
+    background-color: #30d030;
+    transition: width 0.15s linear-in-out;
+}

@@ -2,9 +2,11 @@
 #include <unordered_map>
 #include <variant>
 
+#include "engine/components/camera_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
 #include "engine/core/systems/ui/ui_system.h"
+#include "engine/math/vector2.h"
 #include "lua_meta.h"
 #include "lua_script_system.h"
 #include "lua_script_system_impl.h"
@@ -38,8 +40,16 @@ namespace hob {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
         UiSystem& ui = m_engine.get_ui_system();
+        Engine& engine = m_engine;
 
         bind_table(lua, meta, "UI")
+            .func("world_to_ui",
+                  [&engine, &ui](const Vector2& world_pos) {
+                      const CameraComponent* camera = engine.get_active_camera();
+                      const Vector2 screen_pos = (camera != nullptr) ? camera->world_to_screen(world_pos) : Vector2();
+                      return ui.screen_to_ui(screen_pos);
+                  },
+                  {"world_pos"})
             .func("load_document",
                   [&ui](const std::string& path) {
                       return ui.load_document(path);
@@ -65,6 +75,16 @@ namespace hob {
                       return ui.get_element(document_id, element_id);
                   },
                   {"document", "element_id"})
+            .func("get_element_property",
+                  [&ui](UiElementId element_id, const std::string& property) {
+                      return ui.get_element_property(element_id, property);
+                  },
+                  {"element", "property"})
+            .func("set_element_property",
+                  [&ui](UiElementId element_id, const std::string& property, const std::string& value) {
+                      ui.set_element_property(element_id, property, value);
+                  },
+                  {"element", "property", "value"})
             .func_sig(
                 "add_event_listener",
                 [&ui](UiElementId element_id, const std::string& event, sol::function fn) {

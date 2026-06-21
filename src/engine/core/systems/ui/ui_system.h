@@ -123,12 +123,16 @@ namespace hob {
 
         void render_pass(SDL_GPUCommandBuffer* cmd, SDL_GPUTexture* swap_tex);
 
+        Vector2 screen_to_ui(const Vector2& screen_pos) const;
+
         UiDocumentId load_document(const std::string& path);
         void unload_document(UiDocumentId id);
         void show_document(UiDocumentId id);
         void hide_document(UiDocumentId id);
 
         UiElementId get_element(UiDocumentId document_id, const std::string& element_id);
+        std::string get_element_property(UiElementId id, const std::string& property);
+        void set_element_property(UiElementId id, const std::string& property, const std::string& value);
 
         UiListenerId add_event_listener(UiElementId element_id,
                                         const std::string& event,

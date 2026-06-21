@@ -64,41 +64,41 @@ namespace hob {
         return Renderer::ortho_top_left(w, h) * world_to_pixels;
     }
 
-    Vector2 CameraComponent::world_to_screen(const Vector2& world_position) const {
+    Vector2 CameraComponent::world_to_screen(const Vector2& world_pos) const {
         TransformComponent* transform = get_entity().get_transform();
-        const Vector2 camera_position = transform->get_position();
-        const Vector2 screen_position = world_to_screen(world_position, camera_position);
+        const Vector2 camera_pos = transform->get_position();
+        const Vector2 screen_pos = world_to_screen(world_pos, camera_pos);
 
-        return screen_position;
+        return screen_pos;
     }
 
-    Vector2 CameraComponent::world_to_screen(const Vector2& world_position, const Vector2& camera_position) const {
-        const Vector2 delta_meters = world_position - camera_position;
+    Vector2 CameraComponent::world_to_screen(const Vector2& world_pos, const Vector2& camera_pos) const {
+        const Vector2 delta_meters = world_pos - camera_pos;
         Vector2 delta_pixels = delta_meters * m_screen_pixels_per_meter;
         delta_pixels.y = -delta_pixels.y; // Flip Y: screen positive Y goes down.
 
         const Vector2 half_size = get_engine().get_renderer().get_logical_size() * 0.5f;
-        const Vector2 screen_position = Vector2(delta_pixels.x + half_size.x, delta_pixels.y + half_size.y);
+        const Vector2 screen_pos = Vector2(delta_pixels.x + half_size.x, delta_pixels.y + half_size.y);
 
-        return screen_position;
+        return screen_pos;
     }
 
-    Vector2 CameraComponent::screen_to_world(const Vector2& screen_position) const {
+    Vector2 CameraComponent::screen_to_world(const Vector2& screen_pos) const {
         TransformComponent* transform = get_entity().get_transform();
-        const Vector2 camera_position = transform->get_position();
-        const Vector2 world_position = screen_to_world(screen_position, camera_position);
+        const Vector2 camera_pos = transform->get_position();
+        const Vector2 world_pos = screen_to_world(screen_pos, camera_pos);
 
-        return world_position;
+        return world_pos;
     }
 
-    Vector2 CameraComponent::screen_to_world(const Vector2& screen_position, const Vector2& camera_position) const {
+    Vector2 CameraComponent::screen_to_world(const Vector2& screen_pos, const Vector2& camera_pos) const {
         const Vector2 half_size = get_engine().get_renderer().get_logical_size() * 0.5f;
-        Vector2 delta_pixels = Vector2(screen_position.x - half_size.x, screen_position.y - half_size.y);
+        Vector2 delta_pixels = Vector2(screen_pos.x - half_size.x, screen_pos.y - half_size.y);
         delta_pixels.y = -delta_pixels.y; // Undo Y flip: world positive Y goes up.
 
         const Vector2 delta_meters = delta_pixels / m_screen_pixels_per_meter;
-        const Vector2 world_position = camera_position + delta_meters;
+        const Vector2 world_pos = camera_pos + delta_meters;
 
-        return world_position;
+        return world_pos;
     }
 } // namespace hob
