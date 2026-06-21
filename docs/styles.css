@@ -427,25 +427,6 @@ figure {
     text-align: center;
 }
 
-/* Physics demo video */
-.demo-video {
-    width: 100%;
-    max-width: 640px;
-    height: auto;
-    display: block;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-}
-
-/* Screenshot (e.g. the dev console) */
-.demo-shot {
-    width: 100%;
-    height: auto;
-    display: block;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-}
-
 /* Idle sprite demo */
 .sprite-stage {
     min-height: 180px;
