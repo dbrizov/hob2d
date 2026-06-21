@@ -1,4 +1,5 @@
 #include <cstring>
+#include <format>
 #include <unordered_map>
 
 #include <imgui.h>
@@ -43,6 +44,24 @@ namespace hob {
                               ConsoleVariableFlags::None,
                               [this](const ConsoleVariable& cvar) {
                                   m_cvar_show_sprite_queue = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_render_scale",
+                              "Offscreen supersample factor (offscreen pixels = logical size * scale)",
+                              std::format("{:.1f}", m_render_scale),
+                              ConsoleVariableType::Float,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  const float scale = cvar.float_value();
+                                  if (scale <= 0.0f) {
+                                      log::renderer.error("r_render_scale must be > 0, got {}", scale);
+                                      return;
+                                  }
+
+                                  m_render_scale = scale;
+                                  if (m_is_initialized && !init_offscreen_target()) {
+                                      log::renderer.error("r_render_scale: failed to recreate offscreen target");
+                                  }
                               });
     }
 

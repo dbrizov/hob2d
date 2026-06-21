@@ -150,7 +150,10 @@ namespace hob {
 
         log::ui.info("Rml::CreateContext('{}', {}x{})", UI_CONTEXT_NAME, dimensions.x, dimensions.y);
 
-        update_logical_size();
+        int window_width = 0;
+        int window_height = 0;
+        m_sdl_context.get_window_size_px(window_width, window_height);
+        on_window_resized(window_width, window_height);
 
         m_is_initialized = true;
     }
@@ -212,12 +215,22 @@ namespace hob {
         }
     }
 
+    void UiSystem::on_window_resized(int window_width, int window_height) {
+        if (m_context == nullptr) {
+            return;
+        }
+
+        const Vector2 logical_size =
+            compute_logical_size(window_width, window_height, m_reference_size, m_screen_match_mode);
+        m_render_interface.set_logical_size(logical_size);
+        m_context->SetDimensions(Rml::Vector2i(static_cast<int>(logical_size.x), static_cast<int>(logical_size.y)));
+    }
+
     void UiSystem::tick() {
         if (m_context == nullptr) {
             return;
         }
 
-        update_logical_size();
         m_context->Update();
     }
 
@@ -667,22 +680,5 @@ namespace hob {
         }
 
         document.SetStyleSheetContainer(combined);
-    }
-
-    void UiSystem::update_logical_size() {
-        int window_width = 0;
-        int window_height = 0;
-        m_sdl_context.get_window_size_px(window_width, window_height);
-        if (window_width == m_last_window_width && window_height == m_last_window_height) {
-            return;
-        }
-
-        m_last_window_width = window_width;
-        m_last_window_height = window_height;
-
-        const Vector2 logical_size =
-            compute_logical_size(window_width, window_height, m_reference_size, m_screen_match_mode);
-        m_render_interface.set_logical_size(logical_size);
-        m_context->SetDimensions(Rml::Vector2i(static_cast<int>(logical_size.x), static_cast<int>(logical_size.y)));
     }
 } // namespace hob

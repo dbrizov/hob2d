@@ -184,8 +184,6 @@ namespace hob {
 
         void release_texture(const Texture& texture);
 
-        bool update_logical_size(int window_width, int window_height);
-
         bool init_offscreen_target();
         bool init_samplers();
         bool init_quad_vbo();

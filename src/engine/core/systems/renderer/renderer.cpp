@@ -28,7 +28,7 @@ namespace hob {
         int window_width = 0;
         int window_height = 0;
         m_sdl_context.get_window_size_px(window_width, window_height);
-        update_logical_size(window_width, window_height);
+        on_window_resized(window_width, window_height);
 
         m_swapchain_format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
 
@@ -151,30 +151,19 @@ namespace hob {
         return m_logical_size;
     }
 
-    bool Renderer::update_logical_size(int window_width, int window_height) {
+    void Renderer::on_window_resized(int window_width, int window_height) {
         const Vector2 logical =
             compute_logical_size(window_width, window_height, m_reference_size, m_screen_match_mode);
 
         if (logical == m_logical_size) {
-            return false;
+            return;
         }
 
         m_logical_size = logical;
         m_offscreen_projection = ortho_top_left(logical.x, logical.y);
         m_swapchain_projection = ortho_top_left_y_flipped(logical.x, logical.y);
-        return true;
-    }
 
-    void Renderer::on_window_resized(int window_width, int window_height) {
-        if (!m_is_initialized) {
-            return;
-        }
-
-        if (!update_logical_size(window_width, window_height)) {
-            return;
-        }
-
-        if (!init_offscreen_target()) {
+        if (m_is_initialized && !init_offscreen_target()) {
             log::renderer.error("Renderer::on_window_resized: failed to recreate offscreen target");
         }
     }

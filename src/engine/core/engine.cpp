@@ -55,6 +55,7 @@ namespace hob {
                 }
                 else if (event.type == SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED) {
                     m_renderer.on_window_resized(event.window.data1, event.window.data2);
+                    m_ui_system.on_window_resized(event.window.data1, event.window.data2);
                 }
                 else if (event.type == SDL_EVENT_KEY_DOWN) {
                     if (event.key.key == SDLK_GRAVE) {

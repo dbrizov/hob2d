@@ -97,8 +97,6 @@ namespace hob {
 
         Vector2 m_reference_size;
         ScreenMatchMode m_screen_match_mode;
-        int m_last_window_width = 0;
-        int m_last_window_height = 0;
 
         std::filesystem::file_time_type m_last_rml_write_time{};
         std::filesystem::file_time_type m_last_rcss_write_time{};
@@ -118,6 +116,8 @@ namespace hob {
         bool is_initialized() const;
 
         void process_event(const SDL_Event& event);
+
+        void on_window_resized(int window_width, int window_height);
 
         void tick();
 
@@ -164,7 +164,5 @@ namespace hob {
 
         Rml::ElementDocument* instantiate_document(const std::string& path);
         void apply_base_stylesheet(Rml::ElementDocument& document) const;
-
-        void update_logical_size();
     };
 } // namespace hob
