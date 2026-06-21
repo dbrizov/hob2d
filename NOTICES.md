@@ -99,16 +99,18 @@ SOFTWARE.
 
 ---
 
-## glad
+## RmlUi
 
-Copyright (c) 2013-2022 David Herberth
+Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors
+Copyright (c) 2019-2026 The RmlUi Team, and contributors
 
-The glad loader-generator is licensed under the MIT License. The generated loader code is in the Public Domain (or alternatively WTFPL/CC0/MIT, at the user's choice); the Khronos OpenGL specifications used to generate it are licensed by The Khronos Group Inc. under MIT/Apache-2.0-style terms. <https://github.com/Dav1dde/glad>
+Licensed under the MIT License. <https://github.com/mikke89/RmlUi>
 
 ```
 MIT License
 
-Copyright (c) 2013-2022 David Herberth
+Copyright (c) 2008-2014 CodePoint Ltd, Shift Technology Ltd, and contributors
+Copyright (c) 2019-2026 The RmlUi Team, and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
