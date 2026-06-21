@@ -70,11 +70,17 @@
                             <h4>Sprite animation</h4>
                             <p>Define animation clips and play them per entity with a simple sprite animator.</p>
                         </div>
-                        <div class="card">
-                            <h4>World-space camera</h4>
-                            <p>Pan and zoom a world camera with optional physics interpolation for smooth motion.</p>
-                        </div>
                     </div>
+                    <figure style="margin-top: 22px;">
+                        <div class="demo sprite-stage">
+                            <img id="idle-sprite" class="sprite-frame" src="media/player/HJ_idle01.png"
+                                alt="Idle sprite animation">
+                            <canvas id="shader-sprite" class="sprite-frame"
+                                aria-label="Idle sprite with the psychedelic shader"></canvas>
+                            <img id="run-sprite" class="sprite-frame" src="media/player/HJ_run01.png"
+                                alt="Run sprite animation">
+                        </div>
+                    </figure>
                 </div>
 
                 <!-- Physics -->
@@ -191,6 +197,97 @@
                     </figure>
                 </div>
 
+                <!-- UI -->
+                <div class="feature-group">
+                    <h3><span class="dot"></span>UI</h3>
+                    <p class="group-lead">Build interfaces with RmlUi — HTML-like <strong>RML</strong>
+                        markup styled by <strong>RCSS</strong>, driven from Lua.</p>
+                    <div class="cards">
+                        <div class="card">
+                            <h4>RML + RCSS</h4>
+                            <p>Author layouts in familiar HTML/CSS-like markup and stylesheets, hot-reloaded
+                                while the game runs.</p>
+                        </div>
+                        <div class="card">
+                            <h4>RCSS transitions</h4>
+                            <p>Animate properties with CSS-style <code>transition</code> rules — no per-frame
+                                tweening code.</p>
+                        </div>
+                        <div class="card">
+                            <h4>MVVM data binding</h4>
+                            <p>Bind <code>{{ fields }}</code> to a view model; update it from Lua and the view
+                                refreshes automatically — no manual DOM updates.</p>
+                        </div>
+                    </div>
+                    <div class="code-grid" style="margin-top: 22px;">
+                        <figure>
+                            <figcaption>assets/ui/healthbar.rml</figcaption>
+<pre><span class="tag">&lt;rml&gt;</span>
+<span class="tag">&lt;head&gt;</span>
+    <span class="tag">&lt;link</span> <span class="attr">type</span>=<span class="str">"text/rcss"</span> <span class="attr">href</span>=<span class="str">"ui/healthbar.rcss"</span><span class="tag">/&gt;</span>
+<span class="tag">&lt;/head&gt;</span>
+<span class="tag">&lt;body</span> <span class="attr">data-model</span>=<span class="str">"player_hud"</span><span class="tag">&gt;</span>
+    <span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="str">"healthbar"</span><span class="tag">&gt;</span>
+        <span class="tag">&lt;div</span> <span class="attr">id</span>=<span class="str">"health_fill"</span> <span class="attr">data-style-width</span>=<span class="str">"fill_width"</span><span class="tag">&gt;&lt;/div&gt;</span>
+        <span class="tag">&lt;span</span> <span class="attr">id</span>=<span class="str">"health_text"</span><span class="tag">&gt;</span>{{ health }} / {{ max_health }}<span class="tag">&lt;/span&gt;</span>
+    <span class="tag">&lt;/div&gt;</span>
+<span class="tag">&lt;/body&gt;</span>
+<span class="tag">&lt;/rml&gt;</span></pre>
+                        </figure>
+                        <figure>
+                            <figcaption>assets/ui/healthbar.rcss</figcaption>
+<pre><span class="cls">#healthbar</span> {
+    <span class="prop">position</span>: absolute;
+    <span class="prop">left</span>: <span class="num">40px</span>;
+    <span class="prop">top</span>: <span class="num">40px</span>;
+    <span class="prop">width</span>: <span class="num">320px</span>;
+    <span class="prop">height</span>: <span class="num">36px</span>;
+    <span class="prop">background-color</span>: <span class="num">#401010</span>;
+    <span class="prop">border</span>: <span class="num">2px</span> <span class="num">#000000</span>;
+}
+
+<span class="cls">#health_fill</span> {
+    <span class="prop">width</span>: <span class="num">100%</span>;
+    <span class="prop">height</span>: <span class="num">100%</span>;
+    <span class="prop">background-color</span>: <span class="num">#d03030</span>;
+    <span class="prop">transition</span>: width <span class="num">0.2s</span> linear-in-out;
+}</pre>
+                        </figure>
+                    </div>
+
+                    <figure style="margin-top: 18px;">
+                        <div class="demo">
+                            <div class="hb-track">
+                                <div id="hb-fill" class="hb-fill"></div>
+                                <span id="hb-text" class="hb-text">100 / 100</span>
+                            </div>
+                        </div>
+                    </figure>
+
+                    <figure style="margin-top: 18px;">
+                        <figcaption>Drive it from Lua</figcaption>
+<pre><span class="kw">function</span> <span class="cls">Player</span>:<span class="fn">enter_play</span>()
+    <span class="cmt">-- create the data model, then load the RML that binds to it</span>
+    <span class="kw">self</span>.hud_model = <span class="cls">UI</span>.<span class="fn">create_model</span>(<span class="str">"player_hud"</span>, {
+        <span class="prop">health</span> = <span class="kw">self</span>.health,
+        <span class="prop">max_health</span> = <span class="kw">self</span>.max_health,
+        <span class="prop">fill_width</span> = <span class="str">"100%"</span>,
+    })
+    <span class="kw">self</span>.hud_doc = <span class="cls">UI</span>.<span class="fn">load_document</span>(<span class="str">"ui/healthbar.rml"</span>)
+    <span class="cls">UI</span>.<span class="fn">show_document</span>(<span class="kw">self</span>.hud_doc)
+<span class="kw">end</span>
+
+<span class="kw">function</span> <span class="cls">Player</span>:<span class="fn">set_health</span>(value)
+    <span class="kw">self</span>.health = <span class="cls">math</span>.<span class="fn">max</span>(<span class="num">0</span>, <span class="cls">math</span>.<span class="fn">min</span>(<span class="kw">self</span>.max_health, value))
+    <span class="kw">local</span> percent = <span class="cls">math</span>.<span class="fn">floor</span>(<span class="kw">self</span>.health / <span class="kw">self</span>.max_health * <span class="num">100</span>)
+
+    <span class="cmt">-- update the model; the UI refreshes automatically</span>
+    <span class="cls">UI</span>.<span class="fn">set</span>(<span class="kw">self</span>.hud_model, <span class="str">"health"</span>, <span class="cls">math</span>.<span class="fn">floor</span>(<span class="kw">self</span>.health))
+    <span class="cls">UI</span>.<span class="fn">set</span>(<span class="kw">self</span>.hud_model, <span class="str">"fill_width"</span>, <span class="cls">string</span>.<span class="fn">format</span>(<span class="str">"%d%%"</span>, percent))
+<span class="kw">end</span></pre>
+                    </figure>
+                </div>
+
                 <!-- Input -->
                 <div class="feature-group">
                     <h3><span class="dot"></span>Input Mapping</h3>
@@ -289,5 +386,7 @@
             <a href="https://github.com/dbrizov/hob2d">github.com/dbrizov/hob2d</a>
         </div>
     </footer>
+
+    <script src="demos.js" defer></script>
 </body>
 </html>
