@@ -85,6 +85,16 @@ namespace hob {
                       ui.set_element_property(element_id, property, value);
                   },
                   {"element", "property", "value"})
+            .func("get_element_position",
+                  [&ui](UiElementId element_id) {
+                      return ui.get_element_position(element_id);
+                  },
+                  {"element"})
+            .func("set_element_position",
+                  [&ui](UiElementId element_id, const Vector2& position) {
+                      ui.set_element_position(element_id, position);
+                  },
+                  {"element", "position"})
             .func_sig(
                 "add_event_listener",
                 [&ui](UiElementId element_id, const std::string& event, sol::function fn) {

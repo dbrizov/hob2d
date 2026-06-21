@@ -126,6 +126,14 @@ function UI.get_element_property(element, property) end
 function UI.set_element_property(element, property, value) end
 
 ---@param element integer
+---@return Vector2
+function UI.get_element_position(element) end
+
+---@param element integer
+---@param position Vector2
+function UI.set_element_position(element, position) end
+
+---@param element integer
 ---@param event string
 ---@param fn fun()
 ---@return integer

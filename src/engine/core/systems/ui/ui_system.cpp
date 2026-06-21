@@ -324,6 +324,31 @@ namespace hob {
         element->rml_element->SetProperty(property, value);
     }
 
+    Vector2 UiSystem::get_element_position(UiElementId id) {
+        const UiElement* element = find_element(id);
+        if (element == nullptr) {
+            log::ui.error("UiSystem::get_element_position: invalid element {}", id);
+            return Vector2();
+        }
+
+        const Rml::Property* left = element->rml_element->GetProperty(Rml::PropertyId::Left);
+        const Rml::Property* top = element->rml_element->GetProperty(Rml::PropertyId::Top);
+        const float x = (left != nullptr) ? left->Get<float>() : 0.0f;
+        const float y = (top != nullptr) ? top->Get<float>() : 0.0f;
+        return Vector2(x, y);
+    }
+
+    void UiSystem::set_element_position(UiElementId id, const Vector2& position) {
+        UiElement* element = find_element(id);
+        if (element == nullptr) {
+            log::ui.error("UiSystem::set_element_position: invalid element {}", id);
+            return;
+        }
+
+        element->rml_element->SetProperty(Rml::PropertyId::Left, Rml::Property(position.x, Rml::Unit::PX));
+        element->rml_element->SetProperty(Rml::PropertyId::Top, Rml::Property(position.y, Rml::Unit::PX));
+    }
+
     UiListenerId UiSystem::add_event_listener(UiElementId element_id,
                                               const std::string& event,
                                               std::function<void()> callback) {

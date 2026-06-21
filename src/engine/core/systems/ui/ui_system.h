@@ -131,8 +131,12 @@ namespace hob {
         void hide_document(UiDocumentId id);
 
         UiElementId get_element(UiDocumentId document_id, const std::string& element_id);
+
         std::string get_element_property(UiElementId id, const std::string& property);
         void set_element_property(UiElementId id, const std::string& property, const std::string& value);
+
+        Vector2 get_element_position(UiElementId id);
+        void set_element_position(UiElementId id, const Vector2& position);
 
         UiListenerId add_event_listener(UiElementId element_id,
                                         const std::string& event,

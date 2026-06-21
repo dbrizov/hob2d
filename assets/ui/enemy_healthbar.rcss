@@ -5,6 +5,7 @@
     height: 8px;
     background-color: #200000;
     border: 1px #000000;
+    transform: translate(-50%, -50%);
 }
 
 #enemy_health_fill

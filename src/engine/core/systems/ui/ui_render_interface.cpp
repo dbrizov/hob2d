@@ -269,8 +269,10 @@ namespace hob {
         ts.sampler = m_sampler;
         SDL_BindGPUFragmentSamplers(m_active_pass, 0, &ts, 1);
 
+        const Matrix4x4 transformed_projection = m_projection * m_transform;
+
         UiVertexUniforms u{};
-        std::memcpy(u.proj, m_projection.data(), sizeof(u.proj));
+        std::memcpy(u.proj, transformed_projection.data(), sizeof(u.proj));
         u.translation[0] = translation.x;
         u.translation[1] = translation.y;
         SDL_PushGPUVertexUniformData(m_active_cmd, 0, &u, sizeof(u));
@@ -333,5 +335,14 @@ namespace hob {
         m_scissor_rect.y = static_cast<int>(static_cast<float>(region.Top()) * sy);
         m_scissor_rect.w = static_cast<int>(static_cast<float>(region.Width()) * sx);
         m_scissor_rect.h = static_cast<int>(static_cast<float>(region.Height()) * sy);
+    }
+
+    void UiRenderInterface::SetTransform(const Rml::Matrix4f* transform) {
+        if (transform == nullptr) {
+            m_transform = Matrix4x4::identity();
+        }
+        else {
+            std::memcpy(m_transform.data(), transform->data(), Matrix4x4::byte_size());
+        }
     }
 } // namespace hob

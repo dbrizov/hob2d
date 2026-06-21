@@ -25,6 +25,7 @@ namespace hob {
         SDL_GPUSampler* m_sampler = nullptr;
         SDL_GPUTexture* m_white_texture = nullptr;
         Matrix4x4 m_projection;
+        Matrix4x4 m_transform = Matrix4x4::identity();
         Vector2 m_logical_size;
 
         SDL_GPUCommandBuffer* m_active_cmd = nullptr;
@@ -66,5 +67,7 @@ namespace hob {
 
         void EnableScissorRegion(bool enable) override;
         void SetScissorRegion(Rml::Rectanglei region) override;
+
+        void SetTransform(const Rml::Matrix4f* transform) override;
     };
 } // namespace hob
