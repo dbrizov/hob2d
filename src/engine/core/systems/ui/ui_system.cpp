@@ -166,6 +166,8 @@ namespace hob {
         m_context = nullptr;
         log::ui.info("Rml::RemoveContext('{}')", UI_CONTEXT_NAME);
 
+        m_base_stylesheet.reset();
+
         Rml::Shutdown();
         log::ui.info("Rml::Shutdown");
     }
