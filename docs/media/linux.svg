@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Linux">
+    <!-- feet -->
+    <ellipse cx="24" cy="56" rx="6.5" ry="3.5" fill="#F5A623"/>
+    <ellipse cx="40" cy="56" rx="6.5" ry="3.5" fill="#F5A623"/>
+    <!-- body -->
+    <path d="M32 6C21 6 18 16 18 27c0 6-1 11 2 18 2 6 6 11 12 11s10-5 12-11c3-7 2-12 2-18C46 16 43 6 32 6Z" fill="#1A1A1A"/>
+    <!-- belly -->
+    <path d="M32 22c-7 0-9 8-9 16s4 14 9 14 9-6 9-14-2-16-9-16Z" fill="#FFFFFF"/>
+    <!-- face patches -->
+    <ellipse cx="28" cy="18" rx="4.5" ry="6" fill="#FFFFFF"/>
+    <ellipse cx="36" cy="18" rx="4.5" ry="6" fill="#FFFFFF"/>
+    <!-- eyes -->
+    <circle cx="29" cy="19" r="1.7" fill="#1A1A1A"/>
+    <circle cx="35" cy="19" r="1.7" fill="#1A1A1A"/>
+    <!-- beak -->
+    <path d="M28 21.5h8L32 28Z" fill="#F5A623"/>
+</svg>

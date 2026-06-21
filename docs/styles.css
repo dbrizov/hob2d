@@ -283,6 +283,25 @@ section {
     font-size: 0.93rem;
 }
 
+/* ---- Platform cards ---- */
+.platform-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 26px 20px;
+}
+
+.platform-icon {
+    width: 56px;
+    height: 56px;
+    display: block;
+}
+
+.platform-card h4 {
+    margin: 0;
+}
+
 /* ---- Code blocks ---- */
 pre {
     background: var(--bg-2);
@@ -405,6 +424,15 @@ figure {
 .demo-video {
     width: 100%;
     max-width: 640px;
+    height: auto;
+    display: block;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+}
+
+/* Screenshot (e.g. the dev console) */
+.demo-shot {
+    width: 100%;
     height: auto;
     display: block;
     border-radius: 10px;
