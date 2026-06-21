@@ -10,7 +10,7 @@
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_gpu.h>
 
-#include "engine/core/screen_match_mode.h"
+#include "engine/core/aspect_mode.h"
 #include "engine/math/vector2.h"
 #include "ui_file_interface.h"
 #include "ui_render_interface.h"
@@ -96,7 +96,7 @@ namespace hob {
         UiDataModelId m_next_model_id = 0;
 
         Vector2 m_reference_size;
-        ScreenMatchMode m_screen_match_mode;
+        AspectMode m_aspect_mode;
 
         std::filesystem::file_time_type m_last_rml_write_time{};
         std::filesystem::file_time_type m_last_rcss_write_time{};

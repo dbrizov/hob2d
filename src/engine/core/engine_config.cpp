@@ -24,8 +24,8 @@ namespace hob {
             graphics_config.window_height = g.value("window_height", graphics_config.window_height);
             graphics_config.reference_width = g.value("reference_width", graphics_config.reference_width);
             graphics_config.reference_height = g.value("reference_height", graphics_config.reference_height);
-            if (g.contains("screen_match_mode")) {
-                graphics_config.screen_match_mode = to_screen_match_mode(g["screen_match_mode"].get<std::string>());
+            if (g.contains("aspect_mode")) {
+                graphics_config.aspect_mode = to_aspect_mode(g["aspect_mode"].get<std::string>());
             }
             graphics_config.render_scale = g.value("render_scale", graphics_config.render_scale);
             graphics_config.target_fps = g.value("target_fps", graphics_config.target_fps);
@@ -36,8 +36,8 @@ namespace hob {
             const auto& u = json["ui"];
             ui_system_config.reference_width = u.value("reference_width", ui_system_config.reference_width);
             ui_system_config.reference_height = u.value("reference_height", ui_system_config.reference_height);
-            if (u.contains("screen_match_mode")) {
-                ui_system_config.screen_match_mode = to_screen_match_mode(u["screen_match_mode"].get<std::string>());
+            if (u.contains("aspect_mode")) {
+                ui_system_config.aspect_mode = to_aspect_mode(u["aspect_mode"].get<std::string>());
             }
         }
 

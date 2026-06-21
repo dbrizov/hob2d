@@ -18,7 +18,7 @@ namespace hob {
         , m_gpu_device(sdl_context.get_gpu_device())
         , m_reference_size(static_cast<float>(graphics_config.reference_width),
                            static_cast<float>(graphics_config.reference_height))
-        , m_screen_match_mode(graphics_config.screen_match_mode)
+        , m_aspect_mode(graphics_config.aspect_mode)
         , m_render_scale(graphics_config.render_scale > 0.0f ? graphics_config.render_scale : 1.0f) {
         if (!m_gpu_device) {
             log::renderer.error("Renderer init failed: GPU device is null");
@@ -152,9 +152,7 @@ namespace hob {
     }
 
     void Renderer::on_window_resized(int window_width, int window_height) {
-        const Vector2 logical =
-            compute_logical_size(window_width, window_height, m_reference_size, m_screen_match_mode);
-
+        const Vector2 logical = compute_logical_size(window_width, window_height, m_reference_size, m_aspect_mode);
         if (logical == m_logical_size) {
             return;
         }

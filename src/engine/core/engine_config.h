@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <string>
 
-#include "engine/core/screen_match_mode.h"
+#include "engine/core/aspect_mode.h"
 #include "engine/math/vector2.h"
 
 namespace hob {
@@ -13,7 +13,7 @@ namespace hob {
         uint32_t window_height = 648;
         uint32_t reference_width = 1920;
         uint32_t reference_height = 1080;
-        ScreenMatchMode screen_match_mode = ScreenMatchMode::expand;
+        AspectMode aspect_mode = AspectMode::expand;
         float render_scale = 1.0f;
         uint32_t target_fps = 60;
         bool vsync_enabled = true;
@@ -22,7 +22,7 @@ namespace hob {
     struct UiSystemConfig {
         uint32_t reference_width = 1920;
         uint32_t reference_height = 1080;
-        ScreenMatchMode screen_match_mode = ScreenMatchMode::expand;
+        AspectMode aspect_mode = AspectMode::expand;
     };
 
     struct PhysicsConfig {

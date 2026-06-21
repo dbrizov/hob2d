@@ -110,7 +110,7 @@ namespace hob {
         , m_system_interface(timer)
         , m_render_interface(sdl_context, renderer)
         , m_reference_size(static_cast<float>(config.reference_width), static_cast<float>(config.reference_height))
-        , m_screen_match_mode(config.screen_match_mode) {
+        , m_aspect_mode(config.aspect_mode) {
 
         if (!m_render_interface.init()) {
             log::ui.error("UiSystem init failed: render interface init failed");
@@ -220,8 +220,7 @@ namespace hob {
             return;
         }
 
-        const Vector2 logical_size =
-            compute_logical_size(window_width, window_height, m_reference_size, m_screen_match_mode);
+        const Vector2 logical_size = compute_logical_size(window_width, window_height, m_reference_size, m_aspect_mode);
         m_render_interface.set_logical_size(logical_size);
         m_context->SetDimensions(Rml::Vector2i(static_cast<int>(logical_size.x), static_cast<int>(logical_size.y)));
     }

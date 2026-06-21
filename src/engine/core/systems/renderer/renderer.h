@@ -11,7 +11,7 @@
 #include <SDL3/SDL_gpu.h>
 #include <SDL3_shadercross/SDL_shadercross.h>
 
-#include "engine/core/screen_match_mode.h"
+#include "engine/core/aspect_mode.h"
 #include "engine/math/color.h"
 #include "engine/math/matrix4x4.h"
 #include "engine/math/vector2.h"
@@ -59,7 +59,7 @@ namespace hob {
         SDL_GPUDevice* m_gpu_device = nullptr;
         Vector2 m_logical_size;
         Vector2 m_reference_size;
-        ScreenMatchMode m_screen_match_mode = ScreenMatchMode::expand;
+        AspectMode m_aspect_mode = AspectMode::expand;
         float m_render_scale = 1.0f;
 
         bool m_shadercross_initialized = false;
