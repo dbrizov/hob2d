@@ -5,6 +5,7 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <type_traits>
 #include <vector>
 
 #include <imgui.h>
@@ -26,6 +27,30 @@ namespace hob {
         ReadOnly = 1 << 1,
         Cheat = 1 << 2,
     };
+
+    template<typename T>
+    std::string to_cvar_string(const T& value) {
+        if constexpr (std::is_same_v<T, bool>) {
+            return value ? "1" : "0";
+        }
+        else if constexpr (std::is_integral_v<T>) {
+            return std::format("{}", value);
+        }
+        else if constexpr (std::is_floating_point_v<T>) {
+            std::string s = std::format("{}", value);
+            const bool is_integer_like = s.find_first_not_of("-0123456789") == std::string::npos;
+            if (is_integer_like) {
+                s += ".0";
+            }
+            return s;
+        }
+        else if constexpr (std::is_convertible_v<T, std::string_view>) {
+            return std::string(std::string_view(value));
+        }
+        else {
+            return std::format("{}", value);
+        }
+    }
 
     struct ConsoleCommand {
         std::string name;
@@ -51,7 +76,7 @@ namespace hob {
         float float_value() const;
 
         std::string to_string_short(uint32_t indent = 0) const;
-        std::string to_string_long(uint32_t indent = 0) const;
+        std::string to_string_long(uint32_t name_width = 0, uint32_t value_width = 0, uint32_t default_width = 0) const;
     };
 
     class ConsoleBackend {

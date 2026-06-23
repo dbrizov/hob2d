@@ -135,8 +135,19 @@ namespace hob {
         return std::format("{:<{}} = '{}' (default '{}')", name, indent, value, default_value);
     }
 
-    std::string ConsoleVariable::to_string_long(uint32_t indent) const {
-        return std::format("{:<{}} = '{}' (default '{}') - {}", name, indent, value, default_value, help);
+    std::string ConsoleVariable::to_string_long(uint32_t name_width,
+                                                uint32_t value_width,
+                                                uint32_t default_width) const {
+        const std::string value_field = std::format("'{}'", value);
+        const std::string default_field = std::format("(default '{}')", default_value);
+        return std::format("{:<{}} = {:<{}} {:<{}} - {}",
+                           name,
+                           name_width,
+                           value_field,
+                           value_width + 2,
+                           default_field,
+                           default_width + 12,
+                           help);
     }
 
     // Console Backend
@@ -405,21 +416,21 @@ namespace hob {
         names.reserve(m_cvars.size());
 
         uint32_t max_name_size = 0;
+        uint32_t max_value_size = 0;
+        uint32_t max_default_size = 0;
         for (const auto& [_, cvar] : m_cvars) {
             names.push_back(cvar.name);
 
-            const uint32_t name_size = cvar.name.size();
-            if (name_size > max_name_size) {
-                max_name_size = name_size;
-            }
+            max_name_size = std::max(max_name_size, static_cast<uint32_t>(cvar.name.size()));
+            max_value_size = std::max(max_value_size, static_cast<uint32_t>(cvar.value.size()));
+            max_default_size = std::max(max_default_size, static_cast<uint32_t>(cvar.default_value.size()));
         }
 
         std::sort(names.begin(), names.end());
 
-        const std::vector<std::string> dummy_args;
         for (const auto& name : names) {
             const ConsoleVariable* cvar = find_cvar(name);
-            print(std::format("- {}", cvar->to_string_long(max_name_size)));
+            print(std::format("- {}", cvar->to_string_long(max_name_size, max_value_size, max_default_size)));
         }
     }
 

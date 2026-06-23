@@ -12,7 +12,7 @@ namespace hob {
     void Renderer::register_cvars(Console& console) {
         console.register_cvar("r_log_texture_ref",
                               "Log every texture load/unload/cache-hit",
-                              "0",
+                              to_cvar_string(m_cvar_log_texture_ref),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
                               [this](const ConsoleVariable& cvar) {
@@ -21,7 +21,7 @@ namespace hob {
 
         console.register_cvar("r_show_texture_refs",
                               "Show a texture cache window (size, logical refs, all refs, path)",
-                              "0",
+                              to_cvar_string(m_cvar_show_texture_refs),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
                               [this](const ConsoleVariable& cvar) {
@@ -30,7 +30,7 @@ namespace hob {
 
         console.register_cvar("r_log_sprite_queue",
                               "Log sprite queue (z_index, shader_id, texture) each frame",
-                              "0",
+                              to_cvar_string(m_cvar_log_sprite_queue),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
                               [this](const ConsoleVariable& cvar) {
@@ -39,7 +39,7 @@ namespace hob {
 
         console.register_cvar("r_show_sprite_queue",
                               "Show a sprite queue window (z_index, shader_id, texture)",
-                              "0",
+                              to_cvar_string(m_cvar_show_sprite_queue),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
                               [this](const ConsoleVariable& cvar) {
@@ -48,7 +48,7 @@ namespace hob {
 
         console.register_cvar("r_render_scale",
                               "Offscreen supersample factor (offscreen pixels = logical size * scale)",
-                              std::format("{:.1f}", m_render_scale),
+                              to_cvar_string(m_render_scale),
                               ConsoleVariableType::Float,
                               ConsoleVariableFlags::None,
                               [this](const ConsoleVariable& cvar) {

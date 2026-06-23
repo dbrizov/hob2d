@@ -309,7 +309,7 @@ namespace hob {
     void Physics::register_cvars(Console& console) {
         console.register_cvar("p_show_colliders",
                               "Show physics colliders",
-                              "1",
+                              to_cvar_string(cvar_debug_draw),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
                               [this](const ConsoleVariable& cvar) {
