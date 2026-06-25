@@ -36,8 +36,6 @@ namespace hob {
 
         void run();
 
-        bool is_initialized() const;
-
         SdlContext& get_sdl_context();
         Console& get_console();
         Renderer& get_renderer();

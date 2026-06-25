@@ -9,7 +9,6 @@ namespace hob {
     struct GraphicsConfig;
 
     class SdlContext {
-        bool m_is_initialized = false;
         SDL_Window* m_window = nullptr;
         SDL_GPUDevice* m_gpu_device = nullptr;
 
@@ -22,8 +21,6 @@ namespace hob {
 
         SdlContext(SdlContext&&) = delete;
         SdlContext& operator=(SdlContext&&) = delete;
-
-        bool is_initialized() const;
 
         SDL_Window* get_window() const;
         SDL_GPUDevice* get_gpu_device() const;

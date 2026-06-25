@@ -64,7 +64,7 @@ namespace hob {
         float m_pixel_density;
 
         bool m_shadercross_initialized = false;
-        bool m_is_initialized = false;
+        bool m_initialized = false;
 
         float m_play_time = 0.0f;
 
@@ -132,8 +132,6 @@ namespace hob {
 
         Renderer(Renderer&&) = delete;
         Renderer& operator=(Renderer&&) = delete;
-
-        bool is_initialized() const;
 
         void set_play_time(float time);
 

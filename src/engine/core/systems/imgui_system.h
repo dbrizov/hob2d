@@ -11,7 +11,6 @@ namespace hob {
     class ImGuiSystem {
         static constexpr float DEFAULT_FONT_SIZE_PX = 13.0f;
 
-        bool m_is_initialized = false;
         ImGuiContext* m_context = nullptr;
         SDL_GPUDevice* m_gpu_device = nullptr;
 
@@ -24,8 +23,6 @@ namespace hob {
 
         ImGuiSystem(ImGuiSystem&&) = delete;
         ImGuiSystem& operator=(ImGuiSystem&&) = delete;
-
-        bool is_initialized() const;
 
         void process_event(const SDL_Event& event);
 

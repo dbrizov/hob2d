@@ -7,6 +7,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_shadercross/SDL_shadercross.h>
 
+#include "engine/core/assert.h"
 #include "engine/core/engine_config.h"
 #include "engine/core/logging.h"
 #include "engine/core/systems/console.h"
@@ -21,10 +22,8 @@ namespace hob {
         , m_aspect_mode(graphics_config.aspect_mode)
         , m_render_scale(graphics_config.render_scale > 0.0f ? graphics_config.render_scale : 1.0f)
         , m_pixel_density(sdl_context.get_pixel_density()) {
-        if (!m_gpu_device) {
-            log::renderer.error("Renderer init failed: GPU device is null");
-            return;
-        }
+        // clang-format off
+        HOB_CHECK(m_gpu_device, "Renderer init failed: GPU device is null");
 
         int window_width = 0;
         int window_height = 0;
@@ -33,37 +32,43 @@ namespace hob {
 
         m_swapchain_format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
 
-        if (!SDL_ShaderCross_Init()) {
-            log::renderer.error("SDL_ShaderCross_Init failed: {}", SDL_GetError());
-            return;
-        }
+        const bool shadercross_initialized = SDL_ShaderCross_Init();
+        HOB_CHECK(shadercross_initialized, "SDL_ShaderCross_Init failed: {}", SDL_GetError());
         m_shadercross_initialized = true;
 
-        if (!init_offscreen_target())
-            return;
-        if (!init_samplers())
-            return;
-        if (!init_quad_vbo())
-            return;
-        if (!init_default_sprite_pipeline())
-            return;
-        if (!init_blit_pipeline())
-            return;
-        if (!init_debug_line_pipeline())
-            return;
-        if (!init_debug_text_pipeline())
-            return;
-        if (!init_debug_font())
-            return;
+        const bool offscreen_target_initialized = init_offscreen_target();
+        HOB_CHECK(offscreen_target_initialized, "Renderer::init_offscreen_target failed: {}", SDL_GetError());
+
+        const bool samplers_initialized = init_samplers();
+        HOB_CHECK(samplers_initialized, "Renderer::init_samplers failed: {}", SDL_GetError());
+
+        const bool quad_vbo_initialized = init_quad_vbo();
+        HOB_CHECK(quad_vbo_initialized, "Renderer::init_quad_vbo failed: {}", SDL_GetError());
+
+        const bool default_sprite_pipeline_initialized = init_default_sprite_pipeline();
+        HOB_CHECK(default_sprite_pipeline_initialized, "Renderer::init_default_sprite_pipeline failed: {}", SDL_GetError());
+
+        const bool blit_pipeline_initialized = init_blit_pipeline();
+        HOB_CHECK(blit_pipeline_initialized, "Renderer::init_blit_pipeline failed: {}", SDL_GetError());
+
+        const bool debug_line_pipeline_initialized = init_debug_line_pipeline();
+        HOB_CHECK(debug_line_pipeline_initialized, "Renderer::init_debug_line_pipeline failed: {}", SDL_GetError());
+
+        const bool debug_text_pipeline_initialized = init_debug_text_pipeline();
+        HOB_CHECK(debug_text_pipeline_initialized, "Renderer::init_debug_text_pipeline failed: {}", SDL_GetError());
+
+        const bool debug_font_initialized = init_debug_font();
+        HOB_CHECK(debug_font_initialized, "Renderer::init_debug_font failed: {}", SDL_GetError());
 
         register_cvars(console);
 
-        m_is_initialized = true;
+        m_initialized = true;
 
         log::renderer.info("Renderer::Initialise (logical {}x{}, render_scale {})",
                            m_logical_size.x,
                            m_logical_size.y,
                            m_render_scale);
+        // clang-format on
     }
 
     Renderer::~Renderer() {
@@ -140,10 +145,6 @@ namespace hob {
         log::renderer.info("Renderer::Shutdown");
     }
 
-    bool Renderer::is_initialized() const {
-        return m_is_initialized;
-    }
-
     void Renderer::set_play_time(float time) {
         m_play_time = time;
     }
@@ -156,7 +157,7 @@ namespace hob {
         const Vector2 logical = compute_logical_size(window_width, window_height, m_reference_size, m_aspect_mode);
         const float density = m_sdl_context.get_pixel_density();
 
-        if (m_is_initialized && logical == m_logical_size && density == m_pixel_density) {
+        if (m_initialized && logical == m_logical_size && density == m_pixel_density) {
             return;
         }
 
@@ -165,7 +166,7 @@ namespace hob {
         m_offscreen_projection = ortho_top_left(logical.x, logical.y);
         m_swapchain_projection = ortho_top_left_y_flipped(logical.x, logical.y);
 
-        if (m_is_initialized && !init_offscreen_target()) {
+        if (m_initialized && !init_offscreen_target()) {
             log::renderer.error("Renderer::on_window_resized: failed to recreate offscreen target");
         }
     }

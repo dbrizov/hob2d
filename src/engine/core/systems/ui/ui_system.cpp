@@ -6,6 +6,7 @@
 #include <RmlUi/Core.h>
 #include <SDL3/SDL.h>
 
+#include "engine/core/assert.h"
 #include "engine/core/debug.h"
 #include "engine/core/engine_config.h"
 #include "engine/core/logging.h"
@@ -112,27 +113,19 @@ namespace hob {
         , m_reference_size(static_cast<float>(config.reference_width), static_cast<float>(config.reference_height))
         , m_aspect_mode(config.aspect_mode) {
 
-        if (!m_render_interface.init()) {
-            log::ui.error("UiSystem init failed: render interface init failed");
-            return;
-        }
+        m_render_interface.init();
 
         Rml::SetFileInterface(&m_file_interface);
         Rml::SetSystemInterface(&m_system_interface);
         Rml::SetRenderInterface(&m_render_interface);
 
-        if (!Rml::Initialise()) {
-            log::ui.error("UiSystem init failed: Rml::Initialise() returned false");
-            return;
-        }
+        const bool rml_initialized = Rml::Initialise();
+        HOB_CHECK(rml_initialized, "UiSystem init failed: Rml::Initialise() returned false");
 
         log::ui.info("Rml::Initialise (RmlUi {})", Rml::GetVersion());
 
-        if (!Rml::LoadFontFace(UI_FONT_PATH)) {
-            log::ui.error("UiSystem init failed: could not load font '{}'", UI_FONT_PATH);
-            Rml::Shutdown();
-            return;
-        }
+        const bool font_loaded = Rml::LoadFontFace(UI_FONT_PATH);
+        HOB_CHECK(font_loaded, "UiSystem init failed: could not load font '{}'", UI_FONT_PATH);
 
         m_base_stylesheet = Rml::Factory::InstanceStyleSheetFile(UI_BASE_STYLESHEET);
         if (!m_base_stylesheet) {
@@ -142,11 +135,7 @@ namespace hob {
         const Rml::Vector2i dimensions(static_cast<int>(m_reference_size.x), static_cast<int>(m_reference_size.y));
 
         m_context = Rml::CreateContext(UI_CONTEXT_NAME, dimensions);
-        if (m_context == nullptr) {
-            log::ui.error("UiSystem init failed: Rml::CreateContext() returned null");
-            Rml::Shutdown();
-            return;
-        }
+        HOB_CHECK(m_context, "UiSystem init failed: Rml::CreateContext() returned null");
 
         log::ui.info("Rml::CreateContext('{}', {}x{})", UI_CONTEXT_NAME, dimensions.x, dimensions.y);
 
@@ -154,15 +143,9 @@ namespace hob {
         int window_height = 0;
         m_sdl_context.get_window_size_px(window_width, window_height);
         on_window_resized(window_width, window_height);
-
-        m_is_initialized = true;
     }
 
     UiSystem::~UiSystem() {
-        if (!m_is_initialized) {
-            return;
-        }
-
         Rml::RemoveContext(UI_CONTEXT_NAME);
         m_context = nullptr;
         log::ui.info("Rml::RemoveContext('{}')", UI_CONTEXT_NAME);
@@ -171,10 +154,6 @@ namespace hob {
 
         Rml::Shutdown();
         log::ui.info("Rml::Shutdown");
-    }
-
-    bool UiSystem::is_initialized() const {
-        return m_is_initialized;
     }
 
     void UiSystem::process_event(const SDL_Event& event) {

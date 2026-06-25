@@ -74,8 +74,6 @@ namespace hob {
         const SdlContext& m_sdl_context;
         const Renderer& m_renderer;
 
-        bool m_is_initialized = false;
-
         UiFileInterface m_file_interface;
         UiSystemInterface m_system_interface;
         UiRenderInterface m_render_interface;
@@ -112,8 +110,6 @@ namespace hob {
 
         UiSystem(UiSystem&&) = delete;
         UiSystem& operator=(UiSystem&&) = delete;
-
-        bool is_initialized() const;
 
         void process_event(const SDL_Event& event);
 

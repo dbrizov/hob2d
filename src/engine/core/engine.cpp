@@ -126,11 +126,6 @@ namespace hob {
         }
     }
 
-    bool Engine::is_initialized() const {
-        return m_sdl_context.is_initialized() && m_renderer.is_initialized() && m_imgui_system.is_initialized() &&
-               m_ui_system.is_initialized();
-    }
-
     SdlContext& Engine::get_sdl_context() {
         return m_sdl_context;
     }

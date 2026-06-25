@@ -4,6 +4,7 @@
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlgpu3.h>
 
+#include "engine/core/assert.h"
 #include "engine/core/logging.h"
 #include "sdl_context.h"
 
@@ -11,19 +12,12 @@ namespace hob {
     ImGuiSystem::ImGuiSystem(const SdlContext& sdl_context) {
         SDL_Window* window = sdl_context.get_window();
         m_gpu_device = sdl_context.get_gpu_device();
-
-        if (!window || !m_gpu_device) {
-            log::imgui.error("ImGuiSystem init failed: window/GPU device is null");
-            return;
-        }
+        HOB_CHECK(window && m_gpu_device, "ImGuiSystem init failed: window/GPU device is null");
 
         IMGUI_CHECKVERSION();
 
         m_context = ImGui::CreateContext();
-        if (!m_context) {
-            log::imgui.error("ImGui_CreateContext failed");
-            return;
-        }
+        HOB_CHECK(m_context, "ImGui::CreateContext failed");
 
         log::imgui.info("ImGui_CreateContext()");
 
@@ -38,12 +32,8 @@ namespace hob {
 
         ImGui::StyleColorsDark();
 
-        if (!ImGui_ImplSDL3_InitForSDLGPU(window)) {
-            log::imgui.error("ImGui_ImplSDL3_InitForSDLGPU failed");
-            ImGui::DestroyContext(m_context);
-            m_context = nullptr;
-            return;
-        }
+        const bool sdl3_initialized = ImGui_ImplSDL3_InitForSDLGPU(window);
+        HOB_CHECK(sdl3_initialized, "ImGui_ImplSDL3_InitForSDLGPU failed");
 
         log::imgui.info("ImGui_ImplSDL3_InitForSDLGPU");
 
@@ -52,24 +42,13 @@ namespace hob {
         init_info.ColorTargetFormat = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, window);
         init_info.MSAASamples = SDL_GPU_SAMPLECOUNT_1;
 
-        if (!ImGui_ImplSDLGPU3_Init(&init_info)) {
-            log::imgui.error("ImGui_ImplSDLGPU3_Init failed");
-            ImGui_ImplSDL3_Shutdown();
-            ImGui::DestroyContext(m_context);
-            m_context = nullptr;
-            return;
-        }
+        const bool gpu_initialized = ImGui_ImplSDLGPU3_Init(&init_info);
+        HOB_CHECK(gpu_initialized, "ImGui_ImplSDLGPU3_Init failed");
 
         log::imgui.info("ImGui_ImplSDLGPU3_Init");
-
-        m_is_initialized = true;
     }
 
     ImGuiSystem::~ImGuiSystem() {
-        if (!m_is_initialized) {
-            return;
-        }
-
         ImGui_ImplSDLGPU3_Shutdown();
         log::imgui.info("ImGui_ImplSDLGPU3_Shutdown");
 
@@ -79,10 +58,6 @@ namespace hob {
         ImGui::DestroyContext(m_context);
         m_context = nullptr;
         log::imgui.info("ImGui_DestroyContext");
-    }
-
-    bool ImGuiSystem::is_initialized() const {
-        return m_is_initialized;
     }
 
     void ImGuiSystem::process_event(const SDL_Event& event) {

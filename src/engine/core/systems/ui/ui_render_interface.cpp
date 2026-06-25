@@ -6,6 +6,7 @@
 
 #include <SDL3/SDL.h>
 
+#include "engine/core/assert.h"
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/renderer/renderer.h"
@@ -49,20 +50,15 @@ namespace hob {
         }
     }
 
-    bool UiRenderInterface::init() {
+    void UiRenderInterface::init() {
         SDL_GPUDevice* gpu_device = m_sdl_context.get_gpu_device();
         const std::filesystem::path shader_dir = PathUtils::get_assets_root_path() / "builtin" / "shaders";
 
         SDL_GPUShader* vs = m_renderer.load_shader(shader_dir / "ui.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
-        if (!vs) {
-            return false;
-        }
+        HOB_CHECK(vs, "UiRenderInterface init failed: could not load ui.vert.hlsl");
 
         SDL_GPUShader* fs = m_renderer.load_shader(shader_dir / "ui.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
-        if (!fs) {
-            SDL_ReleaseGPUShader(gpu_device, vs);
-            return false;
-        }
+        HOB_CHECK(fs, "UiRenderInterface init failed: could not load ui.frag.hlsl");
 
         SDL_GPUVertexBufferDescription vbd{};
         vbd.slot = 0;
@@ -111,14 +107,10 @@ namespace hob {
         gci.target_info.has_depth_stencil_target = false;
 
         m_pipeline = SDL_CreateGPUGraphicsPipeline(gpu_device, &gci);
+        HOB_CHECK(m_pipeline, "SDL_CreateGPUGraphicsPipeline (ui) failed: {}", SDL_GetError());
 
         SDL_ReleaseGPUShader(gpu_device, vs);
         SDL_ReleaseGPUShader(gpu_device, fs);
-
-        if (!m_pipeline) {
-            log::ui.error("SDL_CreateGPUGraphicsPipeline (ui) failed: {}", SDL_GetError());
-            return false;
-        }
 
         SDL_GPUSamplerCreateInfo sci{};
         sci.min_filter = SDL_GPU_FILTER_LINEAR;
@@ -128,10 +120,7 @@ namespace hob {
         sci.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         sci.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         m_sampler = SDL_CreateGPUSampler(gpu_device, &sci);
-        if (!m_sampler) {
-            log::ui.error("SDL_CreateGPUSampler (ui) failed: {}", SDL_GetError());
-            return false;
-        }
+        HOB_CHECK(m_sampler, "SDL_CreateGPUSampler (ui) failed: {}", SDL_GetError());
 
         SDL_GPUTextureCreateInfo tci{};
         tci.type = SDL_GPU_TEXTURETYPE_2D;
@@ -143,22 +132,11 @@ namespace hob {
         tci.num_levels = 1;
         tci.sample_count = SDL_GPU_SAMPLECOUNT_1;
         m_white_texture = SDL_CreateGPUTexture(gpu_device, &tci);
-        if (!m_white_texture) {
-            log::ui.error("SDL_CreateGPUTexture (ui white) failed: {}", SDL_GetError());
-            return false;
-        }
+        HOB_CHECK(m_white_texture, "SDL_CreateGPUTexture (ui white) failed: {}", SDL_GetError());
 
         const uint32_t white = 0xFFFFFFFFu;
-        if (!m_renderer.upload_texture_rgba(m_white_texture, &white, 1, 1)) {
-            return false;
-        }
-
-        m_is_initialized = true;
-        return true;
-    }
-
-    bool UiRenderInterface::is_initialized() const {
-        return m_is_initialized;
+        const bool white_uploaded = m_renderer.upload_texture_rgba(m_white_texture, &white, 1, 1);
+        HOB_CHECK(white_uploaded, "UiRenderInterface init failed: could not upload white texture");
     }
 
     Vector2 UiRenderInterface::get_logical_size() const {

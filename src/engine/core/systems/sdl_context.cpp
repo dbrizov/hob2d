@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 
+#include "engine/core/assert.h"
 #include "engine/core/engine_config.h"
 #include "engine/core/logging.h"
 
@@ -22,10 +23,8 @@ namespace hob {
     SdlContext::SdlContext(const GraphicsConfig& graphics_config) {
         SDL_SetLogOutputFunction(sdl_log_output, nullptr);
 
-        if (!SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD)) {
-            log::sdl.error("SDL_Init Error: {}", SDL_GetError());
-            return;
-        }
+        const bool sdl_initialized = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
+        HOB_CHECK(sdl_initialized, "SDL_Init failed: {}", SDL_GetError());
 
         log::sdl.info("SDL_Init");
 
@@ -37,11 +36,7 @@ namespace hob {
                                     window_height,
                                     SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
 
-        if (!m_window) {
-            log::sdl.error("SDL_CreateWindow Error: {}", SDL_GetError());
-            SDL_Quit();
-            return;
-        }
+        HOB_CHECK(m_window, "SDL_CreateWindow failed: {}", SDL_GetError());
 
         int pixel_width = 0;
         int pixel_height = 0;
@@ -63,25 +58,12 @@ namespace hob {
 #endif
 
         m_gpu_device = SDL_CreateGPUDevice(shader_formats, debug_mode, nullptr);
-        if (!m_gpu_device) {
-            log::sdl.error("SDL_CreateGPUDevice Error: {}", SDL_GetError());
-            SDL_DestroyWindow(m_window);
-            m_window = nullptr;
-            SDL_Quit();
-            return;
-        }
+        HOB_CHECK(m_gpu_device, "SDL_CreateGPUDevice failed: {}", SDL_GetError());
 
         log::sdl.info("SDL_CreateGPUDevice ({})", SDL_GetGPUDeviceDriver(m_gpu_device));
 
-        if (!SDL_ClaimWindowForGPUDevice(m_gpu_device, m_window)) {
-            log::sdl.error("SDL_ClaimWindowForGPUDevice Error: {}", SDL_GetError());
-            SDL_DestroyGPUDevice(m_gpu_device);
-            m_gpu_device = nullptr;
-            SDL_DestroyWindow(m_window);
-            m_window = nullptr;
-            SDL_Quit();
-            return;
-        }
+        const bool window_claimed = SDL_ClaimWindowForGPUDevice(m_gpu_device, m_window);
+        HOB_CHECK(window_claimed, "SDL_ClaimWindowForGPUDevice failed: {}", SDL_GetError());
 
         log::sdl.info("SDL_ClaimWindowForGPUDevice");
 
@@ -92,8 +74,6 @@ namespace hob {
         }
 
         SDL_SetGPUSwapchainParameters(m_gpu_device, m_window, SDL_GPU_SWAPCHAINCOMPOSITION_SDR, present_mode);
-
-        m_is_initialized = true;
     }
 
     SdlContext::~SdlContext() {
@@ -116,10 +96,6 @@ namespace hob {
 
         SDL_Quit();
         log::sdl.info("SDL_Quit");
-    }
-
-    bool SdlContext::is_initialized() const {
-        return m_is_initialized;
     }
 
     SDL_Window* SdlContext::get_window() const {

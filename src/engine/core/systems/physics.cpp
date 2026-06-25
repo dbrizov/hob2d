@@ -7,6 +7,7 @@
 #include "engine/components/physics/collider_component.h"
 #include "engine/components/physics/rigidbody_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/core/assert.h"
 #include "engine/core/engine_config.h"
 #include "engine/core/logging.h"
 #include "engine/entity/entity.h"
@@ -26,6 +27,9 @@ namespace hob {
         b2WorldDef world_def = b2DefaultWorldDef();
         world_def.gravity = Physics::vec2_to_b2Vec2(gravity);
         m_id = b2CreateWorld(&world_def);
+
+        const bool world_created = b2World_IsValid(m_id);
+        HOB_CHECK(world_created, "b2CreateWorld failed");
     }
 
     PhysicsWorld::~PhysicsWorld() {

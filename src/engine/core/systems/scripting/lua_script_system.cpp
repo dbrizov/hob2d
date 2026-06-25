@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "engine/components/lua_script_component.h"
+#include "engine/core/assert.h"
 #include "engine/core/debug.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
@@ -89,7 +90,8 @@ namespace hob {
         dump_path_schemas();
         dump_factory_schemas();
 
-        run_bootstrap();
+        const bool bootstrap_succeeded = run_bootstrap();
+        HOB_CHECK(bootstrap_succeeded, "Lua bootstrap failed");
 
 #ifndef NDEBUG
         // Meta files are LuaCATS-only (no runtime effect),

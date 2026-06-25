@@ -39,14 +39,11 @@ namespace hob {
         std::unordered_map<Rml::TextureHandle, TextureRef> m_textures;
         Rml::TextureHandle m_next_texture_handle = INVALID_TEXTURE_HANDLE + 1;
 
-        bool m_is_initialized = false;
-
     public:
         UiRenderInterface(const SdlContext& sdl_context, Renderer& renderer);
         ~UiRenderInterface() override;
 
-        bool init();
-        bool is_initialized() const;
+        void init();
 
         Vector2 get_logical_size() const;
         void set_logical_size(const Vector2& size);

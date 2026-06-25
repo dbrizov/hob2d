@@ -8,6 +8,7 @@
 #include <SDL3/SDL_keyboard.h>
 #include <nlohmann/json.hpp>
 
+#include "engine/core/assert.h"
 #include "engine/core/logging.h"
 
 namespace hob {
@@ -131,10 +132,7 @@ namespace hob {
 
     InputConfig::InputConfig(const std::filesystem::path& json_path) {
         std::ifstream file(json_path);
-        if (!file.is_open()) {
-            log::input.error("Cannot open input config file: {}", json_path.string());
-            return;
-        }
+        HOB_CHECK(file.is_open(), "Cannot open input config file: {}", json_path.string());
 
         nlohmann::json json = nlohmann::json::parse(file);
 
