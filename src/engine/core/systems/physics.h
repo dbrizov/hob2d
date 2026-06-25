@@ -48,6 +48,12 @@ namespace hob {
 
         explicit Physics(const PhysicsConfig& physics_config);
 
+        Physics(const Physics&) = delete;
+        Physics& operator=(const Physics&) = delete;
+
+        Physics(Physics&&) = delete;
+        Physics& operator=(Physics&&) = delete;
+
         void register_cvars(Console& console);
 
         void tick(float frame_delta_time, const std::vector<RigidbodyComponent*>& rigidbodies);

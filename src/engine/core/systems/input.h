@@ -72,6 +72,12 @@ namespace hob {
         Input(const SdlContext& sdl_context, const Renderer& renderer);
         ~Input();
 
+        Input(const Input&) = delete;
+        Input& operator=(const Input&) = delete;
+
+        Input(Input&&) = delete;
+        Input& operator=(Input&&) = delete;
+
         void process_event(const SDL_Event& event);
         void tick(float delta_time);
         void end_frame();

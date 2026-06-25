@@ -138,6 +138,12 @@ namespace hob {
     public:
         Console();
 
+        Console(const Console&) = delete;
+        Console& operator=(const Console&) = delete;
+
+        Console(Console&&) = delete;
+        Console& operator=(Console&&) = delete;
+
         bool is_open() const;
         void toggle_open();
 

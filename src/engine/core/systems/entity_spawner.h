@@ -44,6 +44,12 @@ namespace hob {
         explicit EntitySpawner(Engine& engine);
         ~EntitySpawner();
 
+        EntitySpawner(const EntitySpawner&) = delete;
+        EntitySpawner& operator=(const EntitySpawner&) = delete;
+
+        EntitySpawner(EntitySpawner&&) = delete;
+        EntitySpawner& operator=(EntitySpawner&&) = delete;
+
         Entity& spawn_entity();
         void destroy_entity(EntityId id);
 

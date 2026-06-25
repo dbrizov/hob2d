@@ -48,7 +48,7 @@ namespace hob {
             }
         }
 
-        if (get_engine().get_physics().cvar_debug_draw) {
+        if (get_engine().get_physics().cvar_show_colliders) {
             debug_draw_shape(color, get_entity().get_transform()->get_scale());
         }
     }

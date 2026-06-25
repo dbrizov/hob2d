@@ -29,6 +29,9 @@ namespace hob {
         LuaScriptSystem(const LuaScriptSystem&) = delete;
         LuaScriptSystem& operator=(const LuaScriptSystem&) = delete;
 
+        LuaScriptSystem(LuaScriptSystem&&) = delete;
+        LuaScriptSystem& operator=(LuaScriptSystem&&) = delete;
+
         void register_cvars(Console& console);
 
         sol::state& get_lua();
