@@ -1,18 +1,18 @@
 #include "console.h"
 
 #include <algorithm>
-#include <cassert>
 #include <charconv>
 #include <cstring>
 #include <optional>
 #include <ranges>
 
+#include "engine/core/assert.h"
 #include "engine/core/engine.h"
 
 namespace hob {
     namespace {
         void trim_right_spaces(char* s) {
-            assert(s != nullptr && "cstring is null");
+            HOB_ASSERT(s != nullptr, "cstring is null");
 
             char* end = s + std::strlen(s);
             while (end > s) {

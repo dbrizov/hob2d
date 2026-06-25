@@ -1,6 +1,5 @@
 #include "physics.h"
 
-#include <cassert>
 #include <cmath>
 
 #include "console.h"
@@ -306,7 +305,7 @@ namespace hob {
     }
 
     float Physics::delta_time_from_ticks(uint32_t ticks_per_second) {
-        assert(ticks_per_second > 0 && "Division by zero");
+        HOB_ASSERT(ticks_per_second > 0, "Division by zero");
         return 1.0f / static_cast<float>(ticks_per_second);
     }
 

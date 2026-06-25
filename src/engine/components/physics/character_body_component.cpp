@@ -5,6 +5,7 @@
 #include <box2d/box2d.h>
 
 #include "capsule_collider_component.h"
+#include "engine/core/assert.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/physics.h"
 #include "engine/entity/entity.h"
@@ -154,7 +155,7 @@ namespace hob {
                                                        const b2PlaneResult* plane_result,
                                                        void* context) {
         CharacterBodyComponent* self = static_cast<CharacterBodyComponent*>(context);
-        assert(self != nullptr && "Null context for place_result_callback");
+        HOB_ASSERT(self != nullptr, "Null context for place_result_callback");
 
         if (self->m_solver_planes_count >= SOLVER_PLANES_CAPACITY) {
             return false; // stop searching

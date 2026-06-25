@@ -5,6 +5,7 @@
 #include <box2d/box2d.h>
 
 #include "engine/components/transform_component.h"
+#include "engine/core/assert.h"
 #include "engine/core/engine.h"
 #include "engine/entity/entity.h"
 #include "rigidbody_component.h"
@@ -15,7 +16,7 @@ namespace hob {
 
     void ColliderComponent::enter_play() {
         const RigidbodyComponent* rigidbody = get_entity().get_rigidbody();
-        assert(rigidbody != nullptr && rigidbody->has_body() && "Collider requires a Rigidbody to function");
+        HOB_ASSERT(rigidbody != nullptr && rigidbody->has_body(), "Collider requires a Rigidbody to function");
 
         build_shape();
     }

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cassert>
 #include <cmath>
 #include <string>
 
 #include "constants.h"
+#include "engine/core/assert.h"
 
 namespace hob {
     struct Vector2 {
@@ -74,7 +74,7 @@ namespace hob {
         }
 
         Vector2 operator/(float scalar) const {
-            assert(scalar != 0.0f && "Division by zero");
+            HOB_ASSERT(scalar != 0.0f, "Division by zero");
             return Vector2(x / scalar, y / scalar);
         }
 

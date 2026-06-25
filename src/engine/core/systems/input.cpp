@@ -1,13 +1,13 @@
 #include "input.h"
 
 #include <algorithm>
-#include <cassert>
 #include <cmath>
 
 #include <SDL3/SDL_gamepad.h>
 #include <SDL3/SDL_keyboard.h>
 #include <SDL3/SDL_mouse.h>
 
+#include "engine/core/assert.h"
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "renderer/renderer.h"
@@ -343,7 +343,7 @@ namespace hob {
 
         // Swap-pop; fix the moved handler's stored index.
         const InputEventHandlerIndex index = it->second;
-        assert(index < m_handlers.size() && "InputEventHandler index/map desynced");
+        HOB_ASSERT(index < m_handlers.size(), "InputEventHandler index/map desynced");
         const InputEventHandlerIndex last_index = static_cast<InputEventHandlerIndex>(m_handlers.size() - 1);
         if (index != last_index) {
             m_handlers[index] = std::move(m_handlers[last_index]);

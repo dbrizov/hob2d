@@ -20,3 +20,15 @@ namespace hob::detail {
         }                                                                                                              \
     }                                                                                                                  \
     while (false)
+
+#ifndef NDEBUG
+#define HOB_ASSERT(cond, ...)                                                                                          \
+    do {                                                                                                               \
+        if (!(cond)) {                                                                                                 \
+            ::hob::detail::report_fatal(::std::format(__VA_ARGS__), __FILE__, __LINE__);                               \
+        }                                                                                                              \
+    }                                                                                                                  \
+    while (false)
+#else
+#define HOB_ASSERT(cond, ...) ((void)0)
+#endif
