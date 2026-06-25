@@ -18,12 +18,12 @@ namespace hob {
     class Engine {
         // Order matters
         SdlContext m_sdl_context;
-        ImGuiSystem m_imgui_system;
-        Console m_console;
         Renderer m_renderer;
         Timer m_timer;
         Input m_input;
         UiSystem m_ui_system;
+        ImGuiSystem m_imgui_system;
+        Console m_console;
         Physics m_physics;
         EntitySpawner m_entity_spawner;
         LuaScriptSystem m_lua_script_system;

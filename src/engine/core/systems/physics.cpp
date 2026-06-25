@@ -47,15 +47,13 @@ namespace hob {
         return m_id;
     }
 
-    Physics::Physics(const PhysicsConfig& physics_config, Console& console)
+    Physics::Physics(const PhysicsConfig& physics_config)
         : m_physics_world(physics_config.gravity)
         , m_accumulator(0.0f)
         , m_fixed_delta_time(delta_time_from_ticks(physics_config.ticks_per_second))
         , m_sub_steps_per_tick(physics_config.sub_steps_per_tick)
         , m_interpolation_fraction(0.0f)
-        , m_interpolation_enabled(physics_config.interpolation_enabled) {
-        register_cvars(console);
-    }
+        , m_interpolation_enabled(physics_config.interpolation_enabled) {}
 
     void Physics::tick(float frame_delta_time, const std::vector<RigidbodyComponent*>& rigidbodies) {
         m_accumulator += frame_delta_time;
@@ -312,11 +310,11 @@ namespace hob {
     void Physics::register_cvars(Console& console) {
         console.register_cvar("p_show_colliders",
                               "Show physics colliders",
-                              to_cvar_string(cvar_debug_draw),
+                              to_cvar_string(cvar_show_colliders),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
                               [this](const ConsoleVariable& cvar) {
-                                  cvar_debug_draw = cvar.bool_value();
+                                  cvar_show_colliders = cvar.bool_value();
                               });
     }
 } // namespace hob

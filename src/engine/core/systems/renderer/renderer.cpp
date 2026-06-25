@@ -14,7 +14,7 @@
 #include "engine/core/systems/sdl_context.h"
 
 namespace hob {
-    Renderer::Renderer(const GraphicsConfig& graphics_config, const SdlContext& sdl_context, Console& console)
+    Renderer::Renderer(const GraphicsConfig& graphics_config, const SdlContext& sdl_context)
         : m_sdl_context(sdl_context)
         , m_gpu_device(sdl_context.get_gpu_device())
         , m_reference_size(static_cast<float>(graphics_config.reference_width),
@@ -59,8 +59,6 @@ namespace hob {
 
         const bool debug_font_initialized = init_debug_font();
         HOB_CHECK(debug_font_initialized, "Renderer::init_debug_font failed: {}", SDL_GetError());
-
-        register_cvars(console);
 
         m_initialized = true;
 

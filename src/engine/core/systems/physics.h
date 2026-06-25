@@ -44,9 +44,11 @@ namespace hob {
         bool m_interpolation_enabled;
 
     public:
-        bool cvar_debug_draw = true;
+        bool cvar_show_colliders = true;
 
-        Physics(const PhysicsConfig& physics_config, Console& console);
+        explicit Physics(const PhysicsConfig& physics_config);
+
+        void register_cvars(Console& console);
 
         void tick(float frame_delta_time, const std::vector<RigidbodyComponent*>& rigidbodies);
 
@@ -106,7 +108,5 @@ namespace hob {
         void dispatch_trigger_events() const;
 
         static float delta_time_from_ticks(uint32_t ticks_per_second);
-
-        void register_cvars(Console& console);
     };
 } // namespace hob

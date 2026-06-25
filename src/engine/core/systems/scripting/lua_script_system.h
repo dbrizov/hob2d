@@ -29,6 +29,8 @@ namespace hob {
         LuaScriptSystem(const LuaScriptSystem&) = delete;
         LuaScriptSystem& operator=(const LuaScriptSystem&) = delete;
 
+        void register_cvars(Console& console);
+
         sol::state& get_lua();
 
         bool hot_reload();
@@ -40,8 +42,6 @@ namespace hob {
         bool run_file(const std::filesystem::path& relative_path);
         bool run_folder(const std::filesystem::path& relative_path, const std::vector<std::string>& excludes = {});
         bool run_bootstrap();
-
-        void register_cvars(Console& console);
 
         void register_bindings();
 

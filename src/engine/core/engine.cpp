@@ -14,15 +14,19 @@
 namespace hob {
     Engine::Engine(const EngineConfig& config)
         : m_sdl_context(config.graphics_config)
-        , m_imgui_system(m_sdl_context)
-        , m_console()
-        , m_renderer(config.graphics_config, m_sdl_context, m_console)
+        , m_renderer(config.graphics_config, m_sdl_context)
         , m_timer(config.graphics_config)
         , m_input(m_sdl_context, m_renderer)
         , m_ui_system(config.ui_system_config, m_sdl_context, m_renderer, m_timer)
-        , m_physics(config.physics_config, m_console)
+        , m_imgui_system(m_sdl_context)
+        , m_console()
+        , m_physics(config.physics_config)
         , m_entity_spawner(*this)
-        , m_lua_script_system(*this) {}
+        , m_lua_script_system(*this) {
+        m_renderer.register_cvars(m_console);
+        m_physics.register_cvars(m_console);
+        m_lua_script_system.register_cvars(m_console);
+    }
 
     Engine::~Engine() {
         // Tear down entities (and their components) while every subsystem is still alive.

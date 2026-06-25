@@ -81,8 +81,6 @@ namespace hob {
         sol::table package = lua["package"];
         package["path"] = lib_path + ";" + package["path"].get<std::string>();
 
-        register_cvars(m_engine.get_console());
-
         register_bindings();
 
         // Schema files are consumed by the Lua bootstrap, so they must be written first.

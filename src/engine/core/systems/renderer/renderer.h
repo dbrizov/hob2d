@@ -124,7 +124,7 @@ namespace hob {
         bool m_cvar_show_sprite_queue = false;
 
     public:
-        Renderer(const GraphicsConfig& graphics_config, const SdlContext& sdl_context, Console& console);
+        Renderer(const GraphicsConfig& graphics_config, const SdlContext& sdl_context);
         ~Renderer();
 
         Renderer(const Renderer&) = delete;
@@ -132,6 +132,8 @@ namespace hob {
 
         Renderer(Renderer&&) = delete;
         Renderer& operator=(Renderer&&) = delete;
+
+        void register_cvars(Console& console);
 
         void set_play_time(float time);
 
@@ -197,7 +199,6 @@ namespace hob {
         void record_sprite_draw(SDL_GPURenderPass* pass, const SpriteDrawData& draw, ShaderId& bound_shader);
         void push_sprite_fragment_uniforms(const Texture& texture, const Material& material);
 
-        void register_cvars(Console& console);
         void debug_texture_refs();
         void debug_sprite_queue();
     };
