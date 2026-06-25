@@ -1,8 +1,5 @@
 DefineEntity.Enemy = {
     ticking = true,
-    transform = {
-        interpolate_physics = false,
-    },
     character_body = {
         collision_layer = Collision.Kinematic,
         collision_mask = Collision.Static | Collision.Dynamic | Collision.Trigger,
