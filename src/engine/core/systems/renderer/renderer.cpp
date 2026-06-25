@@ -19,7 +19,8 @@ namespace hob {
         , m_reference_size(static_cast<float>(graphics_config.reference_width),
                            static_cast<float>(graphics_config.reference_height))
         , m_aspect_mode(graphics_config.aspect_mode)
-        , m_render_scale(graphics_config.render_scale > 0.0f ? graphics_config.render_scale : 1.0f) {
+        , m_render_scale(graphics_config.render_scale > 0.0f ? graphics_config.render_scale : 1.0f)
+        , m_pixel_density(sdl_context.get_pixel_density()) {
         if (!m_gpu_device) {
             log::renderer.error("Renderer init failed: GPU device is null");
             return;
@@ -153,11 +154,14 @@ namespace hob {
 
     void Renderer::on_window_resized(int window_width, int window_height) {
         const Vector2 logical = compute_logical_size(window_width, window_height, m_reference_size, m_aspect_mode);
-        if (logical == m_logical_size) {
+        const float density = m_sdl_context.get_pixel_density();
+
+        if (m_is_initialized && logical == m_logical_size && density == m_pixel_density) {
             return;
         }
 
         m_logical_size = logical;
+        m_pixel_density = density;
         m_offscreen_projection = ortho_top_left(logical.x, logical.y);
         m_swapchain_projection = ortho_top_left_y_flipped(logical.x, logical.y);
 

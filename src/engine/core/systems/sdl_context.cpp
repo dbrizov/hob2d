@@ -29,23 +29,12 @@ namespace hob {
 
         log::sdl.info("SDL_Init");
 
-        // Treat window size as physical pixels.
-        // SDL_CreateWindow takes logical points, and on HiDPI displays (e.g. macOS Retina) the logical desktop
-        // is smaller than the pixel resolution — so passing pixels as points makes the window overflow the display.
-        float pixel_density = 1.0f;
-        const SDL_DisplayMode* mode = SDL_GetDesktopDisplayMode(SDL_GetPrimaryDisplay());
-        if (mode != nullptr && mode->pixel_density > 0.0f) {
-            pixel_density = mode->pixel_density;
-        }
-
-        const int window_width_points =
-            static_cast<int>(static_cast<float>(graphics_config.window_width) / pixel_density);
-        const int window_height_points =
-            static_cast<int>(static_cast<float>(graphics_config.window_height) / pixel_density);
+        const int window_width = static_cast<int>(graphics_config.window_width);
+        const int window_height = static_cast<int>(graphics_config.window_height);
 
         m_window = SDL_CreateWindow(graphics_config.window_title.c_str(),
-                                    window_width_points,
-                                    window_height_points,
+                                    window_width,
+                                    window_height,
                                     SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY);
 
         if (!m_window) {
@@ -58,11 +47,11 @@ namespace hob {
         int pixel_height = 0;
         SDL_GetWindowSizeInPixels(m_window, &pixel_width, &pixel_height);
         log::sdl.info("SDL_CreateWindow ({}x{} pts, {}x{} px, density {})",
-                      window_width_points,
-                      window_height_points,
+                      window_width,
+                      window_height,
                       pixel_width,
                       pixel_height,
-                      pixel_density);
+                      get_pixel_density());
 
         const SDL_GPUShaderFormat shader_formats =
             SDL_GPU_SHADERFORMAT_SPIRV | SDL_GPU_SHADERFORMAT_DXIL | SDL_GPU_SHADERFORMAT_MSL;

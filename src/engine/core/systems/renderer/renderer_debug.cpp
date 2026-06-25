@@ -47,7 +47,7 @@ namespace hob {
                               });
 
         console.register_cvar("r_render_scale",
-                              "Offscreen supersample factor (offscreen pixels = logical size * scale)",
+                              "Offscreen supersample factor (offscreen pixels = logical size * scale * pixel density)",
                               to_cvar_string(m_render_scale),
                               ConsoleVariableType::Float,
                               ConsoleVariableFlags::None,

@@ -106,8 +106,10 @@ namespace hob {
             m_offscreen_color = nullptr;
         }
 
-        const uint32_t tex_width = std::max(1u, static_cast<uint32_t>(std::round(m_logical_size.x * m_render_scale)));
-        const uint32_t tex_height = std::max(1u, static_cast<uint32_t>(std::round(m_logical_size.y * m_render_scale)));
+        const uint32_t tex_width =
+            std::max(1u, static_cast<uint32_t>(std::round(m_logical_size.x * m_render_scale * m_pixel_density)));
+        const uint32_t tex_height =
+            std::max(1u, static_cast<uint32_t>(std::round(m_logical_size.y * m_render_scale * m_pixel_density)));
 
         SDL_GPUTextureCreateInfo tci{};
         tci.type = SDL_GPU_TEXTURETYPE_2D;

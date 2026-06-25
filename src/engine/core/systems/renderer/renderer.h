@@ -56,11 +56,12 @@ namespace hob {
         };
 
         const SdlContext& m_sdl_context;
-        SDL_GPUDevice* m_gpu_device = nullptr;
+        SDL_GPUDevice* m_gpu_device;
         Vector2 m_logical_size;
         Vector2 m_reference_size;
-        AspectMode m_aspect_mode = AspectMode::expand;
-        float m_render_scale = 1.0f;
+        AspectMode m_aspect_mode;
+        float m_render_scale;
+        float m_pixel_density;
 
         bool m_shadercross_initialized = false;
         bool m_is_initialized = false;
