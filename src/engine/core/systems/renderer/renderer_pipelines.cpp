@@ -11,6 +11,7 @@
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/sdl_context.h"
 #include "renderer.h"
+#include "shader_reflection.h"
 
 namespace hob {
     namespace {
@@ -25,6 +26,30 @@ namespace hob {
             std::string contents(static_cast<size_t>(size), '\0');
             f.read(contents.data(), size);
             return contents;
+        }
+
+        void log_shader_reflection(const std::string& label, const ShaderReflection& refl) {
+            for (const ShaderUniformBlock& block : refl.uniform_blocks) {
+                log::renderer.info("[reflect] {} cbuffer '{}' (type '{}') set={} binding={} size={}",
+                                   label,
+                                   block.name,
+                                   block.type_name,
+                                   block.set,
+                                   block.binding,
+                                   block.size);
+                for (const ShaderUniformMember& m : block.members) {
+                    log::renderer.info(
+                        "[reflect]     {} {} offset={} size={}", to_string(m.type), m.name, m.offset, m.size);
+                }
+            }
+            for (const ShaderTextureBinding& tex : refl.textures) {
+                log::renderer.info(
+                    "[reflect] {} texture '{}' set={} binding={}", label, tex.name, tex.set, tex.binding);
+            }
+            for (const ShaderVertexInput& vi : refl.vertex_inputs) {
+                log::renderer.info(
+                    "[reflect] {} vertex_input {} '{}' location={}", label, to_string(vi.type), vi.name, vi.location);
+            }
         }
     } // namespace
 
@@ -53,6 +78,14 @@ namespace hob {
             log::renderer.error("ReflectGraphicsSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
             SDL_free(spirv);
             return nullptr;
+        }
+
+        ShaderReflection reflection;
+        if (reflect_spirv(spirv, spirv_size, reflection)) {
+            log_shader_reflection(hlsl_path.filename().string(), reflection);
+        }
+        else {
+            log::renderer.error("SPIRV-Reflect failed for {}", hlsl_path.string());
         }
 
         SDL_ShaderCross_SPIRV_Info sp_info{};

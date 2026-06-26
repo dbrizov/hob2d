@@ -101,6 +101,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE SDL3_ttf::SDL3_ttf)
 find_package(SDL3_shadercross CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3_shadercross::SDL3_shadercross)
 
+# Find and link SPIRV-Reflect.
+find_package(unofficial-spirv-reflect CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE unofficial::spirv-reflect)
+
 # Find and link box2d.
 find_package(box2d CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE box2d::box2d)
