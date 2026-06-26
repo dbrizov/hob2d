@@ -14,6 +14,8 @@ namespace hob {
     constexpr SpriteIndex INVALID_SPRITE_INDEX = std::numeric_limits<SpriteIndex>::max();
 
     class SpriteComponent : public Component {
+        friend class EntitySpawner;
+
         TextureRef m_texture;
         Material m_material;
         Vector2 m_pivot = Vector2(0.5f, 0.5f);
@@ -30,8 +32,6 @@ namespace hob {
         // "A draw-affecting property changed since the renderer last consumed it" — lets the
         // world draw pass skip re-resolving a static sprite's draw data every frame.
         bool m_render_dirty = true;
-
-        friend class EntitySpawner;
 
     public:
         explicit SpriteComponent(Entity& entity);

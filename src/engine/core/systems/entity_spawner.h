@@ -26,6 +26,8 @@ namespace hob {
     };
 
     class EntitySpawner {
+        friend class Engine;
+
         Engine& m_engine;
 
         EntityId m_next_entity_id = 0;
@@ -70,7 +72,6 @@ namespace hob {
         const std::vector<RigidbodyComponent*>& get_simulated_rigidbodies() const;
 
     private:
-        friend class Engine;
         void resolve_requests();
         void resolve_spawn_requests();
         void resolve_destroy_requests();

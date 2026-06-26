@@ -12,13 +12,14 @@ namespace hob {
     using TextureRef = std::shared_ptr<Texture>;
 
     class Texture {
+        friend class Renderer;
+
         Renderer* m_renderer = nullptr;
         SDL_GPUTexture* m_gpu_texture = nullptr;
         uint32_t m_width = 0;
         uint32_t m_height = 0;
         std::string m_path;
 
-        friend class Renderer;
         Texture(Renderer& renderer, SDL_GPUTexture* gpu_texture, uint32_t width, uint32_t height, std::string path);
 
     public:

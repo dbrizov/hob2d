@@ -23,6 +23,8 @@ namespace hob {
     concept ComponentType = std::derived_from<T, Component>;
 
     class Entity final {
+        friend class EntitySpawner;
+
         Engine& m_engine;
         EntityId m_id = 0;
         bool m_is_in_play = false;
@@ -34,8 +36,6 @@ namespace hob {
         mutable TransformComponent* m_transform = nullptr;
         mutable RigidbodyComponent* m_rigidbody = nullptr;
 
-        // Only the EntitySpawner can create entities.
-        friend class EntitySpawner;
         explicit Entity(Engine& engine);
 
     public:

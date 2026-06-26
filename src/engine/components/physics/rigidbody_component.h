@@ -18,13 +18,13 @@ namespace hob {
     };
 
     class RigidbodyComponent : public Component {
+        friend class EntitySpawner;
+
         b2BodyId m_body_id = b2_nullBodyId;
         BodyType m_body_type = BodyType::Static;
         bool m_has_fixed_rotation = false;
 
         RigidbodyIndex m_rigidbody_index = INVALID_RIGIDBODY_INDEX; // Slot in EntitySpawner's rigidbody registry
-
-        friend class EntitySpawner;
 
     public:
         explicit RigidbodyComponent(Entity& entity);

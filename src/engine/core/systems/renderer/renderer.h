@@ -26,6 +26,9 @@ namespace hob {
     class Console;
 
     class Renderer {
+        friend class Font;
+        friend class Texture;
+
         static constexpr Color CLEAR_COLOR = Color(0.17f, 0.18f, 0.47f, 1.0f);
 
         // 6 verts per line segment (two triangles): 65536 verts = ~10,922 lines/frame.
@@ -180,9 +183,6 @@ namespace hob {
         bool upload_texture_rgba(SDL_GPUTexture* dst_texture, const void* pixels, uint32_t width, uint32_t height);
 
     private:
-        friend class Texture;
-        friend class Font;
-
         void release_texture(const Texture& texture);
 
         bool init_offscreen_target();

@@ -8,6 +8,9 @@
 
 namespace hob {
     class TransformComponent : public Component {
+        friend class Physics;
+        friend class EntitySpawner;
+
         // Authoritative state is local (relative to the parent).
         Vector2 m_local_position;
         float m_local_rotation = 0.0f; // In radians
@@ -27,15 +30,7 @@ namespace hob {
         TransformComponent* m_parent = nullptr;
         std::vector<TransformComponent*> m_children;
 
-        bool m_interpolate_physics = true;
-
-        // Physics is a friend class of TransformComponent so that
-        // the rendering can take advantage of Physics interpolation when enabled.
-        friend class Physics;
-
-        // EntitySpawner is a friend so it can detach a pending (not-yet-in-play) entity from the
-        // hierarchy synchronously on destroy, before its exit_play() would ever run.
-        friend class EntitySpawner;
+        bool m_interpolate_physics = false;
 
     public:
         explicit TransformComponent(Entity& entity);

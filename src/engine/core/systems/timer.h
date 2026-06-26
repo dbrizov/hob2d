@@ -4,6 +4,8 @@ namespace hob {
     struct GraphicsConfig;
 
     class Timer {
+        friend class Engine;
+
         uint32_t m_target_fps;
         bool m_vsync_enabled;
         float m_time_scale;
@@ -36,7 +38,6 @@ namespace hob {
         float get_delta_time() const;
 
     private:
-        friend class Engine;
         void frame_start();
         void frame_end();
     };
