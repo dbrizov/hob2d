@@ -26,8 +26,8 @@ namespace hob {
         // Must match the `Engine` cbuffer in the sprite fragment shaders.
         struct SpriteEngineFSUniforms {
             float texel_size[2]; // 0..8
-            float time; // 8..12
-            float _pad; // 12..16
+            float game_time; // 8..12
+            float real_time; // 12..16
         };
 
         static_assert(sizeof(SpriteEngineFSUniforms) == 16);
@@ -347,7 +347,8 @@ namespace hob {
             SpriteEngineFSUniforms engine{};
             engine.texel_size[0] = tex_w > 0 ? 1.0f / static_cast<float>(tex_w) : 0.0f;
             engine.texel_size[1] = tex_h > 0 ? 1.0f / static_cast<float>(tex_h) : 0.0f;
-            engine.time = m_play_time;
+            engine.game_time = m_game_time;
+            engine.real_time = m_real_time;
             SDL_PushGPUFragmentUniformData(m_command_buffer, shader->get_engine_slot(), &engine, sizeof(engine));
         }
 

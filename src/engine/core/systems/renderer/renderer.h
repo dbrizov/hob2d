@@ -71,7 +71,8 @@ namespace hob {
         bool m_shadercross_initialized = false;
         bool m_initialized = false;
 
-        float m_play_time = 0.0f;
+        float m_game_time = 0.0f;
+        float m_real_time = 0.0f;
 
         // -- Registries --
         std::vector<SpriteDrawData> m_sprite_draws;
@@ -159,7 +160,7 @@ namespace hob {
 
         void register_cvars(Console& console);
 
-        void set_play_time(float time);
+        void set_time(float game_time, float real_time);
 
         Vector2 get_logical_size() const;
 

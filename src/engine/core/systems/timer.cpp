@@ -9,8 +9,9 @@ namespace hob {
         : m_target_fps(graphics_config.target_fps)
         , m_vsync_enabled(graphics_config.vsync_enabled)
         , m_time_scale(1.0f)
-        , m_play_time(0.0f)
         , m_delta_time(0.0f)
+        , m_game_time(0.0f)
+        , m_real_time(0.0f)
         , m_frequency(0)
         , m_frame_start_ticks(0)
         , m_last_frame_start_ticks(0) {
@@ -35,16 +36,16 @@ namespace hob {
         m_time_scale = time_scale;
     }
 
-    float Timer::get_play_time() const {
-        return m_play_time;
-    }
-
-    void Timer::set_play_time(float play_time) {
-        m_play_time = play_time;
-    }
-
     float Timer::get_delta_time() const {
         return m_delta_time;
+    }
+
+    float Timer::get_game_time() const {
+        return m_game_time;
+    }
+
+    float Timer::get_real_time() const {
+        return m_real_time;
     }
 
     void Timer::frame_start() {
@@ -64,7 +65,8 @@ namespace hob {
         }
 
         m_delta_time = static_cast<float>(dt_seconds);
-        m_play_time += m_delta_time;
+        m_game_time += m_delta_time * m_time_scale;
+        m_real_time += m_delta_time;
     }
 
     void Timer::frame_end() {

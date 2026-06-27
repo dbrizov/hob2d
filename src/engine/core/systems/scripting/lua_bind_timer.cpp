@@ -30,12 +30,16 @@ namespace hob {
                       timer.set_time_scale(v);
                   },
                   {"scale"})
-            .func("get_play_time",
+            .func("get_delta_time",
                   [&timer]() {
-                      return timer.get_play_time();
+                      return timer.get_delta_time();
                   })
-            .func("get_delta_time", [&timer]() {
-                return timer.get_delta_time();
+            .func("get_game_time",
+                  [&timer]() {
+                      return timer.get_game_time();
+                  })
+            .func("get_real_time", [&timer]() {
+                return timer.get_real_time();
             });
     }
 } // namespace hob

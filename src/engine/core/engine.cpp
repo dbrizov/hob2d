@@ -109,7 +109,7 @@ namespace hob {
                 m_console.draw();
             }
 
-            m_renderer.set_play_time(m_timer.get_play_time());
+            m_renderer.set_time(m_timer.get_game_time(), m_timer.get_real_time());
             if (m_renderer.acquire_command_buffer()) {
                 m_renderer.render_world_pass();
                 m_renderer.render_blit_pass();

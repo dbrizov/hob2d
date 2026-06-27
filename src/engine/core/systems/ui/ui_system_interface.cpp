@@ -8,7 +8,7 @@ namespace hob {
         : m_timer(timer) {}
 
     double UiSystemInterface::GetElapsedTime() {
-        return m_timer.get_play_time();
+        return m_timer.get_real_time();
     }
 
     bool UiSystemInterface::LogMessage(Rml::Log::Type type, const Rml::String& message) {

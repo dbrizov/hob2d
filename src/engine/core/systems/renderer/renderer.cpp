@@ -121,8 +121,9 @@ namespace hob {
         log::renderer.info("Renderer::Shutdown");
     }
 
-    void Renderer::set_play_time(float time) {
-        m_play_time = time;
+    void Renderer::set_time(float game_time, float real_time) {
+        m_game_time = game_time;
+        m_real_time = real_time;
     }
 
     Vector2 Renderer::get_logical_size() const {

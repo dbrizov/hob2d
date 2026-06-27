@@ -74,10 +74,13 @@ function Timer.get_time_scale() end
 function Timer.set_time_scale(scale) end
 
 ---@return number
-function Timer.get_play_time() end
+function Timer.get_delta_time() end
 
 ---@return number
-function Timer.get_delta_time() end
+function Timer.get_game_time() end
+
+---@return number
+function Timer.get_real_time() end
 
 -- Input
 ---@class Input

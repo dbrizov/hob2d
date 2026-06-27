@@ -4,7 +4,8 @@ SamplerState sprite_samp : register(s0, space2);
 cbuffer Engine : register(b0, space3)
 {
     float2 texel_size;
-    float  time;
+    float  game_time;
+    float  real_time;
 };
 
 cbuffer Material : register(b1, space3)
@@ -28,8 +29,8 @@ float4 main(float2 uv : TEXCOORD0) : SV_Target0
     // Amplitude is measured in source texels so the wobble looks the same on
     // small and large sprites. Sine phase advances with time so the warp ripples.
     float2 warp = float2(
-        sin(uv.y * 25.0 + time * 4.0) * texel_size.x * 3.0,
-        sin(uv.x * 20.0 + time * 3.0) * texel_size.y * 3.0
+        sin(uv.y * 25.0 + game_time * 4.0) * texel_size.x * 3.0,
+        sin(uv.x * 20.0 + game_time * 3.0) * texel_size.y * 3.0
     );
     float2 wuv = uv + warp;
 
@@ -44,7 +45,7 @@ float4 main(float2 uv : TEXCOORD0) : SV_Target0
     // --- 2. Radial chromatic aberration --------------------------------------
     float2 from_center = wuv - 0.5;
     // Aberration grows with distance from sprite center and breathes with time.
-    float ab_strength = 0.06 + 0.04 * sin(time * 2.0);
+    float ab_strength = 0.06 + 0.04 * sin(game_time * 2.0);
     float2 ab = from_center * length(from_center) * ab_strength;
     float r = sprite_tex.Sample(sprite_samp, wuv + ab).r;
     float g = sprite_tex.Sample(sprite_samp, wuv).g;
@@ -54,7 +55,7 @@ float4 main(float2 uv : TEXCOORD0) : SV_Target0
     // --- 3. Per-column hue rotation ------------------------------------------
     // Full 2*pi sweep across the sprite plus a time offset, so the rainbow
     // scrolls horizontally over the sprite.
-    rgb = hue_shift(rgb, wuv.x * 6.28318 + time * 2.0);
+    rgb = hue_shift(rgb, wuv.x * 6.28318 + game_time * 2.0);
 
     return float4(rgb, center_a) * tint;
 }
