@@ -64,28 +64,47 @@ namespace hob {
             return dot != std::string::npos && std::string_view(block.type_name).substr(dot + 1) == name;
         }
 
-        // Reflection has no default values; seed well-known sprite params (M2: from DefineShader).
-        std::vector<uint8_t> seed_default_params(const std::unordered_map<std::string, ShaderParam>& params,
-                                                 uint32_t size) {
-            std::vector<uint8_t> defaults(size, 0);
+        void apply_blend_state(SDL_GPUColorTargetBlendState& blend, BlendMode mode) {
+            if (mode == BlendMode::Opaque) {
+                blend.enable_blend = false;
+                return;
+            }
 
-            const auto write = [&](const char* name, const float* values, uint32_t count) {
-                auto it = params.find(name);
-                if (it == params.end() || count > component_count(it->second.type)) {
-                    return;
-                }
-                const uint32_t bytes = count * static_cast<uint32_t>(sizeof(float));
-                if (it->second.offset + bytes <= defaults.size()) {
-                    std::memcpy(defaults.data() + it->second.offset, values, bytes);
-                }
-            };
+            blend.enable_blend = true;
+            blend.color_blend_op = SDL_GPU_BLENDOP_ADD;
+            blend.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
+            blend.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
 
-            const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-            const float alpha_threshold = 0.1f;
-            write("tint", white, 4);
-            write("outline_color", white, 4);
-            write("alpha_threshold", &alpha_threshold, 1);
-            return defaults;
+            switch (mode) {
+                case BlendMode::Additive:
+                    blend.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+                    blend.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+                    blend.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+                    break;
+                case BlendMode::Premultiplied:
+                    blend.src_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
+                    blend.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+                    blend.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+                    break;
+                case BlendMode::Alpha:
+                default:
+                    blend.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
+                    blend.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+                    blend.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
+                    break;
+            }
+        }
+
+        SDL_GPUCullMode to_sdl_cull(CullMode mode) {
+            switch (mode) {
+                case CullMode::Back:
+                    return SDL_GPU_CULLMODE_BACK;
+                case CullMode::Front:
+                    return SDL_GPU_CULLMODE_FRONT;
+                case CullMode::None:
+                default:
+                    return SDL_GPU_CULLMODE_NONE;
+            }
         }
     } // namespace
 
@@ -152,7 +171,7 @@ namespace hob {
         return shader;
     }
 
-    ShaderRef Renderer::get_or_build_sprite_shader(const std::string& path) {
+    ShaderRef Renderer::get_or_build_sprite_shader(const std::string& path, BlendMode blend, CullMode cull) {
         if (path.empty()) {
             return m_default_shader;
         }
@@ -164,13 +183,17 @@ namespace hob {
             return it->second;
         }
 
-        ShaderRef shader = build_shader(key, m_offscreen_format);
+        ShaderRef shader = build_shader(key, m_offscreen_format, blend, cull);
         if (!shader) {
             shader = m_default_shader;
         }
 
         m_shaders.emplace(key, shader);
         return shader;
+    }
+
+    ShaderRef Renderer::get_default_shader() const {
+        return m_default_shader;
     }
 
     MaterialRef Renderer::create_material(ShaderRef shader) {
@@ -297,10 +320,16 @@ namespace hob {
     bool Renderer::init_default_sprite_pipeline() {
         const std::string default_key = std::filesystem::path(DEFAULT_SPRITE_SHADER).lexically_normal().string();
 
-        ShaderRef shader = build_shader(default_key, m_offscreen_format);
+        ShaderRef shader = build_shader(default_key, m_offscreen_format, BlendMode::Alpha, CullMode::None);
         if (!shader) {
             return false;
         }
+
+        // The builtin sprite shader is built before Lua runs, so its defaults are seeded here.
+        const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+        const float alpha_threshold = 0.1f;
+        shader->set_default_param("tint", white, 4);
+        shader->set_default_param("alpha_threshold", &alpha_threshold, 1);
 
         m_default_shader = shader;
         m_shaders.emplace(default_key, shader);
@@ -590,7 +619,10 @@ namespace hob {
         return true;
     }
 
-    ShaderRef Renderer::build_shader(const std::string& path, SDL_GPUTextureFormat target_format) {
+    ShaderRef Renderer::build_shader(const std::string& path,
+                                     SDL_GPUTextureFormat target_format,
+                                     BlendMode blend,
+                                     CullMode cull) {
         const std::filesystem::path assets_root = PathUtils::get_assets_root_path();
         const std::filesystem::path vert_path = assets_root / (path + ".vert.hlsl");
         const std::filesystem::path frag_path = assets_root / (path + ".frag.hlsl");
@@ -625,13 +657,7 @@ namespace hob {
 
         SDL_GPUColorTargetDescription ctd{};
         ctd.format = target_format;
-        ctd.blend_state.enable_blend = true;
-        ctd.blend_state.src_color_blendfactor = SDL_GPU_BLENDFACTOR_SRC_ALPHA;
-        ctd.blend_state.dst_color_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-        ctd.blend_state.color_blend_op = SDL_GPU_BLENDOP_ADD;
-        ctd.blend_state.src_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE;
-        ctd.blend_state.dst_alpha_blendfactor = SDL_GPU_BLENDFACTOR_ONE_MINUS_SRC_ALPHA;
-        ctd.blend_state.alpha_blend_op = SDL_GPU_BLENDOP_ADD;
+        apply_blend_state(ctd.blend_state, blend);
 
         SDL_GPUGraphicsPipelineCreateInfo gci{};
         gci.vertex_shader = vs;
@@ -642,7 +668,7 @@ namespace hob {
         gci.vertex_input_state.num_vertex_attributes = 2;
         gci.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
         gci.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
-        gci.rasterizer_state.cull_mode = SDL_GPU_CULLMODE_NONE;
+        gci.rasterizer_state.cull_mode = to_sdl_cull(cull);
         gci.rasterizer_state.front_face = SDL_GPU_FRONTFACE_COUNTER_CLOCKWISE;
         gci.multisample_state.sample_count = SDL_GPU_SAMPLECOUNT_1;
         gci.target_info.color_target_descriptions = &ctd;
@@ -677,7 +703,7 @@ namespace hob {
             }
         }
 
-        shader->set_default_params(seed_default_params(shader->params(), shader->material_size()));
+        shader->set_default_params(std::vector<uint8_t>(shader->material_size(), 0));
         return shader;
     }
 } // namespace hob

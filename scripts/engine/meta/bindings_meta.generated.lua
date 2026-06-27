@@ -915,6 +915,13 @@ function CameraComponent:screen_to_world(screen_pos) end
 
 _G.CameraComponent = CameraComponent
 
+-- Shader
+---@class Shader
+---@overload fun(config: table): Shader
+local Shader = {}
+
+_G.Shader = Shader
+
 -- Material
 ---@class Material
 ---@overload fun(config: table): Material

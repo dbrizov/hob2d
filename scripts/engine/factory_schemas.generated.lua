@@ -11,6 +11,16 @@ _G.__factory_schemas = {
             { name = "looping" },
         },
     },
+    Shaders = {
+        define = "DefineShader",
+        lua_type = "Shader",
+        fields = {
+            { name = "path" },
+            { name = "blend" },
+            { name = "cull" },
+            { name = "defaults" },
+        },
+    },
     Materials = {
         define = "DefineMaterial",
         lua_type = "Material",

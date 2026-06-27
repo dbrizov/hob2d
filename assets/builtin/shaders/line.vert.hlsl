@@ -1,6 +1,3 @@
-// Line vertex shader.
-// Per-vertex pos (logical pixels) + color. Projection comes from a per-frame push constant.
-
 cbuffer LineVS : register(b0, space1)
 {
     float4x4 proj;

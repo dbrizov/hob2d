@@ -16,6 +16,19 @@ namespace hob {
 
     constexpr uint32_t INVALID_SHADER_SLOT = MAX_UINT32;
 
+    enum class BlendMode {
+        Alpha,
+        Additive,
+        Premultiplied,
+        Opaque,
+    };
+
+    enum class CullMode {
+        None,
+        Back,
+        Front,
+    };
+
     struct ShaderParam {
         ShaderParamType type = ShaderParamType::Unknown;
         uint32_t offset = 0;
@@ -27,7 +40,7 @@ namespace hob {
         SDL_GPUGraphicsPipeline* m_pipeline = nullptr;
         std::string m_path;
 
-        uint32_t m_engine_slot = INVALID_SHADER_SLOT; // engine-filled cbuffer (texel_size/time)
+        uint32_t m_engine_slot = INVALID_SHADER_SLOT; // engine-filled cbuffer
         uint32_t m_material_slot = INVALID_SHADER_SLOT; // user-facing "Material" cbuffer
         uint32_t m_material_size = 0;
         std::unordered_map<std::string, ShaderParam> m_params;
@@ -39,6 +52,7 @@ namespace hob {
 
         Shader(const Shader&) = delete;
         Shader& operator=(const Shader&) = delete;
+
         Shader(Shader&&) = delete;
         Shader& operator=(Shader&&) = delete;
 
@@ -55,5 +69,6 @@ namespace hob {
         void set_engine_slot(uint32_t slot);
         void set_material_layout(uint32_t slot, uint32_t size, std::unordered_map<std::string, ShaderParam> params);
         void set_default_params(std::vector<uint8_t> defaults);
+        bool set_default_param(const std::string& name, const float* values, uint32_t count);
     };
 } // namespace hob

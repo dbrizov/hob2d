@@ -8,6 +8,10 @@
 ---@field PlayerIdle AnimationClip
 ---@field PlayerRun AnimationClip
 
+---@class Shaders
+---@field Outline Shader
+---@field Psychedelic Shader
+
 ---@class Materials
 ---@field BlueOutline Material
 ---@field GreenOutline Material

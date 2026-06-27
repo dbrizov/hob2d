@@ -1,13 +1,3 @@
-// Psychedelic sprite fragment shader.
-//
-// Three effects stacked on top of each other:
-//   1. Wavy UV distortion       — sine ripples on both axes, "underwater" warp.
-//   2. Radial chromatic aberration — R/G/B sampled at offset UVs growing toward
-//      the edges, like a cheap VHS / lens-fringe look.
-//   3. Per-column hue rotation   — the hue of every pixel is rotated around the
-//      luminance axis by an angle proportional to UV.x, giving the sprite a
-//      vertical rainbow band.
-
 Texture2D    sprite_tex  : register(t0, space2);
 SamplerState sprite_samp : register(s0, space2);
 

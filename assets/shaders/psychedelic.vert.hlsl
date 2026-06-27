@@ -1,8 +1,3 @@
-// Psychedelic sprite vertex shader.
-// Identical to builtin/shaders/sprite.vert.hlsl — the pipeline VBO layout and SpriteVS
-// cbuffer pushed by the renderer are fixed, so this just forwards the unit-quad
-// position+UV through the standard world-space view-projection path.
-
 cbuffer SpriteVS : register(b0, space1)
 {
     float4x4 view_proj;

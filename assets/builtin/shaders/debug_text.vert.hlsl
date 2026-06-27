@@ -1,6 +1,3 @@
-// Debug text vertex shader.
-// Per-vertex pos (logical pixels) + uv into the font atlas + color. Projection comes from a per-frame push constant.
-
 cbuffer DebugTextVS : register(b0, space1)
 {
     float4x4 proj;

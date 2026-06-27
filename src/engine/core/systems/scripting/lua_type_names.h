@@ -13,6 +13,7 @@ namespace hob {
     struct Circle;
     struct Color;
     class Texture;
+    class Shader;
     struct Material;
     struct AnimationClip;
     struct RaycastHit;
@@ -39,6 +40,7 @@ namespace hob {
     HOB_LUA_TYPE(Circle, "Circle")
     HOB_LUA_TYPE(Color, "Color")
     HOB_LUA_TYPE(Texture, "Texture")
+    HOB_LUA_TYPE(Shader, "Shader")
     HOB_LUA_TYPE(Material, "Material")
     HOB_LUA_TYPE(AnimationClip, "AnimationClip")
     HOB_LUA_TYPE(RaycastHit, "RaycastHit")

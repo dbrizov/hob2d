@@ -8,6 +8,5 @@ namespace hob {
 
         bind_path_schema(path_schemas, "DefineAsset", "Assets", "Asset");
         bind_path_schema(path_schemas, "DefineTexture", "Textures", "Texture");
-        bind_path_schema(path_schemas, "DefineShader", "Shaders", "Shader");
     }
 } // namespace hob

@@ -26,15 +26,3 @@ DefineTexture = {}
 ---@class Textures
 Textures = {}
 
---- Assigning `DefineShader.Foo = "path/under/assets"` registers a
---- named alias for a Shader path. Reference it as `Shaders.Foo` in prefabs and config; the lookup is deferred
---- and resolved at dispatch time, so DefineShader calls can live in any file in any load order.
---- When passing `Shaders.Foo` directly to a C++ setter, unwrap with `unwrap_def(...)`.
----@class DefineShader
-DefineShader = {}
-
---- Registry of Shader aliases declared via `DefineShader`. `Shaders.Foo` returns a deferred reference
---- that resolves to the registered path via unwrap_def (see scripts/engine/unwrap.lua).
----@class Shaders
-Shaders = {}
-

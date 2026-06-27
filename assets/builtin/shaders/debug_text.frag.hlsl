@@ -1,6 +1,3 @@
-// Debug text fragment shader.
-// Samples the font atlas (RGBA: white with glyph alpha) and multiplies by the vertex color.
-
 Texture2D    atlas_tex  : register(t0, space2);
 SamplerState atlas_samp : register(s0, space2);
 

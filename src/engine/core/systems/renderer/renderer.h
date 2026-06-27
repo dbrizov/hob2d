@@ -196,7 +196,8 @@ namespace hob {
 
         TextureRef get_or_load_texture(const std::string& path);
         TextureRef create_texture_from_rgba(const void* pixels, uint32_t width, uint32_t height);
-        ShaderRef get_or_build_sprite_shader(const std::string& path);
+        ShaderRef get_or_build_sprite_shader(const std::string& path, BlendMode blend, CullMode cull);
+        ShaderRef get_default_shader() const;
 
         MaterialRef create_material(ShaderRef shader);
         MaterialRef clone_material(const Material& source);
@@ -222,7 +223,10 @@ namespace hob {
         bool init_debug_text_pipeline();
         bool init_debug_font();
 
-        ShaderRef build_shader(const std::string& path, SDL_GPUTextureFormat target_format);
+        ShaderRef build_shader(const std::string& path,
+                               SDL_GPUTextureFormat target_format,
+                               BlendMode blend,
+                               CullMode cull);
 
         void record_sprite_draw(SDL_GPURenderPass* pass, const SpriteDrawData& draw, const Shader*& bound_shader);
         void push_sprite_fragment_uniforms(const Texture& texture, const Material& material);

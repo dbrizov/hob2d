@@ -24,6 +24,3 @@
 ---@field PlayerRun10 string
 ---@field WhiteRect string
 
----@class Shaders
----@field Psychedelic string
-

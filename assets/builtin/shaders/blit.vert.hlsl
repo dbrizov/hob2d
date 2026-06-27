@@ -1,8 +1,3 @@
-// Blit vertex shader.
-// Synthesizes a fullscreen triangle from SV_VertexID — no vertex buffer needed.
-// The triangle's vertices are (-1,-1), (3,-1), (-1,3) in clip space; the on-screen
-// portion forms the screen quad and the UVs sweep [0,1] across it.
-
 struct VSOutput
 {
     float4 pos : SV_Position;

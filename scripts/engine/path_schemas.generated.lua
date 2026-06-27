@@ -4,5 +4,4 @@
 _G.__path_schemas = {
     { registry = "Assets", define = "DefineAsset", type_label = "Asset" },
     { registry = "Textures", define = "DefineTexture", type_label = "Texture" },
-    { registry = "Shaders", define = "DefineShader", type_label = "Shader" },
 }
