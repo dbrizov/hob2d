@@ -120,7 +120,9 @@ namespace hob {
 
         ShaderReflection reflection;
         if (reflect_spirv(spirv, spirv_size, reflection)) {
-            log_shader_reflection(hlsl_path.filename().string(), reflection);
+            if (m_cvar_log_shader_reflection) {
+                log_shader_reflection(hlsl_path.filename().string(), reflection);
+            }
         }
         else {
             log::renderer.error("SPIRV-Reflect failed for {}", hlsl_path.string());

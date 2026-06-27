@@ -103,7 +103,7 @@ namespace hob {
         return TextureRef(new Texture(*this, gpu_tex, width, height, ""));
     }
 
-    void Renderer::release_texture(const Texture& texture) {
+    void Renderer::release_texture(Texture& texture) {
         if (m_cvar_log_texture_refs) {
             log::renderer.info("Renderer::release_texture: '{}' [destroyed]", texture.m_path);
         }
@@ -111,6 +111,31 @@ namespace hob {
         m_textures.erase(texture.m_path);
         if (texture.m_gpu_texture) {
             SDL_ReleaseGPUTexture(m_gpu_device, texture.m_gpu_texture);
+            texture.m_gpu_texture = nullptr;
+        }
+
+        texture.m_renderer = nullptr;
+    }
+
+    void Renderer::release_textures() {
+        // Defensive sweep: with the engine's subsystem destruction order, every TextureRef
+        // holder dies before the Renderer, so the weak refs here should already be expired.
+        // If anything is still alive, detach it from the renderer and release its GPU handle
+        // directly so Texture::~Texture (which would call back into us) becomes a no-op.
+        std::vector<TextureRef> alive;
+        for (auto& [path, weak] : m_textures) {
+            if (auto texture = weak.lock()) {
+                log::renderer.error(
+                    "Renderer::~Renderer: texture '{}' still has {} holder(s) at shutdown — destruction order is wrong",
+                    path,
+                    texture.use_count() - 1);
+
+                alive.push_back(std::move(texture));
+            }
+        }
+
+        for (auto& texture : alive) {
+            release_texture(*texture);
         }
     }
 

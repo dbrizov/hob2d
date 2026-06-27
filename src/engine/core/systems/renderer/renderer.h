@@ -73,20 +73,13 @@ namespace hob {
 
         float m_play_time = 0.0f;
 
-        std::unordered_map<std::string, TextureWeakRef> m_textures;
-
-        // Projection used when rendering into the offscreen color target. SDL_GPU clip-space
-        // ortho mapping (0,0)..(w,h) -> (-1,-1)..(+1,+1) with y-down. Input is logical pixels.
-        Matrix4x4 m_offscreen_projection;
-        // Projection used when rendering directly into the swapchain. Same logical-pixel input
-        // range as m_offscreen_projection, but y-flipped because the swap target has the opposite NDC y convention.
+        // -- Projections --
+        Matrix4x4 m_offscreen_projection; // clip-space ortho mapping (0,0)..(w,h) -> (-1,-1)..(+1,+1) with y-down.
         Matrix4x4 m_swapchain_projection;
         Matrix4x4 m_sprite_view_projection;
         bool m_has_sprite_view_projection = false;
 
-        SDL_GPUCommandBuffer* m_command_buffer = nullptr;
-        SDL_GPUTexture* m_swap_texture = nullptr;
-
+        // -- Registries --
         std::vector<SpriteDrawData> m_sprite_draws;
         std::vector<SpriteDrawIndex> m_sprite_draw_id_to_index;
         std::vector<SpriteDrawId> m_sprite_draw_index_to_id;
@@ -97,24 +90,37 @@ namespace hob {
         std::vector<DebugTextVertex> m_pending_debug_text_vertices;
         std::vector<uint16_t> m_pending_debug_text_indices;
 
+        SDL_GPUCommandBuffer* m_command_buffer = nullptr;
+
+        // -- Texture targets --
         SDL_GPUTexture* m_offscreen_color = nullptr;
         SDL_GPUTextureFormat m_offscreen_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
+
+        SDL_GPUTexture* m_swap_texture = nullptr;
         SDL_GPUTextureFormat m_swapchain_format = SDL_GPU_TEXTUREFORMAT_INVALID;
+
+        // -- Sprite pipelines --
+        std::unordered_map<std::string, TextureWeakRef> m_textures;
 
         ShaderRef m_default_shader;
         std::unordered_map<std::string, ShaderRef> m_shaders;
+
         MaterialRef m_default_material;
         std::vector<MaterialWeakRef> m_materials; // weak registry for the material-ref debug view
+
         SDL_GPUBuffer* m_quad_vbo = nullptr;
         SDL_GPUSampler* m_sprite_sampler = nullptr;
 
+        // -- Blit pipeline --
         SDL_GPUGraphicsPipeline* m_blit_pipeline = nullptr;
         SDL_GPUSampler* m_blit_sampler = nullptr;
 
+        // -- Debug line pipeline --
         SDL_GPUGraphicsPipeline* m_debug_line_pipeline = nullptr;
         SDL_GPUBuffer* m_debug_line_vbo = nullptr;
         SDL_GPUTransferBuffer* m_debug_line_transfer_buffer = nullptr;
 
+        // -- Debug text pipeline --
         SDL_GPUGraphicsPipeline* m_debug_text_pipeline = nullptr;
         SDL_GPUBuffer* m_debug_text_vbo = nullptr;
         SDL_GPUBuffer* m_debug_text_ibo = nullptr;
@@ -124,6 +130,7 @@ namespace hob {
         Font m_debug_font;
         float m_debug_font_baked_inverse_pixel_density = 1.0f;
 
+        // -- CVars --
         bool m_cvar_log_texture_refs = false;
         bool m_cvar_show_texture_refs = false;
 
@@ -132,6 +139,8 @@ namespace hob {
 
         bool m_cvar_log_shader_refs = false;
         bool m_cvar_show_shader_refs = false;
+
+        bool m_cvar_log_shader_reflection = false;
 
         bool m_cvar_log_sprite_queue = false;
         bool m_cvar_show_sprite_queue = false;
@@ -199,7 +208,8 @@ namespace hob {
         bool upload_texture_rgba(SDL_GPUTexture* dst_texture, const void* pixels, uint32_t width, uint32_t height);
 
     private:
-        void release_texture(const Texture& texture);
+        void release_texture(Texture& texture);
+        void release_textures();
         void track_material(const MaterialRef& material);
 
         bool init_offscreen_target();

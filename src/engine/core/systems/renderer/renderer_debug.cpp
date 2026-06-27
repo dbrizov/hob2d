@@ -64,6 +64,15 @@ namespace hob {
                                   m_cvar_show_shader_refs = cvar.bool_value();
                               });
 
+        console.register_cvar("r_log_shader_reflection",
+                              "Log each shader's reflected cbuffers/textures/inputs at load",
+                              to_cvar_string(m_cvar_log_shader_reflection),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_log_shader_reflection = cvar.bool_value();
+                              });
+
         console.register_cvar("r_log_sprite_queue",
                               "Log sprite queue (z_index, shader_id, texture) each frame",
                               to_cvar_string(m_cvar_log_sprite_queue),

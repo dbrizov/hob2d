@@ -69,27 +69,6 @@ namespace hob {
     }
 
     Renderer::~Renderer() {
-        // Defensive sweep: with the engine's subsystem destruction order, every TextureRef
-        // holder dies before the Renderer, so the weak refs here should already be expired.
-        // If anything is still alive, detach it from the renderer and release its GPU handle
-        // directly so Texture::~Texture (which would call back into us) becomes a no-op.
-        for (auto& [path, weak] : m_textures) {
-            if (auto tex = weak.lock()) {
-                log::renderer.error(
-                    "Renderer::~Renderer: texture '{}' still has {} holder(s) at shutdown — destruction order is wrong",
-                    path,
-                    tex.use_count() - 1);
-
-                if (tex->m_gpu_texture) {
-                    SDL_ReleaseGPUTexture(m_gpu_device, tex->m_gpu_texture);
-                    tex->m_gpu_texture = nullptr;
-                }
-
-                tex->m_renderer = nullptr;
-            }
-        }
-        m_textures.clear();
-
         // Debug font owns its atlas texture; release before the GPU device goes away.
         m_debug_font.shutdown();
 
@@ -116,9 +95,10 @@ namespace hob {
             SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_blit_pipeline);
 
         m_default_material.reset();
+        m_materials.clear();
         m_default_shader.reset();
         m_shaders.clear();
-        m_materials.clear();
+        release_textures();
 
         if (m_quad_vbo)
             SDL_ReleaseGPUBuffer(m_gpu_device, m_quad_vbo);
