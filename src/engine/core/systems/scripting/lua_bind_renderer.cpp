@@ -63,6 +63,8 @@ namespace hob {
                     return mat;
                 },
                 {"config"})
+            .method("get_name", &Material::get_name)
+            .method("set_name", &Material::set_name, {"name"})
             .method("get_param",
                     [&lua](const Material& self, const std::string& name) -> sol::object {
                         const Shader* shader = self.get_shader();
@@ -113,11 +115,9 @@ namespace hob {
                         }
                     },
                     {"name", "value"})
-            .method("set_shader",
-                    [&renderer](Material& self, const std::string& path) {
-                        self.set_shader(renderer.get_or_build_sprite_shader(path));
-                    },
-                    {"path"});
+            .method("clone", [&renderer](Material& self) {
+                return renderer.clone_material(self);
+            });
 
         bind_factory_schema<Material>(factory_schemas, "DefineMaterial", "Materials", {"shader"});
     }

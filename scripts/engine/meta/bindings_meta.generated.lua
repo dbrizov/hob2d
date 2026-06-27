@@ -920,6 +920,12 @@ _G.CameraComponent = CameraComponent
 ---@overload fun(config: table): Material
 local Material = {}
 
+---@return string
+function Material:get_name() end
+
+---@param name string
+function Material:set_name(name) end
+
 ---@param name string
 ---@return any
 function Material:get_param(name) end
@@ -928,8 +934,8 @@ function Material:get_param(name) end
 ---@param value any
 function Material:set_param(name, value) end
 
----@param path string
-function Material:set_shader(path) end
+---@return Material?
+function Material:clone() end
 
 _G.Material = Material
 

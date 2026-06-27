@@ -12,7 +12,11 @@ EntitySpawner.spawn_entity(Entities.Player, Vector2(0.0, 0.0))
 -- Stationary enemies for testing
 EntitySpawner.spawn_entity(Entities.Enemy, Vector2(0.0, 4.0), -90.0)
 EntitySpawner.spawn_entity(Entities.Enemy, Vector2(-4.0, 0.0))
-EntitySpawner.spawn_entity(Entities.Enemy, Vector2(4.0, 0.0), 180.0)
+local enemy = EntitySpawner.spawn_entity(Entities.Enemy, Vector2(4.0, 0.0), 180.0)
+local shared_mat = enemy:get_sprite():get_material()
+local cloned_mat = shared_mat:clone()
+enemy:get_sprite():set_material(cloned_mat)
+enemy:get_sprite():get_material():set_param("outline_color", Color.cyan())
 
 -- Perimeter walls
 for x = -ARENA_HALF_W, ARENA_HALF_W do

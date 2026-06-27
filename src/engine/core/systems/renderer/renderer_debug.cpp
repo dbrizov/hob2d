@@ -10,13 +10,13 @@
 
 namespace hob {
     void Renderer::register_cvars(Console& console) {
-        console.register_cvar("r_log_texture_ref",
+        console.register_cvar("r_log_texture_refs",
                               "Log every texture load/unload/cache-hit",
-                              to_cvar_string(m_cvar_log_texture_ref),
+                              to_cvar_string(m_cvar_log_texture_refs),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
                               [this](const ConsoleVariable& cvar) {
-                                  m_cvar_log_texture_ref = cvar.bool_value();
+                                  m_cvar_log_texture_refs = cvar.bool_value();
                               });
 
         console.register_cvar("r_show_texture_refs",
@@ -26,6 +26,42 @@ namespace hob {
                               ConsoleVariableFlags::None,
                               [this](const ConsoleVariable& cvar) {
                                   m_cvar_show_texture_refs = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_log_material_refs",
+                              "Log the live materials (refs, shader) each frame",
+                              to_cvar_string(m_cvar_log_material_refs),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_log_material_refs = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_show_material_refs",
+                              "Show a material ref-count window (refs, param bytes, shader)",
+                              to_cvar_string(m_cvar_show_material_refs),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_show_material_refs = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_log_shader_refs",
+                              "Log the loaded shaders (refs, path) each frame",
+                              to_cvar_string(m_cvar_log_shader_refs),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_log_shader_refs = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_show_shader_refs",
+                              "Show a shader ref-count window (refs, path)",
+                              to_cvar_string(m_cvar_show_shader_refs),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_show_shader_refs = cvar.bool_value();
                               });
 
         console.register_cvar("r_log_sprite_queue",
@@ -72,8 +108,7 @@ namespace hob {
 
         if (ImGui::Begin("Texture Refs")) {
             // Count per-texture refs held by the renderer's draw data.
-            // World sprite draws hold a persistent TextureRef that inflates use_count()
-            // without being a "logical" holder.
+            // Sprites hold a persistent TextureRef that inflates use_count() without being a "logical" holder.
             std::unordered_map<const Texture*, int> pending_refs;
             for (const auto& draw : m_sprite_draws) {
                 if (draw.texture) {
@@ -101,7 +136,7 @@ namespace hob {
                 ImGui::TableSetupColumn("size", ImGuiTableColumnFlags_WidthFixed, 90.0f);
                 ImGui::TableSetupColumn("logical refs", ImGuiTableColumnFlags_WidthFixed, 90.0f);
                 ImGui::TableSetupColumn("all refs", ImGuiTableColumnFlags_WidthFixed, 90.0f);
-                ImGui::TableSetupColumn("path", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("path", ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableHeadersRow();
 
                 for (const auto& [path, weak] : m_textures) {
@@ -128,6 +163,119 @@ namespace hob {
             }
         }
         ImGui::End();
+    }
+
+    void Renderer::debug_shader_refs() {
+        // use_count() counts the m_shaders map entry plus every Material/ShaderRef holder; subtract
+        // 1 for the map's own ref to show external holders.
+        if (m_cvar_log_shader_refs) {
+            log::renderer.info("Renderer shaders ({}):", m_shaders.size());
+            for (const auto& [path, shader] : m_shaders) {
+                log::renderer.info("  refs={} {}", shader.use_count() - 1, path);
+            }
+        }
+
+        if (m_cvar_show_shader_refs) {
+            if (ImGui::Begin("Shader Refs")) {
+                ImGui::Text("Shaders: %zu", m_shaders.size());
+
+                const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
+                if (ImGui::BeginTable("shader_refs", 2, flags)) {
+                    ImGui::TableSetupColumn("refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+                    ImGui::TableSetupColumn("path", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableHeadersRow();
+
+                    for (const auto& [path, shader] : m_shaders) {
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::Text("%ld", static_cast<long>(shader.use_count() - 1));
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::TextUnformatted(path.c_str());
+                    }
+                    ImGui::EndTable();
+                }
+            }
+            ImGui::End();
+        }
+    }
+
+    void Renderer::debug_material_refs() {
+        if (!m_cvar_log_material_refs && !m_cvar_show_material_refs) {
+            return;
+        }
+
+        // Each on-screen sprite's SpriteDrawData co-owns a MaterialRef (transient render-queue
+        // bookkeeping, not a logical owner), so exclude those copies from the count.
+        std::unordered_map<const Material*, int> draw_refs;
+        for (const auto& draw : m_sprite_draws) {
+            if (draw.material) {
+                draw_refs[draw.material.get()] += 1;
+            }
+        }
+
+        // mat is a temporary lock (+1); also subtract the render-queue copies.
+        const auto ref_count = [&draw_refs](const MaterialRef& mat) {
+            const auto it = draw_refs.find(mat.get());
+            const int pending = it != draw_refs.end() ? it->second : 0;
+            return static_cast<int>(mat.use_count()) - 1 - pending;
+        };
+
+        if (m_cvar_log_material_refs) {
+            size_t live = 0;
+            for (const auto& weak : m_materials) {
+                live += weak.expired() ? 0 : 1;
+            }
+            log::renderer.info("Renderer materials ({} live):", live);
+            for (const auto& weak : m_materials) {
+                if (auto mat = weak.lock()) {
+                    const Shader* shader = mat->get_shader();
+                    log::renderer.info("  {} refs={} shader={}",
+                                       mat->get_name().empty() ? "<inline>" : mat->get_name().c_str(),
+                                       ref_count(mat),
+                                       shader ? shader->path().c_str() : "<none>");
+                }
+            }
+        }
+
+        if (m_cvar_show_material_refs) {
+            if (ImGui::Begin("Material Refs")) {
+                size_t live = 0;
+                int total_refs = 0;
+                for (const auto& weak : m_materials) {
+                    if (auto mat = weak.lock()) {
+                        total_refs += ref_count(mat);
+                        live += 1;
+                    }
+                }
+                ImGui::Text("Materials: %zu | Refs: %d", live, total_refs);
+
+                const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
+                if (ImGui::BeginTable("material_refs", 3, flags)) {
+                    ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+                    ImGui::TableSetupColumn("shader", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableHeadersRow();
+
+                    for (const auto& weak : m_materials) {
+                        auto mat = weak.lock();
+                        if (!mat) {
+                            continue;
+                        }
+                        const Shader* shader = mat->get_shader();
+
+                        ImGui::TableNextRow();
+                        ImGui::TableSetColumnIndex(0);
+                        ImGui::TextUnformatted(mat->get_name().empty() ? "<inline>" : mat->get_name().c_str());
+                        ImGui::TableSetColumnIndex(1);
+                        ImGui::Text("%d", ref_count(mat));
+                        ImGui::TableSetColumnIndex(2);
+                        ImGui::TextUnformatted(shader ? shader->path().c_str() : "<none>");
+                    }
+                    ImGui::EndTable();
+                }
+            }
+            ImGui::End();
+        }
     }
 
     void Renderer::debug_sprite_queue() {

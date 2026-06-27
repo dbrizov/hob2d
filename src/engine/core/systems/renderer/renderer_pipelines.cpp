@@ -172,11 +172,27 @@ namespace hob {
     }
 
     MaterialRef Renderer::create_material(ShaderRef shader) {
-        return std::make_shared<Material>(shader ? std::move(shader) : m_default_shader);
+        MaterialRef material = std::make_shared<Material>(shader ? std::move(shader) : m_default_shader);
+        track_material(material);
+        return material;
+    }
+
+    MaterialRef Renderer::clone_material(const Material& source) {
+        MaterialRef material = source.clone();
+        material->set_name(source.get_name() + " (clone)");
+        track_material(material);
+        return material;
     }
 
     MaterialRef Renderer::get_default_material() const {
         return m_default_material;
+    }
+
+    void Renderer::track_material(const MaterialRef& material) {
+        std::erase_if(m_materials, [](const MaterialWeakRef& weak) {
+            return weak.expired();
+        });
+        m_materials.push_back(material);
     }
 
     bool Renderer::init_offscreen_target() {
@@ -286,7 +302,8 @@ namespace hob {
 
         m_default_shader = shader;
         m_shaders.emplace(default_key, shader);
-        m_default_material = std::make_shared<Material>(m_default_shader);
+        m_default_material = create_material(m_default_shader);
+        m_default_material->set_name("<default>");
         return true;
     }
 

@@ -36,3 +36,7 @@ end
 
 -- 4. Push changed prefab data onto already-spawned entities (setters only; no re-add).
 __reapply_prefabs_to_spawned_entities()
+
+-- 5. Force a full GC so the previous generation of factory objects (materials, etc.) — now only
+--    held by unreachable Lua userdata — releases its C++ refs immediately instead of lingering.
+collectgarbage("collect")

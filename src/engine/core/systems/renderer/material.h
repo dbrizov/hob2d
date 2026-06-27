@@ -9,8 +9,10 @@
 namespace hob {
     class Material;
     using MaterialRef = std::shared_ptr<Material>;
+    using MaterialWeakRef = std::weak_ptr<Material>;
 
     class Material {
+        std::string m_name;
         ShaderRef m_shader;
         std::vector<uint8_t> m_params; // mirrors the shader's Material cbuffer, ready to push as-is
 
@@ -18,8 +20,10 @@ namespace hob {
         Material() = default;
         explicit Material(ShaderRef shader);
 
+        const std::string& get_name() const;
+        void set_name(std::string name);
+
         const Shader* get_shader() const;
-        void set_shader(ShaderRef shader);
 
         bool get_param(const std::string& name, float* out, uint32_t count) const;
         bool set_param(const std::string& name, const float* values, uint32_t count);

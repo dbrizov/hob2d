@@ -15,7 +15,7 @@ namespace hob {
         auto tex_it = m_textures.find(key);
         if (tex_it != m_textures.end()) {
             if (auto cached = tex_it->second.lock()) {
-                if (m_cvar_log_texture_ref) {
+                if (m_cvar_log_texture_refs) {
                     log::renderer.info(
                         "Renderer::get_or_load_texture cache hit: '{}' (rc={})", key, cached.use_count());
                 }
@@ -71,7 +71,7 @@ namespace hob {
         TextureRef texture(new Texture(*this, gpu_tex, w, h, key));
         m_textures.emplace(key, texture);
 
-        if (m_cvar_log_texture_ref) {
+        if (m_cvar_log_texture_refs) {
             log::renderer.info("Renderer::get_or_load_texture loaded: '{}' (rc=1)", key);
         }
 
@@ -104,7 +104,7 @@ namespace hob {
     }
 
     void Renderer::release_texture(const Texture& texture) {
-        if (m_cvar_log_texture_ref) {
+        if (m_cvar_log_texture_refs) {
             log::renderer.info("Renderer::release_texture: '{}' [destroyed]", texture.m_path);
         }
 

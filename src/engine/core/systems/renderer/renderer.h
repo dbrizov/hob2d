@@ -101,9 +101,10 @@ namespace hob {
         SDL_GPUTextureFormat m_offscreen_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
         SDL_GPUTextureFormat m_swapchain_format = SDL_GPU_TEXTUREFORMAT_INVALID;
 
-        std::unordered_map<std::string, ShaderRef> m_shaders;
         ShaderRef m_default_shader;
+        std::unordered_map<std::string, ShaderRef> m_shaders;
         MaterialRef m_default_material;
+        std::vector<MaterialWeakRef> m_materials; // weak registry for the material-ref debug view
         SDL_GPUBuffer* m_quad_vbo = nullptr;
         SDL_GPUSampler* m_sprite_sampler = nullptr;
 
@@ -123,8 +124,14 @@ namespace hob {
         Font m_debug_font;
         float m_debug_font_baked_inverse_pixel_density = 1.0f;
 
-        bool m_cvar_log_texture_ref = false;
+        bool m_cvar_log_texture_refs = false;
         bool m_cvar_show_texture_refs = false;
+
+        bool m_cvar_log_material_refs = false;
+        bool m_cvar_show_material_refs = false;
+
+        bool m_cvar_log_shader_refs = false;
+        bool m_cvar_show_shader_refs = false;
 
         bool m_cvar_log_sprite_queue = false;
         bool m_cvar_show_sprite_queue = false;
@@ -182,6 +189,7 @@ namespace hob {
         ShaderRef get_or_build_sprite_shader(const std::string& path);
 
         MaterialRef create_material(ShaderRef shader);
+        MaterialRef clone_material(const Material& source);
         MaterialRef get_default_material() const;
 
         SDL_GPUShader* load_shader(const std::filesystem::path& hlsl_path,
@@ -192,6 +200,7 @@ namespace hob {
 
     private:
         void release_texture(const Texture& texture);
+        void track_material(const MaterialRef& material);
 
         bool init_offscreen_target();
         bool init_samplers();
@@ -208,6 +217,8 @@ namespace hob {
         void push_sprite_fragment_uniforms(const Texture& texture, const Material& material);
 
         void debug_texture_refs();
+        void debug_shader_refs();
+        void debug_material_refs();
         void debug_sprite_queue();
     };
 } // namespace hob

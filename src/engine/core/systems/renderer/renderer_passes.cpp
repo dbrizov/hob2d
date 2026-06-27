@@ -84,6 +84,8 @@ namespace hob {
         }
 
         debug_texture_refs();
+        debug_shader_refs();
+        debug_material_refs();
         debug_sprite_queue();
     }
 

@@ -59,6 +59,9 @@ local function install_factory_registry(registry_name, schema)
         end
 
         local obj = ctor(cfg)
+        if obj and obj.set_name then
+            obj:set_name(name)
+        end
         built[name] = obj
         return obj
     end

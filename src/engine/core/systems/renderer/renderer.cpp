@@ -118,6 +118,7 @@ namespace hob {
         m_default_material.reset();
         m_default_shader.reset();
         m_shaders.clear();
+        m_materials.clear();
 
         if (m_quad_vbo)
             SDL_ReleaseGPUBuffer(m_gpu_device, m_quad_vbo);
