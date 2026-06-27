@@ -26,6 +26,7 @@ _G.__factory_schemas = {
         lua_type = "Material",
         fields = {
             { name = "shader" },
+            { name = "textures" },
         },
     },
 }

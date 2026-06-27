@@ -10,6 +10,9 @@
 
 namespace hob {
     namespace {
+        constexpr ImGuiWindowFlags DEBUG_WINDOW_FLAGS =
+            ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
+
         std::string shader_label(const Shader* shader) {
             if (!shader) {
                 return "<none>";
@@ -18,6 +21,23 @@ namespace hob {
                                shader->get_path(),
                                blend_mode_to_string(shader->get_blend_mode()),
                                cull_mode_to_string(shader->get_cull_mode()));
+        }
+
+        std::string material_textures_label(const Material& material) {
+            const Shader* shader = material.get_shader();
+            if (!shader || shader->get_textures().empty()) {
+                return "-";
+            }
+
+            std::string label;
+            for (const ShaderTexture& st : shader->get_textures()) {
+                const TextureRef tex = material.get_texture(st.name);
+                if (!label.empty()) {
+                    label += ", ";
+                }
+                label += std::format("{}={}", st.name, tex ? tex->get_path() : "<none>");
+            }
+            return label;
         }
     } // namespace
 
@@ -41,7 +61,7 @@ namespace hob {
                               });
 
         console.register_cvar("r_log_material_refs",
-                              "Log the live materials (refs, shader) each frame",
+                              "Log the live materials (refs, shader, textures) each frame",
                               to_cvar_string(m_cvar_log_material_refs),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
@@ -50,7 +70,7 @@ namespace hob {
                               });
 
         console.register_cvar("r_show_material_refs",
-                              "Show a material ref-count window (refs, param bytes, shader)",
+                              "Show a material ref-count window (refs, shader, textures)",
                               to_cvar_string(m_cvar_show_material_refs),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
@@ -127,7 +147,7 @@ namespace hob {
             return;
         }
 
-        if (ImGui::Begin("Texture Refs")) {
+        if (ImGui::Begin("Texture Refs", nullptr, DEBUG_WINDOW_FLAGS)) {
             // Count per-texture refs held by the renderer's draw data.
             // Sprites hold a persistent TextureRef that inflates use_count() without being a "logical" holder.
             std::unordered_map<const Texture*, int> pending_refs;
@@ -197,7 +217,7 @@ namespace hob {
         }
 
         if (m_cvar_show_shader_refs) {
-            if (ImGui::Begin("Shader Refs")) {
+            if (ImGui::Begin("Shader Refs", nullptr, DEBUG_WINDOW_FLAGS)) {
                 ImGui::Text("Shaders: %zu", m_shaders.size());
 
                 const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
@@ -250,16 +270,17 @@ namespace hob {
             for (const auto& weak : m_materials) {
                 if (auto mat = weak.lock()) {
                     const Shader* shader = mat->get_shader();
-                    log::renderer.info("  {} refs={} shader={}",
+                    log::renderer.info("  {} refs={} shader={} textures=[{}]",
                                        mat->get_name().empty() ? "<inline>" : mat->get_name().c_str(),
                                        ref_count(mat),
-                                       shader_label(shader));
+                                       shader_label(shader),
+                                       material_textures_label(*mat));
                 }
             }
         }
 
         if (m_cvar_show_material_refs) {
-            if (ImGui::Begin("Material Refs")) {
+            if (ImGui::Begin("Material Refs", nullptr, DEBUG_WINDOW_FLAGS)) {
                 size_t live = 0;
                 int total_refs = 0;
                 for (const auto& weak : m_materials) {
@@ -271,10 +292,11 @@ namespace hob {
                 ImGui::Text("Materials: %zu | Refs: %d", live, total_refs);
 
                 const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
-                if (ImGui::BeginTable("material_refs", 3, flags)) {
+                if (ImGui::BeginTable("material_refs", 4, flags)) {
                     ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed);
                     ImGui::TableSetupColumn("refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
                     ImGui::TableSetupColumn("shader", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("textures", ImGuiTableColumnFlags_WidthStretch);
                     ImGui::TableHeadersRow();
 
                     for (const auto& weak : m_materials) {
@@ -291,6 +313,8 @@ namespace hob {
                         ImGui::Text("%d", ref_count(mat));
                         ImGui::TableSetColumnIndex(2);
                         ImGui::TextUnformatted(shader_label(shader).c_str());
+                        ImGui::TableSetColumnIndex(3);
+                        ImGui::TextUnformatted(material_textures_label(*mat).c_str());
                     }
                     ImGui::EndTable();
                 }
@@ -311,7 +335,7 @@ namespace hob {
         }
 
         if (m_cvar_show_sprite_queue) {
-            if (ImGui::Begin("Sprite Queue")) {
+            if (ImGui::Begin("Sprite Queue", nullptr, DEBUG_WINDOW_FLAGS)) {
                 // Collapse consecutive draws that share (z_index, shader_id, texture path) into a
                 // single row with a count. Adjacent identical draws form one batch, so grouping by
                 // runs keeps the draw order meaningful while cutting the row count.

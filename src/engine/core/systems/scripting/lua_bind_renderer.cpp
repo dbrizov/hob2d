@@ -118,6 +118,22 @@ namespace hob {
                             mat->set_param(name, v, n);
                         });
                     }
+
+                    if (auto textures = cfg.get<sol::optional<sol::table>>("textures")) {
+                        for (const auto& [key, value] : *textures) {
+                            const std::string name = key.as<std::string>();
+                            if (value.is<TextureRef>()) {
+                                mat->set_texture(name, value.as<TextureRef>());
+                            }
+                            else if (value.is<std::string>()) {
+                                mat->set_texture(name, renderer.get_or_load_texture(value.as<std::string>()));
+                            }
+                            else {
+                                log::lua.error("DefineMaterial: texture '{}' must be a Textures.X reference or a path",
+                                               name);
+                            }
+                        }
+                    }
                     return mat;
                 },
                 {"config"})
@@ -177,6 +193,6 @@ namespace hob {
                 return renderer.clone_material(self);
             });
 
-        bind_factory_schema<Material>(factory_schemas, "DefineMaterial", "Materials", {"shader"});
+        bind_factory_schema<Material>(factory_schemas, "DefineMaterial", "Materials", {"shader", "textures"});
     }
 } // namespace hob

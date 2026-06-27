@@ -102,6 +102,7 @@ namespace hob {
 
         // -- Sprite pipelines --
         std::unordered_map<std::string, TextureWeakRef> m_textures;
+        TextureRef m_fallback_texture; // 1x1 magenta, bound when a material leaves a texture slot unset
 
         ShaderRef m_default_shader;
         std::unordered_map<std::string, ShaderRef> m_shaders;

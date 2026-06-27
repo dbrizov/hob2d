@@ -14,8 +14,25 @@ DefineShader.Psychedelic = {
     },
 }
 
+DefineShader.Distort = {
+    path = "shaders/distort",
+    defaults = {
+        tint = Color.white(),
+        alpha_threshold = 0.1,
+        distort_strength = 0.05,
+        distort_speed = 5.0,
+    },
+}
+
 DefineMaterial.Psychedelic = {
     shader = Shaders.Psychedelic,
+}
+
+DefineMaterial.Distort = {
+    shader = Shaders.Distort,
+    textures = {
+        distort_tex = Textures.DistortNoise,
+    },
 }
 
 DefineMaterial.WhiteOutline = {

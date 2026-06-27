@@ -9,11 +9,13 @@
 ---@field PlayerRun AnimationClip
 
 ---@class Shaders
+---@field Distort Shader
 ---@field Outline Shader
 ---@field Psychedelic Shader
 
 ---@class Materials
 ---@field BlueOutline Material
+---@field Distort Material
 ---@field GreenOutline Material
 ---@field Psychedelic Material
 ---@field RedOutline Material

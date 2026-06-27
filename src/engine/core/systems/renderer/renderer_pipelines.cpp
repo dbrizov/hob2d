@@ -709,6 +709,17 @@ namespace hob {
             }
         }
 
+        std::vector<ShaderTexture> textures;
+        for (const ShaderTextureBinding& tex : fs_reflection.textures) {
+            if (tex.binding != SPRITE_TEXTURE_SLOT) {
+                textures.push_back(ShaderTexture{tex.name, tex.binding});
+            }
+        }
+        std::sort(textures.begin(), textures.end(), [](const ShaderTexture& a, const ShaderTexture& b) {
+            return a.slot < b.slot;
+        });
+        shader->set_textures(std::move(textures));
+
         shader->set_default_params(std::vector<uint8_t>(shader->get_material_size(), 0));
         return shader;
     }

@@ -318,7 +318,18 @@ namespace hob {
         SDL_GPUTextureSamplerBinding ts{};
         ts.texture = draw.texture->m_gpu_texture;
         ts.sampler = m_sprite_sampler;
-        SDL_BindGPUFragmentSamplers(pass, 0, &ts, 1);
+        SDL_BindGPUFragmentSamplers(pass, SPRITE_TEXTURE_SLOT, &ts, 1);
+
+        for (const ShaderTexture& st : shader->get_textures()) {
+            const TextureRef tex = material.get_texture(st.name);
+            SDL_GPUTexture* gpu_tex =
+                (tex && tex->m_gpu_texture) ? tex->m_gpu_texture : m_fallback_texture->m_gpu_texture;
+
+            SDL_GPUTextureSamplerBinding extra{};
+            extra.texture = gpu_tex;
+            extra.sampler = m_sprite_sampler;
+            SDL_BindGPUFragmentSamplers(pass, st.slot, &extra, 1);
+        }
 
         SDL_DrawGPUPrimitives(pass, 6, 1, 0, 0);
     }

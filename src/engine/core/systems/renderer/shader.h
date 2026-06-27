@@ -17,6 +17,10 @@ namespace hob {
 
     constexpr uint32_t INVALID_SHADER_SLOT = MAX_UINT32;
 
+    // Slot of the per-draw sprite texture (sprite_tex at t0, space2).
+    // Any other reflected texture binding is a material-provided texture.
+    constexpr uint32_t SPRITE_TEXTURE_SLOT = 0;
+
     enum class BlendMode {
         Alpha,
         Additive,
@@ -42,6 +46,11 @@ namespace hob {
         uint32_t size = 0;
     };
 
+    struct ShaderTexture {
+        std::string name;
+        uint32_t slot = 0;
+    };
+
     class Shader {
         SDL_GPUDevice* m_device = nullptr;
         SDL_GPUGraphicsPipeline* m_pipeline = nullptr;
@@ -54,6 +63,7 @@ namespace hob {
         uint32_t m_material_size = 0;
         std::unordered_map<std::string, ShaderParam> m_params;
         std::vector<uint8_t> m_default_params;
+        std::vector<ShaderTexture> m_textures;
 
     public:
         // clang-format off
@@ -73,15 +83,20 @@ namespace hob {
         SDL_GPUGraphicsPipeline* get_pipeline() const;
 
         uint32_t get_engine_slot() const;
+        void set_engine_slot(uint32_t slot);
+
         uint32_t get_material_slot() const;
         uint32_t get_material_size() const;
+        void set_material_layout(uint32_t slot, uint32_t size, std::unordered_map<std::string, ShaderParam> params);
+
         const std::unordered_map<std::string, ShaderParam>& get_params() const;
         const std::vector<uint8_t>& get_default_params() const;
-        const ShaderParam* find_param(const std::string& name) const;
-
-        void set_engine_slot(uint32_t slot);
-        void set_material_layout(uint32_t slot, uint32_t size, std::unordered_map<std::string, ShaderParam> params);
         void set_default_params(std::vector<uint8_t> defaults);
         bool set_default_param(const std::string& name, const float* values, uint32_t count);
+        const ShaderParam* find_param(const std::string& name) const;
+
+        const std::vector<ShaderTexture>& get_textures() const;
+        void set_textures(std::vector<ShaderTexture> textures);
+        const ShaderTexture* find_texture(const std::string& name) const;
     };
 } // namespace hob

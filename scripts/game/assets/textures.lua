@@ -1,4 +1,6 @@
 DefineTexture.WhiteRect = "images/white_rect.png"
+DefineTexture.WhiteCircle = "images/white_circle.png"
+DefineTexture.DistortNoise = "images/distort_noise.png"
 
 DefineTexture.PlayerIdle01 = "images/player/HJ_idle01.png"
 DefineTexture.PlayerIdle02 = "images/player/HJ_idle02.png"

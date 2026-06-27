@@ -100,6 +100,10 @@ namespace hob {
         return m_engine_slot;
     }
 
+    void Shader::set_engine_slot(uint32_t slot) {
+        m_engine_slot = slot;
+    }
+
     uint32_t Shader::get_material_slot() const {
         return m_material_slot;
     }
@@ -108,29 +112,20 @@ namespace hob {
         return m_material_size;
     }
 
-    const std::unordered_map<std::string, ShaderParam>& Shader::get_params() const {
-        return m_params;
-    }
-
-    const std::vector<uint8_t>& Shader::get_default_params() const {
-        return m_default_params;
-    }
-
-    const ShaderParam* Shader::find_param(const std::string& name) const {
-        auto it = m_params.find(name);
-        return it != m_params.end() ? &it->second : nullptr;
-    }
-
-    void Shader::set_engine_slot(uint32_t slot) {
-        m_engine_slot = slot;
-    }
-
     void Shader::set_material_layout(uint32_t slot,
                                      uint32_t size,
                                      std::unordered_map<std::string, ShaderParam> params) {
         m_material_slot = slot;
         m_material_size = size;
         m_params = std::move(params);
+    }
+
+    const std::unordered_map<std::string, ShaderParam>& Shader::get_params() const {
+        return m_params;
+    }
+
+    const std::vector<uint8_t>& Shader::get_default_params() const {
+        return m_default_params;
     }
 
     void Shader::set_default_params(std::vector<uint8_t> defaults) {
@@ -165,5 +160,27 @@ namespace hob {
 
         std::memcpy(m_default_params.data() + param->offset, values, bytes);
         return true;
+    }
+
+    const ShaderParam* Shader::find_param(const std::string& name) const {
+        auto it = m_params.find(name);
+        return it != m_params.end() ? &it->second : nullptr;
+    }
+
+    const std::vector<ShaderTexture>& Shader::get_textures() const {
+        return m_textures;
+    }
+
+    void Shader::set_textures(std::vector<ShaderTexture> textures) {
+        m_textures = std::move(textures);
+    }
+
+    const ShaderTexture* Shader::find_texture(const std::string& name) const {
+        for (const ShaderTexture& tex : m_textures) {
+            if (tex.name == name) {
+                return &tex;
+            }
+        }
+        return nullptr;
     }
 } // namespace hob

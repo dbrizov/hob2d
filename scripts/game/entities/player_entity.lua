@@ -9,7 +9,7 @@ DefineEntity.Player = {
     },
     sprite = {
         texture = Textures.PlayerIdle01,
-        material = Materials.GreenOutline,
+        material = Materials.Distort,
         z_index = 1,
     },
     sprite_animator = {

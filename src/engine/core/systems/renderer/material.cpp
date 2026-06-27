@@ -49,6 +49,26 @@ namespace hob {
         return static_cast<uint32_t>(m_params.size());
     }
 
+    TextureRef Material::get_texture(const std::string& name) const {
+        auto it = m_textures.find(name);
+        return it != m_textures.end() ? it->second : nullptr;
+    }
+
+    bool Material::set_texture(const std::string& name, TextureRef texture) {
+        if (!m_shader) {
+            log::renderer.error("Material::set_texture: '{}' on a material with no shader", name);
+            return false;
+        }
+
+        if (!m_shader->find_texture(name)) {
+            log::renderer.error("Material::set_texture: shader '{}' has no texture '{}'", m_shader->get_path(), name);
+            return false;
+        }
+
+        m_textures[name] = std::move(texture);
+        return true;
+    }
+
     MaterialRef Material::clone() const {
         return std::make_shared<Material>(*this);
     }
