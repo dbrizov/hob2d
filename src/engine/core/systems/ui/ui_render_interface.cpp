@@ -37,10 +37,6 @@ namespace hob {
     UiRenderInterface::~UiRenderInterface() {
         SDL_GPUDevice* gpu_device = m_sdl_context.get_gpu_device();
 
-        if (m_white_texture) {
-            SDL_ReleaseGPUTexture(gpu_device, m_white_texture);
-        }
-
         if (m_sampler) {
             SDL_ReleaseGPUSampler(gpu_device, m_sampler);
         }
@@ -122,21 +118,9 @@ namespace hob {
         m_sampler = SDL_CreateGPUSampler(gpu_device, &sci);
         HOB_CHECK(m_sampler, "SDL_CreateGPUSampler (ui) failed: {}", SDL_GetError());
 
-        SDL_GPUTextureCreateInfo tci{};
-        tci.type = SDL_GPU_TEXTURETYPE_2D;
-        tci.format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
-        tci.usage = SDL_GPU_TEXTUREUSAGE_SAMPLER;
-        tci.width = 1;
-        tci.height = 1;
-        tci.layer_count_or_depth = 1;
-        tci.num_levels = 1;
-        tci.sample_count = SDL_GPU_SAMPLECOUNT_1;
-        m_white_texture = SDL_CreateGPUTexture(gpu_device, &tci);
-        HOB_CHECK(m_white_texture, "SDL_CreateGPUTexture (ui white) failed: {}", SDL_GetError());
-
         const uint32_t white = 0xFFFFFFFFu;
-        const bool white_uploaded = m_renderer.upload_texture_rgba(m_white_texture, &white, 1, 1);
-        HOB_CHECK(white_uploaded, "UiRenderInterface init failed: could not upload white texture");
+        m_white_texture = m_renderer.create_texture_from_rgba(&white, 1, 1);
+        HOB_CHECK(m_white_texture, "UiRenderInterface init failed: could not create white texture");
     }
 
     Vector2 UiRenderInterface::get_logical_size() const {
@@ -234,7 +218,7 @@ namespace hob {
         ib.offset = 0;
         SDL_BindGPUIndexBuffer(m_active_pass, &ib, SDL_GPU_INDEXELEMENTSIZE_32BIT);
 
-        SDL_GPUTexture* tex = m_white_texture;
+        SDL_GPUTexture* tex = m_white_texture->get_gpu_texture();
         if (texture != INVALID_TEXTURE_HANDLE) {
             const auto it = m_textures.find(texture);
             if (it != m_textures.end()) {

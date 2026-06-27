@@ -23,7 +23,7 @@ namespace hob {
 
         SDL_GPUGraphicsPipeline* m_pipeline = nullptr;
         SDL_GPUSampler* m_sampler = nullptr;
-        SDL_GPUTexture* m_white_texture = nullptr;
+        TextureRef m_white_texture;
         Matrix4x4 m_projection;
         Matrix4x4 m_transform = Matrix4x4::identity();
         Vector2 m_logical_size;
