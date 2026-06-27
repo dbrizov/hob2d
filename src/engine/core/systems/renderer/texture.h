@@ -10,6 +10,7 @@ namespace hob {
 
     class Texture;
     using TextureRef = std::shared_ptr<Texture>;
+    using TextureWeakRef = std::weak_ptr<Texture>;
 
     class Texture {
         friend class Renderer;

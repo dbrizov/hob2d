@@ -7,28 +7,20 @@
 //   3. Per-column hue rotation   — the hue of every pixel is rotated around the
 //      luminance axis by an angle proportional to UV.x, giving the sprite a
 //      vertical rainbow band.
-//
-// Cbuffer layout must match SpriteFS in the builtin sprite shader (48 bytes) so
-// the renderer's SDL_PushGPUFragmentUniformData call lines up. tint is honored;
-// outline_color/outline_width/alpha_threshold are reused — alpha_threshold still
-// gates the silhouette so transparent pixels stay transparent.
 
 Texture2D    sprite_tex  : register(t0, space2);
 SamplerState sprite_samp : register(s0, space2);
 
-// Cbuffer must match the builtin sprite shader's SpriteFS layout (64 bytes) so
-// the renderer's blind PushGPUFragmentUniformData lines up — but this shader
-// only consumes `tint`, `alpha_threshold`, `texel_size`, and `time`. The
-// outline_* fields are irrelevant here.
-cbuffer SpriteFS : register(b0, space3)
+cbuffer Engine : register(b0, space3)
+{
+    float2 texel_size;
+    float  time;
+};
+
+cbuffer Material : register(b1, space3)
 {
     float4 tint;
-    float4 _outline_color_unused;
-    float  _outline_width_unused;
     float  alpha_threshold;
-    float2 texel_size;
-    float  time;          // seconds since play start, refreshed each frame
-    float3 _pad;
 };
 
 // Rotate an RGB color around the (1,1,1)/sqrt(3) luminance axis by `angle` rad.

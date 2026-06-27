@@ -46,9 +46,10 @@ local function install_factory_registry(registry_name, schema)
             return nil
         end
 
+        -- Forward every authored key (unwrapping deferred refs); the C++ ctor reads what it needs.
         local cfg = {}
-        for _, field in ipairs(schema.fields) do
-            cfg[field.name] = unwrap_def(def[field.name])
+        for key, value in pairs(def) do
+            cfg[key] = unwrap_def(value)
         end
 
         local ctor = _G[schema.lua_type]

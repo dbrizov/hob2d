@@ -10,7 +10,9 @@
 
 namespace hob {
     SpriteComponent::SpriteComponent(Entity& entity)
-        : Component(entity) {}
+        : Component(entity) {
+        m_material = get_engine().get_renderer().get_default_material();
+    }
 
     void SpriteComponent::enter_play() {
         m_sprite_draw_id = get_engine().get_renderer().register_sprite_draw();
@@ -58,20 +60,18 @@ namespace hob {
         m_render_dirty = true;
     }
 
-    const Material& SpriteComponent::get_material() const {
+    const MaterialRef& SpriteComponent::get_material() const {
         return m_material;
     }
 
-    Material& SpriteComponent::get_material() {
-        // Non-const access hands out a mutable reference (used by Lua: sprite:get_material().tint = ...),
-        // so conservatively mark dirty — we can't observe the mutation itself. The world draw pass
-        // reads material via the const overload, so it does not trip this.
+    MaterialRef SpriteComponent::get_material() {
+        // Non-const access may mutate the material; the draw pass reads via the const overload.
         m_render_dirty = true;
         return m_material;
     }
 
-    void SpriteComponent::set_material(const Material& material) {
-        m_material = material;
+    void SpriteComponent::set_material(MaterialRef material) {
+        m_material = std::move(material);
         m_render_dirty = true;
     }
 

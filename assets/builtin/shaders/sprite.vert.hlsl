@@ -16,7 +16,6 @@ cbuffer SpriteVS : register(b0, space1)
     float2 size;
     float2 pivot;
     float rotation;
-    float _pad;
 };
 
 struct VSInput

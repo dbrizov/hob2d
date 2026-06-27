@@ -799,10 +799,10 @@ function SpriteComponent:set_texture(path_or_texture) end
 
 function SpriteComponent:clear_texture() end
 
----@return Material
+---@return Material?
 function SpriteComponent:get_material() end
 
----@param material Material
+---@param material Material?
 function SpriteComponent:set_material(material) end
 
 ---@return Vector2
@@ -920,29 +920,13 @@ _G.CameraComponent = CameraComponent
 ---@overload fun(config: table): Material
 local Material = {}
 
----@return Color
-function Material:get_tint() end
+---@param name string
+---@return any
+function Material:get_param(name) end
 
----@param tint Color
-function Material:set_tint(tint) end
-
----@return Color
-function Material:get_outline_color() end
-
----@param color Color
-function Material:set_outline_color(color) end
-
----@return number
-function Material:get_outline_width() end
-
----@param width number
-function Material:set_outline_width(width) end
-
----@return number
-function Material:get_alpha_threshold() end
-
----@param threshold number
-function Material:set_alpha_threshold(threshold) end
+---@param name string
+---@param value any
+function Material:set_param(name, value) end
 
 ---@param path string
 function Material:set_shader(path) end

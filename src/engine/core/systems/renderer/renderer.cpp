@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <unordered_set>
 
 #include <SDL3/SDL.h>
 #include <SDL3_shadercross/SDL_shadercross.h>
@@ -116,16 +115,9 @@ namespace hob {
         if (m_blit_pipeline)
             SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_blit_pipeline);
 
-        // Sprite pipelines: failed builds alias the default-slot pointer, so dedupe by
-        // pointer identity before releasing to avoid double-free.
-        std::unordered_set<SDL_GPUGraphicsPipeline*> released_pipelines;
-        for (SDL_GPUGraphicsPipeline* pipeline : m_sprite_pipelines) {
-            if (pipeline && released_pipelines.insert(pipeline).second) {
-                SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, pipeline);
-            }
-        }
-        m_sprite_pipelines.clear();
-        m_shader_path_to_id.clear();
+        m_default_material.reset();
+        m_default_shader.reset();
+        m_shaders.clear();
 
         if (m_quad_vbo)
             SDL_ReleaseGPUBuffer(m_gpu_device, m_quad_vbo);

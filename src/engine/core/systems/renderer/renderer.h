@@ -17,6 +17,8 @@
 #include "engine/math/vector2.h"
 #include "font.h"
 #include "material.h"
+#include "shader.h"
+#include "shader_reflection.h"
 #include "sprite_draw_data.h"
 #include "texture.h"
 
@@ -71,7 +73,7 @@ namespace hob {
 
         float m_play_time = 0.0f;
 
-        std::unordered_map<std::string, std::weak_ptr<Texture>> m_textures;
+        std::unordered_map<std::string, TextureWeakRef> m_textures;
 
         // Projection used when rendering into the offscreen color target. SDL_GPU clip-space
         // ortho mapping (0,0)..(w,h) -> (-1,-1)..(+1,+1) with y-down. Input is logical pixels.
@@ -99,8 +101,9 @@ namespace hob {
         SDL_GPUTextureFormat m_offscreen_format = SDL_GPU_TEXTUREFORMAT_R8G8B8A8_UNORM;
         SDL_GPUTextureFormat m_swapchain_format = SDL_GPU_TEXTUREFORMAT_INVALID;
 
-        std::vector<SDL_GPUGraphicsPipeline*> m_sprite_pipelines;
-        std::unordered_map<std::string, ShaderId> m_shader_path_to_id;
+        std::unordered_map<std::string, ShaderRef> m_shaders;
+        ShaderRef m_default_shader;
+        MaterialRef m_default_material;
         SDL_GPUBuffer* m_quad_vbo = nullptr;
         SDL_GPUSampler* m_sprite_sampler = nullptr;
 
@@ -176,9 +179,14 @@ namespace hob {
 
         TextureRef get_or_load_texture(const std::string& path);
         TextureRef create_texture_from_rgba(const void* pixels, uint32_t width, uint32_t height);
-        ShaderId get_or_build_sprite_shader(const std::string& path);
+        ShaderRef get_or_build_sprite_shader(const std::string& path);
 
-        SDL_GPUShader* load_shader(const std::filesystem::path& hlsl_path, SDL_ShaderCross_ShaderStage stage);
+        MaterialRef create_material(ShaderRef shader);
+        MaterialRef get_default_material() const;
+
+        SDL_GPUShader* load_shader(const std::filesystem::path& hlsl_path,
+                                   SDL_ShaderCross_ShaderStage stage,
+                                   ShaderReflection* out_reflection = nullptr);
         bool upload_buffer(SDL_GPUBuffer* dst_buffer, const void* data, uint32_t size);
         bool upload_texture_rgba(SDL_GPUTexture* dst_texture, const void* pixels, uint32_t width, uint32_t height);
 
@@ -194,9 +202,9 @@ namespace hob {
         bool init_debug_text_pipeline();
         bool init_debug_font();
 
-        SDL_GPUGraphicsPipeline* build_sprite_pipeline(const std::string& path, SDL_GPUTextureFormat target_format);
+        ShaderRef build_shader(const std::string& path, SDL_GPUTextureFormat target_format);
 
-        void record_sprite_draw(SDL_GPURenderPass* pass, const SpriteDrawData& draw, ShaderId& bound_shader);
+        void record_sprite_draw(SDL_GPURenderPass* pass, const SpriteDrawData& draw, const Shader*& bound_shader);
         void push_sprite_fragment_uniforms(const Texture& texture, const Material& material);
 
         void debug_texture_refs();

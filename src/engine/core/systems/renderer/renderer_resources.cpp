@@ -69,7 +69,7 @@ namespace hob {
         SDL_DestroySurface(rgba);
 
         TextureRef texture(new Texture(*this, gpu_tex, w, h, key));
-        m_textures.emplace(key, std::weak_ptr<Texture>(texture));
+        m_textures.emplace(key, texture);
 
         if (m_cvar_log_texture_ref) {
             log::renderer.info("Renderer::get_or_load_texture loaded: '{}' (rc=1)", key);

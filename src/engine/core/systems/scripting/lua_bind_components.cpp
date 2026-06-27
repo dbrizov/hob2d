@@ -243,7 +243,7 @@ namespace hob {
                 },
                 "(path_or_texture: string|Texture|nil)")
             .method("clear_texture", &SpriteComponent::clear_texture)
-            .method("get_material", sol::resolve<Material&()>(&SpriteComponent::get_material))
+            .method("get_material", sol::resolve<MaterialRef()>(&SpriteComponent::get_material))
             .method("set_material", &SpriteComponent::set_material, {"material"})
             .method("get_pivot", &SpriteComponent::get_pivot)
             .method("set_pivot", &SpriteComponent::set_pivot, {"pivot"})

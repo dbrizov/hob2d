@@ -2,7 +2,7 @@
 //
 // Samples the bound texture and multiplies by the per-draw tint. If outline_width > 0,
 // transparent texels (a <= alpha_threshold) that have any opaque neighbor are painted
-// with outline_color — produces a silhouette outline. outline_width is measured in
+// with outline_color - produces a silhouette outline. outline_width is measured in
 // source texels; the engine pushes texel_size = 1 / texture_size so thickness stays
 // consistent across textures of different resolutions. With outline_width == 0 this
 // degenerates to a plain textured-quad shader.
@@ -10,15 +10,18 @@
 Texture2D    sprite_tex  : register(t0, space2);
 SamplerState sprite_samp : register(s0, space2);
 
-cbuffer SpriteFS : register(b0, space3)
+cbuffer Engine : register(b0, space3)
+{
+    float2 texel_size;
+    float  time;
+};
+
+cbuffer Material : register(b1, space3)
 {
     float4 tint;
     float4 outline_color;
     float  outline_width;
     float  alpha_threshold;
-    float2 texel_size;
-    float  time;
-    float3 _pad;
 };
 
 float4 main(float2 uv : TEXCOORD0) : SV_Target0

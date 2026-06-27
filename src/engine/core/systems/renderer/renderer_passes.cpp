@@ -23,18 +23,14 @@ namespace hob {
 
         static_assert(sizeof(SpriteVSUniforms) == 96);
 
-        // HLSL rounds the cbuffer size up to a 16-byte boundary.
-        struct SpriteFSUniforms {
-            float tint[4]; // 0..16
-            float outline_color[4]; // 16..32
-            float outline_width; // 32..36
-            float alpha_threshold; // 36..40
-            float texel_size[2]; // 40..48
-            float time; // 48..52
-            float _pad[3]; // 52..64
+        // Must match the `Engine` cbuffer in the sprite fragment shaders.
+        struct SpriteEngineFSUniforms {
+            float texel_size[2]; // 0..8
+            float time; // 8..12
+            float _pad; // 12..16
         };
 
-        static_assert(sizeof(SpriteFSUniforms) == 64);
+        static_assert(sizeof(SpriteEngineFSUniforms) == 16);
     } // namespace
 
     void Renderer::render_world_pass() {
@@ -68,7 +64,7 @@ namespace hob {
                     return da.z_index < db.z_index;
                 }
 
-                return da.material.shader_id < db.material.shader_id;
+                return da.get_shader() < db.get_shader();
             });
 
             if (m_has_sprite_view_projection && !m_sprite_draw_order.empty()) {
@@ -77,7 +73,7 @@ namespace hob {
                 vb.offset = 0;
                 SDL_BindGPUVertexBuffers(pass, 0, &vb, 1);
 
-                ShaderId bound_shader = INVALID_SHADER_ID;
+                const Shader* bound_shader = nullptr;
 
                 for (const uint32_t index : m_sprite_draw_order) {
                     record_sprite_draw(pass, m_sprite_draws[index], bound_shader);
@@ -286,14 +282,22 @@ namespace hob {
         m_pending_debug_text_indices.clear();
     }
 
-    void Renderer::record_sprite_draw(SDL_GPURenderPass* pass, const SpriteDrawData& draw, ShaderId& bound_shader) {
+    void Renderer::record_sprite_draw(SDL_GPURenderPass* pass,
+                                      const SpriteDrawData& draw,
+                                      const Shader*& bound_shader) {
         if (!draw.texture || !draw.texture->m_gpu_texture) {
             return;
         }
 
-        if (draw.material.shader_id != bound_shader) {
-            SDL_BindGPUGraphicsPipeline(pass, m_sprite_pipelines[draw.material.shader_id]);
-            bound_shader = draw.material.shader_id;
+        const Material& material = draw.material ? *draw.material : *m_default_material;
+        const Shader* shader = material.get_shader();
+        if (!shader) {
+            return;
+        }
+
+        if (shader != bound_shader) {
+            SDL_BindGPUGraphicsPipeline(pass, shader->pipeline());
+            bound_shader = shader;
         }
 
         SpriteVSUniforms vsu{};
@@ -307,7 +311,7 @@ namespace hob {
         vsu.rotation = draw.rotation;
         SDL_PushGPUVertexUniformData(m_command_buffer, 0, &vsu, sizeof(vsu));
 
-        push_sprite_fragment_uniforms(*draw.texture, draw.material);
+        push_sprite_fragment_uniforms(*draw.texture, material);
 
         SDL_GPUTextureSamplerBinding ts{};
         ts.texture = draw.texture->m_gpu_texture;
@@ -318,22 +322,25 @@ namespace hob {
     }
 
     void Renderer::push_sprite_fragment_uniforms(const Texture& texture, const Material& material) {
-        SpriteFSUniforms fsu{};
-        fsu.tint[0] = material.tint.r;
-        fsu.tint[1] = material.tint.g;
-        fsu.tint[2] = material.tint.b;
-        fsu.tint[3] = material.tint.a;
-        fsu.outline_color[0] = material.outline_color.r;
-        fsu.outline_color[1] = material.outline_color.g;
-        fsu.outline_color[2] = material.outline_color.b;
-        fsu.outline_color[3] = material.outline_color.a;
-        fsu.outline_width = material.outline_width;
-        fsu.alpha_threshold = material.alpha_threshold;
-        const uint32_t tex_w = texture.get_width();
-        const uint32_t tex_h = texture.get_height();
-        fsu.texel_size[0] = tex_w > 0 ? 1.0f / static_cast<float>(tex_w) : 0.0f;
-        fsu.texel_size[1] = tex_h > 0 ? 1.0f / static_cast<float>(tex_h) : 0.0f;
-        fsu.time = m_play_time;
-        SDL_PushGPUFragmentUniformData(m_command_buffer, 0, &fsu, sizeof(fsu));
+        const Shader* shader = material.get_shader();
+        if (!shader) {
+            return;
+        }
+
+        if (shader->engine_slot() != INVALID_SHADER_SLOT) {
+            const uint32_t tex_w = texture.get_width();
+            const uint32_t tex_h = texture.get_height();
+
+            SpriteEngineFSUniforms engine{};
+            engine.texel_size[0] = tex_w > 0 ? 1.0f / static_cast<float>(tex_w) : 0.0f;
+            engine.texel_size[1] = tex_h > 0 ? 1.0f / static_cast<float>(tex_h) : 0.0f;
+            engine.time = m_play_time;
+            SDL_PushGPUFragmentUniformData(m_command_buffer, shader->engine_slot(), &engine, sizeof(engine));
+        }
+
+        if (shader->material_slot() != INVALID_SHADER_SLOT && material.param_size() > 0) {
+            SDL_PushGPUFragmentUniformData(
+                m_command_buffer, shader->material_slot(), material.param_data(), material.param_size());
+        }
     }
 } // namespace hob

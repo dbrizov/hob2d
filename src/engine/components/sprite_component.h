@@ -1,6 +1,7 @@
 #pragma once
 
 #include <limits>
+#include <memory>
 #include <string>
 
 #include "component.h"
@@ -17,7 +18,7 @@ namespace hob {
         friend class EntitySpawner;
 
         TextureRef m_texture;
-        Material m_material;
+        MaterialRef m_material;
         Vector2 m_pivot = Vector2(0.5f, 0.5f);
         Vector2 m_scale = Vector2(1.0f, 1.0f);
         int m_z_index = 0;
@@ -50,9 +51,9 @@ namespace hob {
         void set_texture(const std::string& path);
         void clear_texture();
 
-        const Material& get_material() const;
-        Material& get_material();
-        void set_material(const Material& material);
+        const MaterialRef& get_material() const;
+        MaterialRef get_material();
+        void set_material(MaterialRef material);
 
         Vector2 get_pivot() const;
         void set_pivot(const Vector2& pivot);

@@ -1,8 +1,12 @@
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <string_view>
+#include <unordered_map>
+#include <vector>
 
 #include <SDL3/SDL.h>
 #include <SDL3_shadercross/SDL_shadercross.h>
@@ -39,7 +43,7 @@ namespace hob {
                                    block.size);
                 for (const ShaderUniformMember& m : block.members) {
                     log::renderer.info(
-                        "[reflect]     {} {} offset={} size={}", to_string(m.type), m.name, m.offset, m.size);
+                        "[reflect]     {}: {} offset={} size={}", m.name, to_string(m.type), m.offset, m.size);
                 }
             }
             for (const ShaderTextureBinding& tex : refl.textures) {
@@ -48,12 +52,46 @@ namespace hob {
             }
             for (const ShaderVertexInput& vi : refl.vertex_inputs) {
                 log::renderer.info(
-                    "[reflect] {} vertex_input {} '{}' location={}", label, to_string(vi.type), vi.name, vi.location);
+                    "[reflect] {} vertex_input '{}' {} location={}", label, vi.name, to_string(vi.type), vi.location);
             }
+        }
+
+        bool block_is_named(const ShaderUniformBlock& block, std::string_view name) {
+            if (block.name == name || block.type_name == name) {
+                return true;
+            }
+            const size_t dot = block.type_name.find_last_of('.');
+            return dot != std::string::npos && std::string_view(block.type_name).substr(dot + 1) == name;
+        }
+
+        // Reflection has no default values; seed well-known sprite params (M2: from DefineShader).
+        std::vector<uint8_t> seed_default_params(const std::unordered_map<std::string, ShaderParam>& params,
+                                                 uint32_t size) {
+            std::vector<uint8_t> defaults(size, 0);
+
+            const auto write = [&](const char* name, const float* values, uint32_t count) {
+                auto it = params.find(name);
+                if (it == params.end() || count > component_count(it->second.type)) {
+                    return;
+                }
+                const uint32_t bytes = count * static_cast<uint32_t>(sizeof(float));
+                if (it->second.offset + bytes <= defaults.size()) {
+                    std::memcpy(defaults.data() + it->second.offset, values, bytes);
+                }
+            };
+
+            const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+            const float alpha_threshold = 0.1f;
+            write("tint", white, 4);
+            write("outline_color", white, 4);
+            write("alpha_threshold", &alpha_threshold, 1);
+            return defaults;
         }
     } // namespace
 
-    SDL_GPUShader* Renderer::load_shader(const std::filesystem::path& hlsl_path, SDL_ShaderCross_ShaderStage stage) {
+    SDL_GPUShader* Renderer::load_shader(const std::filesystem::path& hlsl_path,
+                                         SDL_ShaderCross_ShaderStage stage,
+                                         ShaderReflection* out_reflection) {
         const std::string source = read_text_file(hlsl_path);
         if (source.empty()) {
             log::renderer.error("Failed to read shader: {}", hlsl_path.string());
@@ -88,6 +126,10 @@ namespace hob {
             log::renderer.error("SPIRV-Reflect failed for {}", hlsl_path.string());
         }
 
+        if (out_reflection) {
+            *out_reflection = std::move(reflection);
+        }
+
         SDL_ShaderCross_SPIRV_Info sp_info{};
         sp_info.bytecode = static_cast<Uint8*>(spirv);
         sp_info.bytecode_size = spirv_size;
@@ -108,29 +150,33 @@ namespace hob {
         return shader;
     }
 
-    ShaderId Renderer::get_or_build_sprite_shader(const std::string& path) {
+    ShaderRef Renderer::get_or_build_sprite_shader(const std::string& path) {
         if (path.empty()) {
-            return DEFAULT_SPRITE_SHADER_ID;
+            return m_default_shader;
         }
 
         const std::string key = std::filesystem::path(path).lexically_normal().string();
 
-        auto it = m_shader_path_to_id.find(key);
-        if (it != m_shader_path_to_id.end()) {
+        auto it = m_shaders.find(key);
+        if (it != m_shaders.end()) {
             return it->second;
         }
 
-        SDL_GPUGraphicsPipeline* pipeline = build_sprite_pipeline(key, m_offscreen_format);
-        if (!pipeline) {
-            // Alias to default so subsequent lookups are O(1) and silent.
-            m_shader_path_to_id.emplace(key, DEFAULT_SPRITE_SHADER_ID);
-            return DEFAULT_SPRITE_SHADER_ID;
+        ShaderRef shader = build_shader(key, m_offscreen_format);
+        if (!shader) {
+            shader = m_default_shader;
         }
 
-        const ShaderId id = static_cast<ShaderId>(m_sprite_pipelines.size());
-        m_sprite_pipelines.push_back(pipeline);
-        m_shader_path_to_id.emplace(key, id);
-        return id;
+        m_shaders.emplace(key, shader);
+        return shader;
+    }
+
+    MaterialRef Renderer::create_material(ShaderRef shader) {
+        return std::make_shared<Material>(shader ? std::move(shader) : m_default_shader);
+    }
+
+    MaterialRef Renderer::get_default_material() const {
+        return m_default_material;
     }
 
     bool Renderer::init_offscreen_target() {
@@ -233,14 +279,14 @@ namespace hob {
     bool Renderer::init_default_sprite_pipeline() {
         const std::string default_key = std::filesystem::path(DEFAULT_SPRITE_SHADER).lexically_normal().string();
 
-        SDL_GPUGraphicsPipeline* pipeline = build_sprite_pipeline(default_key, m_offscreen_format);
-        if (!pipeline) {
+        ShaderRef shader = build_shader(default_key, m_offscreen_format);
+        if (!shader) {
             return false;
         }
 
-        // Default lands at slot 0 = DEFAULT_SPRITE_SHADER_ID.
-        m_sprite_pipelines.push_back(pipeline);
-        m_shader_path_to_id.emplace(default_key, DEFAULT_SPRITE_SHADER_ID);
+        m_default_shader = shader;
+        m_shaders.emplace(default_key, shader);
+        m_default_material = std::make_shared<Material>(m_default_shader);
         return true;
     }
 
@@ -525,8 +571,7 @@ namespace hob {
         return true;
     }
 
-    SDL_GPUGraphicsPipeline* Renderer::build_sprite_pipeline(const std::string& path,
-                                                             SDL_GPUTextureFormat target_format) {
+    ShaderRef Renderer::build_shader(const std::string& path, SDL_GPUTextureFormat target_format) {
         const std::filesystem::path assets_root = PathUtils::get_assets_root_path();
         const std::filesystem::path vert_path = assets_root / (path + ".vert.hlsl");
         const std::filesystem::path frag_path = assets_root / (path + ".frag.hlsl");
@@ -536,7 +581,8 @@ namespace hob {
             return nullptr;
         }
 
-        SDL_GPUShader* fs = load_shader(frag_path, SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
+        ShaderReflection fs_reflection;
+        SDL_GPUShader* fs = load_shader(frag_path, SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT, &fs_reflection);
         if (!fs) {
             SDL_ReleaseGPUShader(m_gpu_device, vs);
             return nullptr;
@@ -594,6 +640,25 @@ namespace hob {
             return nullptr;
         }
 
-        return pipeline;
+        auto shader = std::make_shared<Shader>(m_gpu_device, pipeline, path);
+
+        for (const ShaderUniformBlock& block : fs_reflection.uniform_blocks) {
+            if (block_is_named(block, "Engine")) {
+                shader->set_engine_slot(block.binding);
+            }
+            else if (block_is_named(block, "Material")) {
+                std::unordered_map<std::string, ShaderParam> params;
+                params.reserve(block.members.size());
+                for (const ShaderUniformMember& m : block.members) {
+                    params.emplace(m.name, ShaderParam{m.type, m.offset, m.size});
+                }
+                // Round up to the 16-byte cbuffer footprint; reflection may report the unpadded size.
+                const uint32_t material_size = (block.size + 15u) & ~15u;
+                shader->set_material_layout(block.binding, material_size, std::move(params));
+            }
+        }
+
+        shader->set_default_params(seed_default_params(shader->params(), shader->material_size()));
+        return shader;
     }
 } // namespace hob
