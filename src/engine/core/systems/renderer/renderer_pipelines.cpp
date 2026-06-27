@@ -113,6 +113,32 @@ namespace hob {
         }
     } // namespace
 
+    ShaderRef Renderer::get_or_build_shader(const std::string& path, BlendMode blend, CullMode cull) {
+        if (path.empty()) {
+            return m_default_shader;
+        }
+
+        const std::string normalized_path = std::filesystem::path(path).lexically_normal().string();
+        const std::string key = shader_cache_key(normalized_path, blend, cull);
+
+        auto it = m_shaders.find(key);
+        if (it != m_shaders.end()) {
+            return it->second;
+        }
+
+        ShaderRef shader = build_shader(normalized_path, m_offscreen_format, blend, cull);
+        if (!shader) {
+            shader = m_default_shader;
+        }
+
+        m_shaders.emplace(key, shader);
+        return shader;
+    }
+
+    ShaderRef Renderer::get_default_shader() const {
+        return m_default_shader;
+    }
+
     SDL_GPUShader* Renderer::load_shader(const std::filesystem::path& hlsl_path,
                                          SDL_ShaderCross_ShaderStage stage,
                                          ShaderReflection* out_reflection) {
@@ -176,32 +202,6 @@ namespace hob {
         return shader;
     }
 
-    ShaderRef Renderer::get_or_build_sprite_shader(const std::string& path, BlendMode blend, CullMode cull) {
-        if (path.empty()) {
-            return m_default_shader;
-        }
-
-        const std::string normalized_path = std::filesystem::path(path).lexically_normal().string();
-        const std::string key = shader_cache_key(normalized_path, blend, cull);
-
-        auto it = m_shaders.find(key);
-        if (it != m_shaders.end()) {
-            return it->second;
-        }
-
-        ShaderRef shader = build_shader(normalized_path, m_offscreen_format, blend, cull);
-        if (!shader) {
-            shader = m_default_shader;
-        }
-
-        m_shaders.emplace(key, shader);
-        return shader;
-    }
-
-    ShaderRef Renderer::get_default_shader() const {
-        return m_default_shader;
-    }
-
     MaterialRef Renderer::create_material(ShaderRef shader) {
         MaterialRef material = std::make_shared<Material>(shader ? std::move(shader) : m_default_shader);
         track_material(material);
@@ -217,6 +217,31 @@ namespace hob {
 
     MaterialRef Renderer::get_default_material() const {
         return m_default_material;
+    }
+
+    SDL_GPUSampler* Renderer::get_or_create_sampler(const SamplerDesc& desc) {
+        const uint32_t key = desc.key();
+        auto it = m_samplers.find(key);
+        if (it != m_samplers.end()) {
+            return it->second;
+        }
+
+        const SDL_GPUSamplerCreateInfo info = to_sdl_sampler_create_info(desc);
+        SDL_GPUSampler* sampler = SDL_CreateGPUSampler(m_gpu_device, &info);
+        if (!sampler) {
+            log::renderer.error("SDL_CreateGPUSampler (filter={}, wrap={}) failed: {}",
+                                texture_filter_to_string(desc.filter),
+                                texture_wrap_to_string(desc.wrap),
+                                SDL_GetError());
+            return m_default_sampler;
+        }
+
+        m_samplers.emplace(key, sampler);
+        return sampler;
+    }
+
+    const SamplerDesc& Renderer::get_default_sampler_desc() const {
+        return m_default_sampler_desc;
     }
 
     void Renderer::track_material(const MaterialRef& material) {
@@ -270,23 +295,18 @@ namespace hob {
     }
 
     bool Renderer::init_samplers() {
-        SDL_GPUSamplerCreateInfo default_info{};
-        default_info.min_filter = SDL_GPU_FILTER_LINEAR;
-        default_info.mag_filter = SDL_GPU_FILTER_NEAREST;
-        default_info.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
-        default_info.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-        default_info.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-        default_info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-
-        m_default_sampler = SDL_CreateGPUSampler(m_gpu_device, &default_info);
+        m_default_sampler = get_or_create_sampler(m_default_sampler_desc);
         if (!m_default_sampler) {
-            log::renderer.error("SDL_CreateGPUSampler (default) failed: {}", SDL_GetError());
             return false;
         }
 
-        SDL_GPUSamplerCreateInfo blit_info = default_info;
+        SDL_GPUSamplerCreateInfo blit_info{};
         blit_info.min_filter = SDL_GPU_FILTER_LINEAR;
         blit_info.mag_filter = SDL_GPU_FILTER_LINEAR;
+        blit_info.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
+        blit_info.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        blit_info.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        blit_info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
 
         m_blit_sampler = SDL_CreateGPUSampler(m_gpu_device, &blit_info);
         if (!m_blit_sampler) {
@@ -295,27 +315,6 @@ namespace hob {
         }
 
         return true;
-    }
-
-    SDL_GPUSampler* Renderer::get_or_create_sampler(const SamplerDesc& desc) {
-        const uint32_t key = desc.key();
-        auto it = m_samplers.find(key);
-        if (it != m_samplers.end()) {
-            return it->second;
-        }
-
-        const SDL_GPUSamplerCreateInfo info = to_sdl_sampler_create_info(desc);
-        SDL_GPUSampler* sampler = SDL_CreateGPUSampler(m_gpu_device, &info);
-        if (!sampler) {
-            log::renderer.error("SDL_CreateGPUSampler (filter={}, wrap={}) failed: {}",
-                                texture_filter_to_string(desc.filter),
-                                texture_wrap_to_string(desc.wrap),
-                                SDL_GetError());
-            return m_default_sampler;
-        }
-
-        m_samplers.emplace(key, sampler);
-        return sampler;
     }
 
     bool Renderer::init_quad_vbo() {

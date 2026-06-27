@@ -112,6 +112,7 @@ namespace hob {
         MaterialRef m_default_material;
         std::vector<MaterialWeakRef> m_materials; // weak registry for the material-ref debug view
 
+        SamplerDesc m_default_sampler_desc;
         SDL_GPUSampler* m_default_sampler = nullptr;
         std::unordered_map<uint32_t, SDL_GPUSampler*> m_samplers;
 
@@ -202,18 +203,19 @@ namespace hob {
         TextureRef get_or_load_texture(const std::string& path);
         TextureRef create_texture_from_rgba(const void* pixels, uint32_t width, uint32_t height);
 
-        ShaderRef get_or_build_sprite_shader(const std::string& path, BlendMode blend, CullMode cull);
+        ShaderRef get_or_build_shader(const std::string& path, BlendMode blend, CullMode cull);
         ShaderRef get_default_shader() const;
+        SDL_GPUShader* load_shader(const std::filesystem::path& hlsl_path,
+                                   SDL_ShaderCross_ShaderStage stage,
+                                   ShaderReflection* out_reflection = nullptr);
 
         MaterialRef create_material(ShaderRef shader);
         MaterialRef clone_material(const Material& source);
         MaterialRef get_default_material() const;
 
         SDL_GPUSampler* get_or_create_sampler(const SamplerDesc& desc);
+        const SamplerDesc& get_default_sampler_desc() const;
 
-        SDL_GPUShader* load_shader(const std::filesystem::path& hlsl_path,
-                                   SDL_ShaderCross_ShaderStage stage,
-                                   ShaderReflection* out_reflection = nullptr);
         bool upload_buffer(SDL_GPUBuffer* dst_buffer, const void* data, uint32_t size);
         bool upload_texture_rgba(SDL_GPUTexture* dst_texture, const void* pixels, uint32_t width, uint32_t height);
 

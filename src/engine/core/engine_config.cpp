@@ -24,20 +24,49 @@ namespace hob {
             graphics_config.window_height = g.value("window_height", graphics_config.window_height);
             graphics_config.reference_width = g.value("reference_width", graphics_config.reference_width);
             graphics_config.reference_height = g.value("reference_height", graphics_config.reference_height);
+
             if (g.contains("aspect_mode")) {
-                graphics_config.aspect_mode = to_aspect_mode(g["aspect_mode"].get<std::string>());
+                const auto str = g["aspect_mode"].get<std::string>();
+                if (!aspect_mode_from_string(str, graphics_config.aspect_mode)) {
+                    log::engine.error(
+                        "Unknown aspect_mode '{}' (keep_width|keep_height|expand|shrink), defaulting to 'expand'", str);
+                    graphics_config.aspect_mode = AspectMode::expand;
+                }
             }
+
             graphics_config.render_scale = g.value("render_scale", graphics_config.render_scale);
             graphics_config.target_fps = g.value("target_fps", graphics_config.target_fps);
             graphics_config.vsync_enabled = g.value("vsync_enabled", graphics_config.vsync_enabled);
+
+            if (g.contains("default_texture_filter")) {
+                const auto str = g["default_texture_filter"].get<std::string>();
+                if (!texture_filter_from_string(str, graphics_config.default_texture_filter)) {
+                    log::engine.error("engine_config: unknown default_texture_filter '{}' (expected nearest|linear)",
+                                      str);
+                }
+            }
+
+            if (g.contains("default_texture_wrap")) {
+                const auto str = g["default_texture_wrap"].get<std::string>();
+                if (!texture_wrap_from_string(str, graphics_config.default_texture_wrap)) {
+                    log::engine.error("engine_config: unknown default_texture_wrap '{}' (expected clamp|repeat|mirror)",
+                                      str);
+                }
+            }
         }
 
         if (json.contains("ui")) {
             const auto& u = json["ui"];
             ui_system_config.reference_width = u.value("reference_width", ui_system_config.reference_width);
             ui_system_config.reference_height = u.value("reference_height", ui_system_config.reference_height);
+
             if (u.contains("aspect_mode")) {
-                ui_system_config.aspect_mode = to_aspect_mode(u["aspect_mode"].get<std::string>());
+                const auto str = u["aspect_mode"].get<std::string>();
+                if (!aspect_mode_from_string(str, ui_system_config.aspect_mode)) {
+                    log::engine.error(
+                        "Unknown aspect_mode '{}' (keep_width|keep_height|expand|shrink), defaulting to 'expand'", str);
+                    ui_system_config.aspect_mode = AspectMode::expand;
+                }
             }
         }
 

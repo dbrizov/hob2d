@@ -99,7 +99,7 @@ namespace hob {
                     const auto filter = cfg.get<sol::optional<std::string>>("filter");
                     const auto wrap = cfg.get<sol::optional<std::string>>("wrap");
                     if (filter || wrap) {
-                        SamplerDesc desc;
+                        SamplerDesc desc = renderer.get_default_sampler_desc();
                         if (filter && !texture_filter_from_string(*filter, desc.filter)) {
                             log::lua.error(
                                 "DefineTexture '{}': unknown filter '{}' (expected nearest|linear)", path, *filter);
@@ -131,7 +131,7 @@ namespace hob {
                 const BlendMode blend = parse_blend(cfg.get<sol::optional<std::string>>("blend"));
                 const CullMode cull = parse_cull(cfg.get<sol::optional<std::string>>("cull"));
 
-                ShaderRef shader = renderer.get_or_build_sprite_shader(path, blend, cull);
+                ShaderRef shader = renderer.get_or_build_shader(path, blend, cull);
 
                 // Skip baking when the build fell back to the shared default shader (don't clobber it).
                 if (shader && shader != renderer.get_default_shader()) {

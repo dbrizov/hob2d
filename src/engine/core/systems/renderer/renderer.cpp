@@ -20,7 +20,8 @@ namespace hob {
                            static_cast<float>(graphics_config.reference_height))
         , m_aspect_mode(graphics_config.aspect_mode)
         , m_render_scale(graphics_config.render_scale > 0.0f ? graphics_config.render_scale : 1.0f)
-        , m_pixel_density(sdl_context.get_pixel_density()) {
+        , m_pixel_density(sdl_context.get_pixel_density())
+        , m_default_sampler_desc{graphics_config.default_texture_filter, graphics_config.default_texture_wrap} {
         // clang-format off
         HOB_CHECK(m_gpu_device, "Renderer init failed: GPU device is null");
 
@@ -109,8 +110,6 @@ namespace hob {
             SDL_ReleaseGPUBuffer(m_gpu_device, m_quad_vbo);
         if (m_blit_sampler)
             SDL_ReleaseGPUSampler(m_gpu_device, m_blit_sampler);
-        if (m_default_sampler)
-            SDL_ReleaseGPUSampler(m_gpu_device, m_default_sampler);
         for (auto& [key, sampler] : m_samplers) {
             SDL_ReleaseGPUSampler(m_gpu_device, sampler);
         }

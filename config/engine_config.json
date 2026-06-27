@@ -8,7 +8,9 @@
     "aspect_mode": "expand",
     "render_scale": 1.0,
     "target_fps": 60,
-    "vsync_enabled": false
+    "vsync_enabled": false,
+    "default_texture_filter": "linear",
+    "default_texture_wrap": "clamp"
   },
   "ui": {
     "reference_width": 1920,

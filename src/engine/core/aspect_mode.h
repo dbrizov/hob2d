@@ -12,7 +12,7 @@ namespace hob {
         shrink,
     };
 
-    AspectMode to_aspect_mode(const std::string& value);
+    bool aspect_mode_from_string(std::string_view str, AspectMode& out);
 
     Vector2 compute_logical_size(int window_width, int window_height, const Vector2& reference_size, AspectMode mode);
 } // namespace hob

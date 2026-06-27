@@ -3,22 +3,23 @@
 #include "engine/core/logging.h"
 
 namespace hob {
-    AspectMode to_aspect_mode(const std::string& value) {
+    bool aspect_mode_from_string(std::string_view value, AspectMode& out) {
         if (value == "keep_width") {
-            return AspectMode::keep_width;
+            out = AspectMode::keep_width;
         }
-        if (value == "keep_height") {
-            return AspectMode::keep_height;
+        else if (value == "keep_height") {
+            out = AspectMode::keep_height;
         }
-        if (value == "expand") {
-            return AspectMode::expand;
+        else if (value == "expand") {
+            out = AspectMode::expand;
         }
-        if (value == "shrink") {
-            return AspectMode::shrink;
+        else if (value == "shrink") {
+            out = AspectMode::shrink;
         }
-
-        log::engine.error("Unknown aspect_mode '{}', defaulting to 'expand'", value);
-        return AspectMode::expand;
+        else {
+            return false;
+        }
+        return true;
     }
 
     Vector2 compute_logical_size(int window_width, int window_height, const Vector2& reference_size, AspectMode mode) {

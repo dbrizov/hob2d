@@ -4,6 +4,7 @@
 #include <string>
 
 #include "engine/core/aspect_mode.h"
+#include "engine/core/systems/renderer/sampler.h"
 #include "engine/math/vector2.h"
 
 namespace hob {
@@ -17,6 +18,8 @@ namespace hob {
         float render_scale = 1.0f;
         uint32_t target_fps = 60;
         bool vsync_enabled = true;
+        TextureFilter default_texture_filter = TextureFilter::Linear;
+        TextureWrap default_texture_wrap = TextureWrap::Clamp;
     };
 
     struct UiSystemConfig {
