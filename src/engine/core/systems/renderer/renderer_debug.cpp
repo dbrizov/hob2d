@@ -9,6 +9,18 @@
 #include "renderer.h"
 
 namespace hob {
+    namespace {
+        std::string shader_label(const Shader* shader) {
+            if (!shader) {
+                return "<none>";
+            }
+            return std::format("{} [{}, {}]",
+                               shader->get_path(),
+                               blend_mode_to_string(shader->get_blend_mode()),
+                               cull_mode_to_string(shader->get_cull_mode()));
+        }
+    } // namespace
+
     void Renderer::register_cvars(Console& console) {
         console.register_cvar("r_log_texture_refs",
                               "Log every texture load/unload/cache-hit",
@@ -179,8 +191,8 @@ namespace hob {
         // 1 for the map's own ref to show external holders.
         if (m_cvar_log_shader_refs) {
             log::renderer.info("Renderer shaders ({}):", m_shaders.size());
-            for (const auto& [path, shader] : m_shaders) {
-                log::renderer.info("  refs={} {}", shader.use_count() - 1, path);
+            for (const auto& [key, shader] : m_shaders) {
+                log::renderer.info("  refs={} {}", shader.use_count() - 1, shader_label(shader.get()));
             }
         }
 
@@ -191,15 +203,15 @@ namespace hob {
                 const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
                 if (ImGui::BeginTable("shader_refs", 2, flags)) {
                     ImGui::TableSetupColumn("refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-                    ImGui::TableSetupColumn("path", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("shader", ImGuiTableColumnFlags_WidthFixed);
                     ImGui::TableHeadersRow();
 
-                    for (const auto& [path, shader] : m_shaders) {
+                    for (const auto& [key, shader] : m_shaders) {
                         ImGui::TableNextRow();
                         ImGui::TableSetColumnIndex(0);
                         ImGui::Text("%ld", static_cast<long>(shader.use_count() - 1));
                         ImGui::TableSetColumnIndex(1);
-                        ImGui::TextUnformatted(path.c_str());
+                        ImGui::TextUnformatted(shader_label(shader.get()).c_str());
                     }
                     ImGui::EndTable();
                 }
@@ -241,7 +253,7 @@ namespace hob {
                     log::renderer.info("  {} refs={} shader={}",
                                        mat->get_name().empty() ? "<inline>" : mat->get_name().c_str(),
                                        ref_count(mat),
-                                       shader ? shader->path().c_str() : "<none>");
+                                       shader_label(shader));
                 }
             }
         }
@@ -278,7 +290,7 @@ namespace hob {
                         ImGui::TableSetColumnIndex(1);
                         ImGui::Text("%d", ref_count(mat));
                         ImGui::TableSetColumnIndex(2);
-                        ImGui::TextUnformatted(shader ? shader->path().c_str() : "<none>");
+                        ImGui::TextUnformatted(shader_label(shader).c_str());
                     }
                     ImGui::EndTable();
                 }
@@ -294,8 +306,7 @@ namespace hob {
                 const SpriteDrawData& draw = m_sprite_draws[m_sprite_draw_order[i]];
                 const char* tex_path = draw.texture ? draw.texture->get_path().c_str() : "<unknown>";
                 const Shader* shader = draw.get_shader();
-                const char* shader_path = shader ? shader->path().c_str() : "<none>";
-                log::renderer.info("  [{}] z={} shader={} texture={}", i, draw.z_index, shader_path, tex_path);
+                log::renderer.info("  [{}] z={} shader={} texture={}", i, draw.z_index, shader_label(shader), tex_path);
             }
         }
 
@@ -356,7 +367,7 @@ namespace hob {
                         ImGui::Text("%d", draw.z_index);
                         ImGui::TableSetColumnIndex(2);
                         const Shader* shader = draw.get_shader();
-                        ImGui::TextUnformatted(shader ? shader->path().c_str() : "<none>");
+                        ImGui::TextUnformatted(shader_label(shader).c_str());
                         ImGui::TableSetColumnIndex(3);
                         ImGui::TextUnformatted(draw_path(draw));
 

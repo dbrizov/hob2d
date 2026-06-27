@@ -7,7 +7,7 @@
 namespace hob {
     Material::Material(ShaderRef shader)
         : m_shader(std::move(shader))
-        , m_params(m_shader ? m_shader->default_params() : std::vector<uint8_t>{}) {}
+        , m_params(m_shader ? m_shader->get_default_params() : std::vector<uint8_t>{}) {}
 
     const std::string& Material::get_name() const {
         return m_name;
@@ -41,11 +41,11 @@ namespace hob {
         return true;
     }
 
-    const uint8_t* Material::param_data() const {
+    const uint8_t* Material::get_params_data() const {
         return m_params.data();
     }
 
-    uint32_t Material::param_size() const {
+    uint32_t Material::get_params_size() const {
         return static_cast<uint32_t>(m_params.size());
     }
 
@@ -61,7 +61,7 @@ namespace hob {
 
         const ShaderParam* param = m_shader->find_param(name);
         if (!param) {
-            log::renderer.error("Material::{}: shader '{}' has no param '{}'", op, m_shader->path(), name);
+            log::renderer.error("Material::{}: shader '{}' has no param '{}'", op, m_shader->get_path(), name);
             return false;
         }
 

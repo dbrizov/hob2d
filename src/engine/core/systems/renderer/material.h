@@ -28,8 +28,8 @@ namespace hob {
         bool get_param(const std::string& name, float* out, uint32_t count) const;
         bool set_param(const std::string& name, const float* values, uint32_t count);
 
-        const uint8_t* param_data() const;
-        uint32_t param_size() const;
+        const uint8_t* get_params_data() const;
+        uint32_t get_params_size() const;
 
         MaterialRef clone() const;
 

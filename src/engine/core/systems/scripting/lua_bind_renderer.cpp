@@ -46,36 +46,20 @@ namespace hob {
         }
 
         BlendMode parse_blend(const sol::optional<std::string>& value) {
-            if (!value || *value == "alpha") {
-                return BlendMode::Alpha;
+            BlendMode mode = BlendMode::Alpha;
+            if (value && !blend_mode_from_string(*value, mode)) {
+                log::lua.error("DefineShader: unknown blend '{}' (expected alpha|additive|premultiplied|opaque)",
+                               *value);
             }
-            if (*value == "additive") {
-                return BlendMode::Additive;
-            }
-            if (*value == "premultiplied") {
-                return BlendMode::Premultiplied;
-            }
-            if (*value == "opaque") {
-                return BlendMode::Opaque;
-            }
-
-            log::lua.error("DefineShader: unknown blend '{}' (expected alpha|additive|premultiplied|opaque)", *value);
-            return BlendMode::Alpha;
+            return mode;
         }
 
         CullMode parse_cull(const sol::optional<std::string>& value) {
-            if (!value || *value == "none") {
-                return CullMode::None;
+            CullMode mode = CullMode::None;
+            if (value && !cull_mode_from_string(*value, mode)) {
+                log::lua.error("DefineShader: unknown cull '{}' (expected none|back|front)", *value);
             }
-            if (*value == "back") {
-                return CullMode::Back;
-            }
-            if (*value == "front") {
-                return CullMode::Front;
-            }
-
-            log::lua.error("DefineShader: unknown cull '{}' (expected none|back|front)", *value);
-            return CullMode::None;
+            return mode;
         }
     } // namespace
 
@@ -103,7 +87,7 @@ namespace hob {
                 if (shader && shader != renderer.get_default_shader()) {
                     if (auto defaults = cfg.get<sol::optional<sol::table>>("defaults")) {
                         apply_params(
-                            shader->params(), *defaults, [&shader](const auto& name, const float* v, uint32_t n) {
+                            shader->get_params(), *defaults, [&shader](const auto& name, const float* v, uint32_t n) {
                                 shader->set_default_param(name, v, n);
                             });
                     }
@@ -130,7 +114,7 @@ namespace hob {
                     MaterialRef mat = renderer.create_material(shader);
 
                     if (const Shader* s = mat->get_shader()) {
-                        apply_params(s->params(), cfg, [&mat](const auto& name, const float* v, uint32_t n) {
+                        apply_params(s->get_params(), cfg, [&mat](const auto& name, const float* v, uint32_t n) {
                             mat->set_param(name, v, n);
                         });
                     }

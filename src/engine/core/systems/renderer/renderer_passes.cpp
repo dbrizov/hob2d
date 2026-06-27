@@ -298,7 +298,7 @@ namespace hob {
         }
 
         if (shader != bound_shader) {
-            SDL_BindGPUGraphicsPipeline(pass, shader->pipeline());
+            SDL_BindGPUGraphicsPipeline(pass, shader->get_pipeline());
             bound_shader = shader;
         }
 
@@ -329,7 +329,7 @@ namespace hob {
             return;
         }
 
-        if (shader->engine_slot() != INVALID_SHADER_SLOT) {
+        if (shader->get_engine_slot() != INVALID_SHADER_SLOT) {
             const uint32_t tex_w = texture.get_width();
             const uint32_t tex_h = texture.get_height();
 
@@ -337,12 +337,12 @@ namespace hob {
             engine.texel_size[0] = tex_w > 0 ? 1.0f / static_cast<float>(tex_w) : 0.0f;
             engine.texel_size[1] = tex_h > 0 ? 1.0f / static_cast<float>(tex_h) : 0.0f;
             engine.time = m_play_time;
-            SDL_PushGPUFragmentUniformData(m_command_buffer, shader->engine_slot(), &engine, sizeof(engine));
+            SDL_PushGPUFragmentUniformData(m_command_buffer, shader->get_engine_slot(), &engine, sizeof(engine));
         }
 
-        if (shader->material_slot() != INVALID_SHADER_SLOT && material.param_size() > 0) {
+        if (shader->get_material_slot() != INVALID_SHADER_SLOT && material.get_params_size() > 0) {
             SDL_PushGPUFragmentUniformData(
-                m_command_buffer, shader->material_slot(), material.param_data(), material.param_size());
+                m_command_buffer, shader->get_material_slot(), material.get_params_data(), material.get_params_size());
         }
     }
 } // namespace hob

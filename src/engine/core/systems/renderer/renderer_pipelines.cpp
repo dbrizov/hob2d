@@ -106,6 +106,11 @@ namespace hob {
                     return SDL_GPU_CULLMODE_NONE;
             }
         }
+
+        // Render state is baked into the pipeline, so each (path, blend, cull) combo is a distinct shader.
+        std::string shader_cache_key(const std::string& path, BlendMode blend, CullMode cull) {
+            return path + '|' + std::to_string(static_cast<int>(blend)) + '|' + std::to_string(static_cast<int>(cull));
+        }
     } // namespace
 
     SDL_GPUShader* Renderer::load_shader(const std::filesystem::path& hlsl_path,
@@ -176,14 +181,15 @@ namespace hob {
             return m_default_shader;
         }
 
-        const std::string key = std::filesystem::path(path).lexically_normal().string();
+        const std::string normalized_path = std::filesystem::path(path).lexically_normal().string();
+        const std::string key = shader_cache_key(normalized_path, blend, cull);
 
         auto it = m_shaders.find(key);
         if (it != m_shaders.end()) {
             return it->second;
         }
 
-        ShaderRef shader = build_shader(key, m_offscreen_format, blend, cull);
+        ShaderRef shader = build_shader(normalized_path, m_offscreen_format, blend, cull);
         if (!shader) {
             shader = m_default_shader;
         }
@@ -318,9 +324,9 @@ namespace hob {
     }
 
     bool Renderer::init_default_sprite_pipeline() {
-        const std::string default_key = std::filesystem::path(DEFAULT_SPRITE_SHADER).lexically_normal().string();
+        const std::string normalized_path = std::filesystem::path(DEFAULT_SPRITE_SHADER).lexically_normal().string();
 
-        ShaderRef shader = build_shader(default_key, m_offscreen_format, BlendMode::Alpha, CullMode::None);
+        ShaderRef shader = build_shader(normalized_path, m_offscreen_format, BlendMode::Alpha, CullMode::None);
         if (!shader) {
             return false;
         }
@@ -332,7 +338,7 @@ namespace hob {
         shader->set_default_param("alpha_threshold", &alpha_threshold, 1);
 
         m_default_shader = shader;
-        m_shaders.emplace(default_key, shader);
+        m_shaders.emplace(shader_cache_key(normalized_path, BlendMode::Alpha, CullMode::None), shader);
         m_default_material = create_material(m_default_shader);
         m_default_material->set_name("<default>");
         return true;
@@ -685,7 +691,7 @@ namespace hob {
             return nullptr;
         }
 
-        auto shader = std::make_shared<Shader>(m_gpu_device, pipeline, path);
+        auto shader = std::make_shared<Shader>(m_gpu_device, pipeline, path, blend, cull);
 
         for (const ShaderUniformBlock& block : fs_reflection.uniform_blocks) {
             if (block_is_named(block, "Engine")) {
@@ -703,7 +709,7 @@ namespace hob {
             }
         }
 
-        shader->set_default_params(std::vector<uint8_t>(shader->material_size(), 0));
+        shader->set_default_params(std::vector<uint8_t>(shader->get_material_size(), 0));
         return shader;
     }
 } // namespace hob
