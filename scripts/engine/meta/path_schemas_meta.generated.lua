@@ -14,15 +14,3 @@ DefineAsset = {}
 ---@class Assets
 Assets = {}
 
---- Assigning `DefineTexture.Foo = "path/under/assets"` registers a
---- named alias for a Texture path. Reference it as `Textures.Foo` in prefabs and config; the lookup is deferred
---- and resolved at dispatch time, so DefineTexture calls can live in any file in any load order.
---- When passing `Textures.Foo` directly to a C++ setter, unwrap with `unwrap_def(...)`.
----@class DefineTexture
-DefineTexture = {}
-
---- Registry of Texture aliases declared via `DefineTexture`. `Textures.Foo` returns a deferred reference
---- that resolves to the registered path via unwrap_def (see scripts/engine/unwrap.lua).
----@class Textures
-Textures = {}
-

@@ -31,6 +31,10 @@ namespace hob {
 
         m_swapchain_format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_sdl_context.get_window());
 
+        const uint32_t magenta = 0xFFFF00FFu;
+        m_fallback_texture = create_texture_from_rgba(&magenta, 1, 1);
+        HOB_CHECK(m_fallback_texture, "Renderer: failed to create fallback texture");
+
         const bool shadercross_initialized = SDL_ShaderCross_Init();
         HOB_CHECK(shadercross_initialized, "SDL_ShaderCross_Init failed: {}", SDL_GetError());
         m_shadercross_initialized = true;
@@ -40,10 +44,6 @@ namespace hob {
 
         const bool samplers_initialized = init_samplers();
         HOB_CHECK(samplers_initialized, "Renderer::init_samplers failed: {}", SDL_GetError());
-
-        const uint32_t magenta = 0xFFFF00FFu;
-        m_fallback_texture = create_texture_from_rgba(&magenta, 1, 1);
-        HOB_CHECK(m_fallback_texture, "Renderer: failed to create fallback texture");
 
         const bool quad_vbo_initialized = init_quad_vbo();
         HOB_CHECK(quad_vbo_initialized, "Renderer::init_quad_vbo failed: {}", SDL_GetError());
@@ -109,8 +109,11 @@ namespace hob {
             SDL_ReleaseGPUBuffer(m_gpu_device, m_quad_vbo);
         if (m_blit_sampler)
             SDL_ReleaseGPUSampler(m_gpu_device, m_blit_sampler);
-        if (m_sprite_sampler)
-            SDL_ReleaseGPUSampler(m_gpu_device, m_sprite_sampler);
+        if (m_default_sampler)
+            SDL_ReleaseGPUSampler(m_gpu_device, m_default_sampler);
+        for (auto& [key, sampler] : m_samplers) {
+            SDL_ReleaseGPUSampler(m_gpu_device, sampler);
+        }
         if (m_offscreen_color)
             SDL_ReleaseGPUTexture(m_gpu_device, m_offscreen_color);
 

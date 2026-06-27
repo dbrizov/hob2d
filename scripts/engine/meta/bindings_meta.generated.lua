@@ -775,21 +775,6 @@ function InputComponent:clear_all_bindings() end
 
 _G.InputComponent = InputComponent
 
--- Texture
----@class Texture
-local Texture = {}
-
----@return integer
-function Texture:get_width() end
-
----@return integer
-function Texture:get_height() end
-
----@return string
-function Texture:get_path() end
-
-_G.Texture = Texture
-
 -- SpriteComponent
 ---@class SpriteComponent : Component
 local SpriteComponent = {}
@@ -917,6 +902,22 @@ function CameraComponent:world_to_screen(world_pos) end
 function CameraComponent:screen_to_world(screen_pos) end
 
 _G.CameraComponent = CameraComponent
+
+-- Texture
+---@class Texture
+---@overload fun(config: table): Texture
+local Texture = {}
+
+---@return integer
+function Texture:get_width() end
+
+---@return integer
+function Texture:get_height() end
+
+---@return string
+function Texture:get_path() end
+
+_G.Texture = Texture
 
 -- Shader
 ---@class Shader

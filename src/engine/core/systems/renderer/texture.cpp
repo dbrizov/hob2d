@@ -20,6 +20,14 @@ namespace hob {
         return m_gpu_texture;
     }
 
+    SDL_GPUSampler* Texture::get_sampler() const {
+        return m_sampler;
+    }
+
+    void Texture::set_sampler(SDL_GPUSampler* sampler) {
+        m_sampler = sampler;
+    }
+
     uint32_t Texture::get_width() const {
         return m_width;
     }

@@ -17,6 +17,7 @@
 #include "engine/math/vector2.h"
 #include "font.h"
 #include "material.h"
+#include "sampler.h"
 #include "shader.h"
 #include "shader_reflection.h"
 #include "sprite_draw_data.h"
@@ -111,8 +112,10 @@ namespace hob {
         MaterialRef m_default_material;
         std::vector<MaterialWeakRef> m_materials; // weak registry for the material-ref debug view
 
+        SDL_GPUSampler* m_default_sampler = nullptr;
+        std::unordered_map<uint32_t, SDL_GPUSampler*> m_samplers;
+
         SDL_GPUBuffer* m_quad_vbo = nullptr;
-        SDL_GPUSampler* m_sprite_sampler = nullptr;
 
         // -- Blit pipeline --
         SDL_GPUGraphicsPipeline* m_blit_pipeline = nullptr;
@@ -198,12 +201,15 @@ namespace hob {
 
         TextureRef get_or_load_texture(const std::string& path);
         TextureRef create_texture_from_rgba(const void* pixels, uint32_t width, uint32_t height);
+
         ShaderRef get_or_build_sprite_shader(const std::string& path, BlendMode blend, CullMode cull);
         ShaderRef get_default_shader() const;
 
         MaterialRef create_material(ShaderRef shader);
         MaterialRef clone_material(const Material& source);
         MaterialRef get_default_material() const;
+
+        SDL_GPUSampler* get_or_create_sampler(const SamplerDesc& desc);
 
         SDL_GPUShader* load_shader(const std::filesystem::path& hlsl_path,
                                    SDL_ShaderCross_ShaderStage stage,

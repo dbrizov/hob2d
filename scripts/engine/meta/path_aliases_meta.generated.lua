@@ -7,22 +7,3 @@
 
 ---@class Assets
 
----@class Textures
----@field DistortNoise string
----@field PlayerIdle01 string
----@field PlayerIdle02 string
----@field PlayerIdle03 string
----@field PlayerIdle04 string
----@field PlayerRun01 string
----@field PlayerRun02 string
----@field PlayerRun03 string
----@field PlayerRun04 string
----@field PlayerRun05 string
----@field PlayerRun06 string
----@field PlayerRun07 string
----@field PlayerRun08 string
----@field PlayerRun09 string
----@field PlayerRun10 string
----@field WhiteCircle string
----@field WhiteRect string
-

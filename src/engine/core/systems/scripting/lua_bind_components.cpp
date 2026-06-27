@@ -18,6 +18,7 @@
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
+#include "lua_bind_renderer.h"
 #include "lua_meta.h"
 #include "lua_schema_component.h"
 #include "lua_schema_factory.h"
@@ -218,11 +219,6 @@ namespace hob {
                 "(name: string, id: integer)")
             .method("clear_all_bindings", &InputComponent::clear_all_bindings);
 
-        bind_usertype<Texture>(lua, meta)
-            .method("get_width", &Texture::get_width)
-            .method("get_height", &Texture::get_height)
-            .method("get_path", &Texture::get_path);
-
         bind_usertype<SpriteComponent>(lua, meta, Bases<Component>{})
             .method("get_texture", &SpriteComponent::get_texture)
             .method_sig(
@@ -263,8 +259,8 @@ namespace hob {
                     if (auto textures = animclip_t.get<sol::optional<sol::table>>("textures")) {
                         clip->frames.reserve(textures->size());
                         for (size_t i = 1; i <= textures->size(); ++i) {
-                            if (auto path = textures->get<sol::optional<std::string>>(i)) {
-                                clip->frames.push_back({renderer.get_or_load_texture(*path)});
+                            if (TextureRef texture = resolve_texture(renderer, textures->get<sol::object>(i))) {
+                                clip->frames.push_back({std::move(texture)});
                             }
                         }
                     }

@@ -270,21 +270,21 @@ namespace hob {
     }
 
     bool Renderer::init_samplers() {
-        SDL_GPUSamplerCreateInfo sprite_info{};
-        sprite_info.min_filter = SDL_GPU_FILTER_LINEAR;
-        sprite_info.mag_filter = SDL_GPU_FILTER_NEAREST;
-        sprite_info.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
-        sprite_info.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-        sprite_info.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
-        sprite_info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        SDL_GPUSamplerCreateInfo default_info{};
+        default_info.min_filter = SDL_GPU_FILTER_LINEAR;
+        default_info.mag_filter = SDL_GPU_FILTER_NEAREST;
+        default_info.mipmap_mode = SDL_GPU_SAMPLERMIPMAPMODE_NEAREST;
+        default_info.address_mode_u = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        default_info.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
+        default_info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
 
-        m_sprite_sampler = SDL_CreateGPUSampler(m_gpu_device, &sprite_info);
-        if (!m_sprite_sampler) {
-            log::renderer.error("SDL_CreateGPUSampler (sprite) failed: {}", SDL_GetError());
+        m_default_sampler = SDL_CreateGPUSampler(m_gpu_device, &default_info);
+        if (!m_default_sampler) {
+            log::renderer.error("SDL_CreateGPUSampler (default) failed: {}", SDL_GetError());
             return false;
         }
 
-        SDL_GPUSamplerCreateInfo blit_info = sprite_info;
+        SDL_GPUSamplerCreateInfo blit_info = default_info;
         blit_info.min_filter = SDL_GPU_FILTER_LINEAR;
         blit_info.mag_filter = SDL_GPU_FILTER_LINEAR;
 
@@ -295,6 +295,27 @@ namespace hob {
         }
 
         return true;
+    }
+
+    SDL_GPUSampler* Renderer::get_or_create_sampler(const SamplerDesc& desc) {
+        const uint32_t key = desc.key();
+        auto it = m_samplers.find(key);
+        if (it != m_samplers.end()) {
+            return it->second;
+        }
+
+        const SDL_GPUSamplerCreateInfo info = to_sdl_sampler_create_info(desc);
+        SDL_GPUSampler* sampler = SDL_CreateGPUSampler(m_gpu_device, &info);
+        if (!sampler) {
+            log::renderer.error("SDL_CreateGPUSampler (filter={}, wrap={}) failed: {}",
+                                texture_filter_to_string(desc.filter),
+                                texture_wrap_to_string(desc.wrap),
+                                SDL_GetError());
+            return m_default_sampler;
+        }
+
+        m_samplers.emplace(key, sampler);
+        return sampler;
     }
 
     bool Renderer::init_quad_vbo() {

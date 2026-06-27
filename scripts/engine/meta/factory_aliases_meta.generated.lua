@@ -8,6 +8,25 @@
 ---@field PlayerIdle AnimationClip
 ---@field PlayerRun AnimationClip
 
+---@class Textures
+---@field DistortNoise Texture
+---@field PlayerIdle01 Texture
+---@field PlayerIdle02 Texture
+---@field PlayerIdle03 Texture
+---@field PlayerIdle04 Texture
+---@field PlayerRun01 Texture
+---@field PlayerRun02 Texture
+---@field PlayerRun03 Texture
+---@field PlayerRun04 Texture
+---@field PlayerRun05 Texture
+---@field PlayerRun06 Texture
+---@field PlayerRun07 Texture
+---@field PlayerRun08 Texture
+---@field PlayerRun09 Texture
+---@field PlayerRun10 Texture
+---@field WhiteCircle Texture
+---@field WhiteRect Texture
+
 ---@class Shaders
 ---@field Distort Shader
 ---@field Outline Shader

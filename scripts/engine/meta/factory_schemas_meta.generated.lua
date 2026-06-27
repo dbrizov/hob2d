@@ -14,6 +14,18 @@ DefineAnimationClip = {}
 ---@class AnimationClips
 AnimationClips = {}
 
+--- Assigning `DefineTexture.Foo = { ... }` registers a
+--- named Texture configuration. Reference it as `Textures.Foo` in prefabs and config; the actual Texture
+--- is built lazily on first unwrap, so DefineTexture calls can live in any file in any load order.
+--- When passing `Textures.Foo` directly to a C++ setter, unwrap with `unwrap_def(...)`.
+---@class DefineTexture
+DefineTexture = {}
+
+--- Registry of Texture configs declared via `DefineTexture`. `Textures.Foo` returns a deferred reference
+--- that resolves to the built Texture via unwrap_def (see scripts/engine/unwrap.lua).
+---@class Textures
+Textures = {}
+
 --- Assigning `DefineShader.Foo = { ... }` registers a
 --- named Shader configuration. Reference it as `Shaders.Foo` in prefabs and config; the actual Shader
 --- is built lazily on first unwrap, so DefineShader calls can live in any file in any load order.

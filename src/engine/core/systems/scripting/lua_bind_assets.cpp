@@ -7,6 +7,5 @@ namespace hob {
         LuaPathSchemaRegistry& path_schemas = m_impl->path_schemas;
 
         bind_path_schema(path_schemas, "DefineAsset", "Assets", "Asset");
-        bind_path_schema(path_schemas, "DefineTexture", "Textures", "Texture");
     }
 } // namespace hob

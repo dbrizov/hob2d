@@ -1,3 +1,5 @@
+#include "lua_bind_renderer.h"
+
 #include <string>
 
 #include "engine/core/engine.h"
@@ -63,11 +65,59 @@ namespace hob {
         }
     } // namespace
 
+    TextureRef resolve_texture(Renderer& renderer, const sol::object& value) {
+        if (value.is<TextureRef>()) {
+            return value.as<TextureRef>();
+        }
+        if (value.is<std::string>()) {
+            return renderer.get_or_load_texture(value.as<std::string>());
+        }
+        return nullptr;
+    }
+
     void LuaScriptSystem::bind_renderer() {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
         LuaFactorySchemaRegistry& factory_schemas = m_impl->factory_schemas;
         Renderer& renderer = m_engine.get_renderer();
+
+        // Texture
+        bind_usertype<Texture>(lua, meta)
+            .factory_ctor(
+                [&renderer](const sol::table& cfg) -> TextureRef {
+                    const std::string path = cfg.get<sol::optional<std::string>>("path").value_or("");
+                    if (path.empty()) {
+                        log::lua.error("DefineTexture requires a 'path'");
+                        return nullptr;
+                    }
+
+                    TextureRef texture = renderer.get_or_load_texture(path);
+                    if (!texture) {
+                        return nullptr;
+                    }
+
+                    const auto filter = cfg.get<sol::optional<std::string>>("filter");
+                    const auto wrap = cfg.get<sol::optional<std::string>>("wrap");
+                    if (filter || wrap) {
+                        SamplerDesc desc;
+                        if (filter && !texture_filter_from_string(*filter, desc.filter)) {
+                            log::lua.error(
+                                "DefineTexture '{}': unknown filter '{}' (expected nearest|linear)", path, *filter);
+                        }
+                        if (wrap && !texture_wrap_from_string(*wrap, desc.wrap)) {
+                            log::lua.error(
+                                "DefineTexture '{}': unknown wrap '{}' (expected clamp|repeat|mirror)", path, *wrap);
+                        }
+                        texture->set_sampler(renderer.get_or_create_sampler(desc));
+                    }
+                    return texture;
+                },
+                {"config"})
+            .method("get_width", &Texture::get_width)
+            .method("get_height", &Texture::get_height)
+            .method("get_path", &Texture::get_path);
+
+        bind_factory_schema<Texture>(factory_schemas, "DefineTexture", "Textures", {"path", "wrap", "filter"});
 
         // Shader
         bind_usertype<Shader>(lua, meta).factory_ctor(
@@ -122,16 +172,13 @@ namespace hob {
                     if (auto textures = cfg.get<sol::optional<sol::table>>("textures")) {
                         for (const auto& [key, value] : *textures) {
                             const std::string name = key.as<std::string>();
-                            if (value.is<TextureRef>()) {
-                                mat->set_texture(name, value.as<TextureRef>());
-                            }
-                            else if (value.is<std::string>()) {
-                                mat->set_texture(name, renderer.get_or_load_texture(value.as<std::string>()));
-                            }
-                            else {
+                            const TextureRef texture = resolve_texture(renderer, value);
+                            if (!texture) {
                                 log::lua.error("DefineMaterial: texture '{}' must be a Textures.X reference or a path",
                                                name);
+                                continue;
                             }
+                            mat->set_texture(name, texture);
                         }
                     }
                     return mat;

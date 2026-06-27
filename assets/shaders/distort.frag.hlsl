@@ -20,10 +20,8 @@ cbuffer Material : register(b1, space3)
 
 float4 main(float2 uv : TEXCOORD0) : SV_Target0
 {
-    // Scroll the noise map over time and remap RG from [0,1] to [-1,1]. frac() wraps the
-    // lookup so the (tileable) noise map repeats — the sprite sampler is clamp-to-edge.
     float2 scroll = float2(game_time * distort_speed * 0.05, game_time * distort_speed * 0.03);
-    float2 flow = distort_tex.Sample(distort_samp, frac(uv + scroll)).rg * 2.0 - 1.0;
+    float2 flow = distort_tex.Sample(distort_samp, uv + scroll).rg * 2.0 - 1.0;
 
     float2 duv = uv + flow * distort_strength;
 

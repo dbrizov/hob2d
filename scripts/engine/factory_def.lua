@@ -77,8 +77,10 @@ local function install_factory_registry(registry_name, schema)
 
     _G[schema.define] = setmetatable({}, {
         __newindex = function(_, name, def)
-            if type(def) ~= "table" then
-                Log.error(schema.define .. "." .. tostring(name) .. " must be assigned a table")
+            if type(def) == "string" then
+                def = { path = def }
+            elseif type(def) ~= "table" then
+                Log.error(schema.define .. "." .. tostring(name) .. " must be assigned a table or a path string")
                 return
             end
 
