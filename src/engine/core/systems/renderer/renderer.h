@@ -73,12 +73,6 @@ namespace hob {
 
         float m_play_time = 0.0f;
 
-        // -- Projections --
-        Matrix4x4 m_offscreen_projection; // clip-space ortho mapping (0,0)..(w,h) -> (-1,-1)..(+1,+1) with y-down.
-        Matrix4x4 m_swapchain_projection;
-        Matrix4x4 m_sprite_view_projection;
-        bool m_has_sprite_view_projection = false;
-
         // -- Registries --
         std::vector<SpriteDrawData> m_sprite_draws;
         std::vector<SpriteDrawIndex> m_sprite_draw_id_to_index;
@@ -90,6 +84,13 @@ namespace hob {
         std::vector<DebugTextVertex> m_pending_debug_text_vertices;
         std::vector<uint16_t> m_pending_debug_text_indices;
 
+        // -- Projections --
+        Matrix4x4 m_offscreen_projection; // clip-space ortho mapping (0,0)..(w,h) -> (-1,-1)..(+1,+1) with y-down.
+        Matrix4x4 m_swapchain_projection; // same mapping, y-flipped for the swapchain's opposite NDC y convention.
+        Matrix4x4 m_camera_view_projection; // camera view-projection applied to sprites in the world pass.
+        bool m_has_camera_view_projection = false;
+
+        // -- Command buffer --
         SDL_GPUCommandBuffer* m_command_buffer = nullptr;
 
         // -- Texture targets --
@@ -173,7 +174,7 @@ namespace hob {
         SDL_GPUCommandBuffer* get_command_buffer() const;
         SDL_GPUTexture* get_swap_texture() const;
 
-        void set_sprite_view_projection(const Matrix4x4& view_projection);
+        void set_camera_view_projection(const Matrix4x4& view_projection);
 
         SpriteDrawId register_sprite_draw();
         void unregister_sprite_draw(SpriteDrawId draw_id);

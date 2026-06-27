@@ -190,7 +190,7 @@ namespace hob {
             return;
         }
 
-        m_renderer.set_sprite_view_projection(camera->build_sprite_view_projection());
+        m_renderer.set_camera_view_projection(camera->build_view_projection());
 
         const float interpolation_fraction = m_physics.get_interpolation_fraction();
 

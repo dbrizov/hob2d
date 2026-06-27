@@ -178,14 +178,14 @@ namespace hob {
         SDL_SubmitGPUCommandBuffer(m_command_buffer);
         m_command_buffer = nullptr;
         m_swap_texture = nullptr;
-        m_has_sprite_view_projection = false;
+        m_has_camera_view_projection = false;
     }
 
     void Renderer::cancel_command_buffer() {
         SDL_CancelGPUCommandBuffer(m_command_buffer);
         m_command_buffer = nullptr;
         m_swap_texture = nullptr;
-        m_has_sprite_view_projection = false;
+        m_has_camera_view_projection = false;
     }
 
     SDL_GPUCommandBuffer* Renderer::get_command_buffer() const {
@@ -196,9 +196,9 @@ namespace hob {
         return m_swap_texture;
     }
 
-    void Renderer::set_sprite_view_projection(const Matrix4x4& view_projection) {
-        m_sprite_view_projection = view_projection;
-        m_has_sprite_view_projection = true;
+    void Renderer::set_camera_view_projection(const Matrix4x4& view_projection) {
+        m_camera_view_projection = view_projection;
+        m_has_camera_view_projection = true;
     }
 
     SpriteDrawId Renderer::register_sprite_draw() {

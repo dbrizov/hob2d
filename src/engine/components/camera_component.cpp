@@ -43,7 +43,7 @@ namespace hob {
         set_screen_pixels_per_meter(m_base_screen_pixels_per_meter * multiplier);
     }
 
-    Matrix4x4 CameraComponent::build_sprite_view_projection() const {
+    Matrix4x4 CameraComponent::build_view_projection() const {
         const Renderer& renderer = get_engine().get_renderer();
         const Vector2 logical_size = renderer.get_logical_size();
         const float w = logical_size.x;

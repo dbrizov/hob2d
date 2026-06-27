@@ -67,7 +67,7 @@ namespace hob {
                 return da.get_shader() < db.get_shader();
             });
 
-            if (m_has_sprite_view_projection && !m_sprite_draw_order.empty()) {
+            if (m_has_camera_view_projection && !m_sprite_draw_order.empty()) {
                 SDL_GPUBufferBinding vb{};
                 vb.buffer = m_quad_vbo;
                 vb.offset = 0;
@@ -303,7 +303,7 @@ namespace hob {
         }
 
         SpriteVSUniforms vsu{};
-        std::memcpy(vsu.proj, m_sprite_view_projection.data(), sizeof(vsu.proj));
+        std::memcpy(vsu.proj, m_camera_view_projection.data(), sizeof(vsu.proj));
         vsu.position[0] = draw.world_pos.x;
         vsu.position[1] = draw.world_pos.y;
         vsu.size[0] = draw.size.x;

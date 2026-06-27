@@ -24,7 +24,7 @@ namespace hob {
         float get_zoom() const;
         void set_zoom(float multiplier);
 
-        Matrix4x4 build_sprite_view_projection() const;
+        Matrix4x4 build_view_projection() const;
 
         Vector2 world_to_screen(const Vector2& world_pos) const;
         Vector2 world_to_screen(const Vector2& world_pos, const Vector2& camera_pos) const;
