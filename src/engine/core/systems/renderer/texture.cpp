@@ -24,8 +24,13 @@ namespace hob {
         return m_sampler;
     }
 
-    void Texture::set_sampler(SDL_GPUSampler* sampler) {
+    const SamplerDesc& Texture::get_sampler_desc() const {
+        return m_sampler_desc;
+    }
+
+    void Texture::set_sampler(SDL_GPUSampler* sampler, const SamplerDesc& desc) {
         m_sampler = sampler;
+        m_sampler_desc = desc;
     }
 
     uint32_t Texture::get_width() const {

@@ -5,6 +5,8 @@
 
 #include <SDL3/SDL_gpu.h>
 
+#include "sampler.h"
+
 namespace hob {
     class Renderer;
 
@@ -18,6 +20,7 @@ namespace hob {
         Renderer* m_renderer = nullptr;
         SDL_GPUTexture* m_gpu_texture = nullptr;
         SDL_GPUSampler* m_sampler = nullptr;
+        SamplerDesc m_sampler_desc;
         uint32_t m_width = 0;
         uint32_t m_height = 0;
         std::string m_path;
@@ -35,7 +38,8 @@ namespace hob {
 
         SDL_GPUTexture* get_gpu_texture() const;
         SDL_GPUSampler* get_sampler() const;
-        void set_sampler(SDL_GPUSampler* sampler);
+        const SamplerDesc& get_sampler_desc() const;
+        void set_sampler(SDL_GPUSampler* sampler, const SamplerDesc& desc);
         uint32_t get_width() const;
         uint32_t get_height() const;
         const std::string& get_path() const;

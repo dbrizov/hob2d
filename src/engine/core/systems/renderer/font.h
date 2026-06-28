@@ -41,6 +41,7 @@ namespace hob {
 
         Font(const Font&) = delete;
         Font& operator=(const Font&) = delete;
+
         Font(Font&&) = delete;
         Font& operator=(Font&&) = delete;
 

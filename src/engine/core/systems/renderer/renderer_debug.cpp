@@ -52,7 +52,7 @@ namespace hob {
                               });
 
         console.register_cvar("r_show_texture_refs",
-                              "Show a texture cache window (size, logical refs, all refs, path)",
+                              "Show a texture cache window (size, refs, filter, wrap, path)",
                               to_cvar_string(m_cvar_show_texture_refs),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
@@ -157,26 +157,25 @@ namespace hob {
                 }
             }
 
-            int total_game = 0;
-            int total_all = 0;
+            int total_refs = 0;
             for (const auto& [path, weak] : m_textures) {
                 if (auto tex = weak.lock()) {
                     // Subtract 1 because `tex` itself is a strong ref held only for this iteration.
                     const int all = static_cast<int>(tex.use_count()) - 1;
                     const auto pit = pending_refs.find(tex.get());
                     const int pending = pit != pending_refs.end() ? pit->second : 0;
-                    total_all += all;
-                    total_game += all - pending;
+                    total_refs += all - pending;
                 }
             }
-            ImGui::Text("Textures: %zu | Logical refs: %d | All refs: %d", m_textures.size(), total_game, total_all);
+            ImGui::Text("Textures: %zu | Refs: %d", m_textures.size(), total_refs);
 
             const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
 
-            if (ImGui::BeginTable("texture_refs", 4, flags)) {
+            if (ImGui::BeginTable("texture_refs", 5, flags)) {
                 ImGui::TableSetupColumn("size", ImGuiTableColumnFlags_WidthFixed, 90.0f);
-                ImGui::TableSetupColumn("logical refs", ImGuiTableColumnFlags_WidthFixed, 90.0f);
-                ImGui::TableSetupColumn("all refs", ImGuiTableColumnFlags_WidthFixed, 90.0f);
+                ImGui::TableSetupColumn("refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+                ImGui::TableSetupColumn("filter", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+                ImGui::TableSetupColumn("wrap", ImGuiTableColumnFlags_WidthFixed, 70.0f);
                 ImGui::TableSetupColumn("path", ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableHeadersRow();
 
@@ -188,16 +187,21 @@ namespace hob {
                     const int all = static_cast<int>(tex.use_count()) - 1;
                     const auto pit = pending_refs.find(tex.get());
                     const int pending = pit != pending_refs.end() ? pit->second : 0;
-                    const int game = all - pending;
+                    const int refs = all - pending;
+
+                    // A texture with no explicit sampler is drawn with the engine default sampler.
+                    const SamplerDesc& sampler = tex->get_sampler() ? tex->get_sampler_desc() : m_default_sampler_desc;
 
                     ImGui::TableNextRow();
                     ImGui::TableSetColumnIndex(0);
                     ImGui::Text("%ux%u", tex->get_width(), tex->get_height());
                     ImGui::TableSetColumnIndex(1);
-                    ImGui::Text("%d", game);
+                    ImGui::Text("%d", refs);
                     ImGui::TableSetColumnIndex(2);
-                    ImGui::Text("%d", all);
+                    ImGui::TextUnformatted(texture_filter_to_string(sampler.filter));
                     ImGui::TableSetColumnIndex(3);
+                    ImGui::TextUnformatted(texture_wrap_to_string(sampler.wrap));
+                    ImGui::TableSetColumnIndex(4);
                     ImGui::TextUnformatted(tex->get_path().c_str());
                 }
                 ImGui::EndTable();

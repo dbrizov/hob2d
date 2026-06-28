@@ -108,7 +108,7 @@ namespace hob {
                             log::lua.error(
                                 "DefineTexture '{}': unknown wrap '{}' (expected clamp|repeat|mirror)", path, *wrap);
                         }
-                        texture->set_sampler(renderer.get_or_create_sampler(desc));
+                        texture->set_sampler(renderer.get_or_create_sampler(desc), desc);
                     }
                     return texture;
                 },
