@@ -1,0 +1,4 @@
+# Ignore all game projects except the bundled sandbox sample.
+/*
+!/.gitignore
+!/sandbox/

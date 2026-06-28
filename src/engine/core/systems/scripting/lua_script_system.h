@@ -42,8 +42,19 @@ namespace hob {
     private:
         void refresh_lua_component_class_caches();
 
-        bool run_file(const std::filesystem::path& relative_path);
-        bool run_folder(const std::filesystem::path& relative_path, const std::vector<std::string>& excludes = {});
+        bool run_engine_file(const std::filesystem::path& relative_path);
+        bool run_engine_folder(const std::filesystem::path& relative_path,
+                               const std::vector<std::string>& excludes = {});
+
+        bool run_project_file(const std::filesystem::path& relative_path);
+        bool run_project_folder(const std::filesystem::path& relative_path,
+                                const std::vector<std::string>& excludes = {});
+
+        bool run_file_in(const std::filesystem::path& base, const std::filesystem::path& relative_path);
+        bool run_folder_in(const std::filesystem::path& base,
+                           const std::filesystem::path& relative_path,
+                           const std::vector<std::string>& excludes);
+
         bool run_bootstrap();
 
         void register_bindings();

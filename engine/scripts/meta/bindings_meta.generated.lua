@@ -209,12 +209,21 @@ Scripts = {}
 
 ---@param relative_path string
 ---@return boolean
-function Scripts.run_file(relative_path) end
+function Scripts.run_engine_file(relative_path) end
 
 ---@param relative_path string
 ---@param excludes string[]?
 ---@return boolean
-function Scripts.run_folder(relative_path, excludes) end
+function Scripts.run_engine_folder(relative_path, excludes) end
+
+---@param relative_path string
+---@return boolean
+function Scripts.run_project_file(relative_path) end
+
+---@param relative_path string
+---@param excludes string[]?
+---@return boolean
+function Scripts.run_project_folder(relative_path, excludes) end
 
 -- Debug
 ---@class Debug

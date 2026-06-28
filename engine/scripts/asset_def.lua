@@ -22,7 +22,7 @@
 
 -- Per-registry list of declared alias names, populated as `DefineX.Foo = "..."` runs.
 -- Read by C++ (LuaScriptSystem::dump_path_aliases_meta) after bootstrap completes to emit
--- scripts/engine/meta/path_aliases_meta.generated.lua so editors get autocomplete on
+-- <project>/scripts/meta/path_aliases_meta.generated.lua so editors get autocomplete on
 -- `Textures.Foo`, `Shaders.Foo`, etc.
 _G.__path_alias_names = _G.__path_alias_names or {}
 

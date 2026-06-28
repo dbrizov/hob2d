@@ -110,6 +110,13 @@ cmake --preset debug-clang     # macOS / Clang
 # Build
 cmake --build --preset windows-debug-msvc-x64
 
-# Run
+# Run (no arg loads the default project, 'sandbox')
 ./build/debug/windows-msvc/Debug/hob2d.exe
+
+# Run a specific game project
+./build/debug/windows-msvc/Debug/hob2d.exe --project projects/sandbox
 ```
+
+The engine loads one game project from `projects/<name>/` at launch. The bundled sample is
+`projects/sandbox/`. Set the build's default game at configure time with `-DHOB_PROJECT=<name>`,
+or select it at runtime with `--project <path>`.

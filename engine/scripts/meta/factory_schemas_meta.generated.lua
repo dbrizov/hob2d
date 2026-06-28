@@ -10,7 +10,7 @@
 DefineAnimationClip = {}
 
 --- Registry of AnimationClip configs declared via `DefineAnimationClip`. `AnimationClips.Foo` returns a deferred reference
---- that resolves to the built AnimationClip via unwrap_def (see scripts/engine/unwrap.lua).
+--- that resolves to the built AnimationClip via unwrap_def (see engine/scripts/unwrap.lua).
 ---@class AnimationClips
 AnimationClips = {}
 
@@ -22,7 +22,7 @@ AnimationClips = {}
 DefineTexture = {}
 
 --- Registry of Texture configs declared via `DefineTexture`. `Textures.Foo` returns a deferred reference
---- that resolves to the built Texture via unwrap_def (see scripts/engine/unwrap.lua).
+--- that resolves to the built Texture via unwrap_def (see engine/scripts/unwrap.lua).
 ---@class Textures
 Textures = {}
 
@@ -34,7 +34,7 @@ Textures = {}
 DefineShader = {}
 
 --- Registry of Shader configs declared via `DefineShader`. `Shaders.Foo` returns a deferred reference
---- that resolves to the built Shader via unwrap_def (see scripts/engine/unwrap.lua).
+--- that resolves to the built Shader via unwrap_def (see engine/scripts/unwrap.lua).
 ---@class Shaders
 Shaders = {}
 
@@ -46,7 +46,7 @@ Shaders = {}
 DefineMaterial = {}
 
 --- Registry of Material configs declared via `DefineMaterial`. `Materials.Foo` returns a deferred reference
---- that resolves to the built Material via unwrap_def (see scripts/engine/unwrap.lua).
+--- that resolves to the built Material via unwrap_def (see engine/scripts/unwrap.lua).
 ---@class Materials
 Materials = {}
 

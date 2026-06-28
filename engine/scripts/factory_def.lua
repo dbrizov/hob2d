@@ -17,7 +17,7 @@
 
 -- Per-registry list of declared alias names, populated as `DefineX.Foo = { ... }` runs.
 -- Read by C++ (LuaScriptSystem::dump_factory_aliases_meta) after bootstrap completes to emit
--- scripts/engine/meta/factory_aliases_meta.generated.lua so editors get autocomplete on
+-- <project>/scripts/meta/factory_aliases_meta.generated.lua so editors get autocomplete on
 -- `Materials.Foo`, `AnimationClips.Foo`, etc.
 _G.__factory_alias_names = _G.__factory_alias_names or {}
 

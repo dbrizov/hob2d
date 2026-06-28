@@ -1,45 +1,107 @@
 #include "path_utils.h"
 
-namespace hob {
-    std::filesystem::path PathUtils::get_root_path() {
-#ifndef NDEBUG
-        // (IN DEBUG MODE) - return the root directory of the project
-        const std::filesystem::path source_file_path = __FILE__;
-        std::filesystem::path project_root_path = source_file_path
-                                                      .parent_path() // root/src/engine/core
-                                                      .parent_path() // root/src/engine
-                                                      .parent_path() // root/src
-                                                      .parent_path(); // root
+#include <cstdlib>
+#include <cstring>
 
-        return project_root_path;
-#else
-        // (IN RELEASE MODE) - return the current directory of the executable
-        std::filesystem::path current_path = std::filesystem::current_path();
-        return current_path;
+#include "engine/core/assert.h"
+
+// Default project baked in by CMake (see HOB_PROJECT). Fallback keeps editor/clangd builds happy.
+#ifndef HOB_DEFAULT_PROJECT
+#define HOB_DEFAULT_PROJECT "sandbox"
 #endif
+
+namespace hob {
+    namespace {
+        std::filesystem::path s_project_root;
+
+        // Base directory that holds engine/ and projects/.
+        std::filesystem::path content_base() {
+#ifndef NDEBUG
+            // (DEBUG) the repo root, derived from this file's location.
+            const std::filesystem::path source_file_path = __FILE__;
+            return source_file_path
+                .parent_path() // src/engine/core
+                .parent_path() // src/engine
+                .parent_path() // src
+                .parent_path(); // repo root
+#else
+            // (RELEASE) the executable directory, where engine/ and projects/ are synced.
+            return std::filesystem::current_path();
+#endif
+        }
+    } // namespace
+
+    std::filesystem::path PathUtils::get_engine_root() {
+        return content_base() / "engine";
     }
 
-    std::filesystem::path PathUtils::get_assets_root_path() {
-        const std::filesystem::path root_path = get_root_path();
-        std::filesystem::path assets_root_path = root_path / "assets";
-        return assets_root_path;
+    std::filesystem::path PathUtils::get_engine_assets_path() {
+        return get_engine_root() / "assets";
+    }
+
+    std::filesystem::path PathUtils::resolve_project_root(int argc, char* argv[]) {
+        std::string project;
+
+        // 1) --project <path>
+        for (int i = 1; i + 1 < argc; ++i) {
+            if (std::strcmp(argv[i], "--project") == 0) {
+                project = argv[i + 1];
+                break;
+            }
+        }
+
+        // 2) HOB_PROJECT env var
+        if (project.empty()) {
+            if (const char* env = std::getenv("HOB_PROJECT")) {
+                project = env;
+            }
+        }
+
+        // 3) compile-time default
+        if (project.empty()) {
+            project = HOB_DEFAULT_PROJECT;
+        }
+
+        std::filesystem::path project_path = project;
+        if (project_path.is_relative()) {
+            const bool is_bare_name = project.find('/') == std::string::npos && project.find('\\') == std::string::npos;
+            project_path =
+                is_bare_name ? (content_base() / "projects" / project_path) : (content_base() / project_path);
+        }
+
+        return project_path.lexically_normal();
+    }
+
+    void PathUtils::set_project_root(const std::filesystem::path& project_root) {
+        s_project_root = project_root;
+    }
+
+    std::filesystem::path PathUtils::get_project_root() {
+        HOB_CHECK(!s_project_root.empty(), "project root requested before set_project_root() was called");
+        return s_project_root;
+    }
+
+    std::filesystem::path PathUtils::get_project_assets_path() {
+        return get_project_root() / "assets";
+    }
+
+    std::filesystem::path PathUtils::resolve_asset_path(const std::filesystem::path& relative) {
+        std::filesystem::path project_path = get_project_assets_path() / relative;
+        if (std::filesystem::exists(project_path)) {
+            return project_path;
+        }
+        return get_engine_assets_path() / relative;
     }
 
     std::filesystem::path PathUtils::get_engine_config_path() {
-        const std::filesystem::path root_path = get_root_path();
-        std::filesystem::path engine_config_path = root_path / "config" / "engine_config.json";
-        return engine_config_path;
+        return get_project_root() / "config" / "engine_config.json";
     }
 
     std::filesystem::path PathUtils::get_input_config_path() {
-        const std::filesystem::path root_path = get_root_path();
-        std::filesystem::path input_config_path = root_path / "config" / "input_config.json";
-        return input_config_path;
+        return get_project_root() / "config" / "input_config.json";
     }
 
     std::filesystem::path PathUtils::get_log_path() {
-        const std::filesystem::path root_path = get_root_path();
-        std::filesystem::path log_path = root_path / "hob2d.log";
-        return log_path;
+        return content_base() / "hob2d.log";
     }
 } // namespace hob

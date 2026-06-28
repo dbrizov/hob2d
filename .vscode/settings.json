@@ -32,7 +32,8 @@
     "Lua.hint.enable": true,
     "Lua.workspace.checkThirdParty": false,
     "Lua.workspace.library": [
-        "${workspaceFolder}/scripts/engine/meta"
+        "${workspaceFolder}/engine/scripts/meta",
+        "${workspaceFolder}/projects/sandbox/scripts/meta"
     ],
     // Don't analyze the scripts copied next to the executable by the POST_BUILD step.
     "Lua.workspace.ignoreDir": [

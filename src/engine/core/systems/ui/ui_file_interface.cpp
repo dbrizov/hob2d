@@ -9,7 +9,7 @@
 
 namespace hob {
     Rml::FileHandle UiFileInterface::Open(const Rml::String& path) {
-        const std::filesystem::path full = PathUtils::get_assets_root_path() / path;
+        const std::filesystem::path full = PathUtils::resolve_asset_path(path);
 
         auto stream = std::make_unique<std::ifstream>(full, std::ios::binary);
         if (!stream->is_open()) {

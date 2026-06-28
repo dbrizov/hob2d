@@ -524,7 +524,7 @@ namespace hob {
     }
 
     bool Renderer::init_blit_pipeline() {
-        const std::filesystem::path shader_dir = PathUtils::get_assets_root_path() / BUILTIN_SHADERS_DIR;
+        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_path() / BUILTIN_SHADERS_DIR;
 
         SDL_GPUShader* vs = load_shader(shader_dir / "blit.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
@@ -570,7 +570,7 @@ namespace hob {
     }
 
     bool Renderer::init_debug_line_pipeline() {
-        const std::filesystem::path shader_dir = PathUtils::get_assets_root_path() / BUILTIN_SHADERS_DIR;
+        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_path() / BUILTIN_SHADERS_DIR;
 
         SDL_GPUShader* vs = load_shader(shader_dir / "line.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
@@ -661,7 +661,7 @@ namespace hob {
     }
 
     bool Renderer::init_debug_text_pipeline() {
-        const std::filesystem::path shader_dir = PathUtils::get_assets_root_path() / BUILTIN_SHADERS_DIR;
+        const std::filesystem::path shader_dir = PathUtils::get_engine_assets_path() / BUILTIN_SHADERS_DIR;
 
         SDL_GPUShader* vs = load_shader(shader_dir / "debug_text.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
@@ -788,7 +788,7 @@ namespace hob {
     }
 
     bool Renderer::init_debug_font() {
-        const std::filesystem::path font_path = PathUtils::get_assets_root_path() / DEBUG_FONT_PATH;
+        const std::filesystem::path font_path = PathUtils::get_engine_assets_path() / DEBUG_FONT_PATH;
 
         // Bake the atlas scaled by pixel_density for crispness on HiDPI displays.
         const float pixel_density = m_sdl_context.get_pixel_density();
@@ -808,9 +808,8 @@ namespace hob {
                                      SDL_GPUTextureFormat target_format,
                                      BlendMode blend,
                                      CullMode cull) {
-        const std::filesystem::path assets_root = PathUtils::get_assets_root_path();
-        const std::filesystem::path vert_path = assets_root / (path + ".vert.hlsl");
-        const std::filesystem::path frag_path = assets_root / (path + ".frag.hlsl");
+        const std::filesystem::path vert_path = PathUtils::resolve_asset_path(path + ".vert.hlsl");
+        const std::filesystem::path frag_path = PathUtils::resolve_asset_path(path + ".frag.hlsl");
 
         ShaderReflection vs_reflection;
         SDL_GPUShader* vs = load_shader(vert_path, SDL_SHADERCROSS_SHADERSTAGE_VERTEX, &vs_reflection);

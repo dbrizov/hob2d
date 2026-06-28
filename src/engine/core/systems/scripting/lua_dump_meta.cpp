@@ -94,7 +94,7 @@ namespace hob {
 
     void LuaScriptSystem::dump_bindings_meta() {
         const std::filesystem::path out_path =
-            PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "bindings_meta.generated.lua";
+            PathUtils::get_engine_root() / "scripts" / "meta" / "bindings_meta.generated.lua";
 
         if (!m_impl->meta.write_to_file(out_path)) {
             log::lua.error("LuaScriptSystem::dump_bindings_meta: failed to write '{}'", out_path.string());
@@ -103,7 +103,7 @@ namespace hob {
 
     void LuaScriptSystem::dump_path_schemas_meta() {
         const std::filesystem::path out_path =
-            PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "path_schemas_meta.generated.lua";
+            PathUtils::get_engine_root() / "scripts" / "meta" / "path_schemas_meta.generated.lua";
 
         if (!m_impl->path_schemas.write_meta_to_file(out_path)) {
             log::lua.error("LuaScriptSystem::dump_path_schemas_meta: failed to write '{}'", out_path.string());
@@ -112,7 +112,7 @@ namespace hob {
 
     void LuaScriptSystem::dump_path_aliases_meta() {
         const std::filesystem::path out_path =
-            PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "path_aliases_meta.generated.lua";
+            PathUtils::get_project_root() / "scripts" / "meta" / "path_aliases_meta.generated.lua";
 
         const sol::object names_obj = m_impl->lua["__path_alias_names"];
         sol::table names_by_registry = names_obj.is<sol::table>() ? names_obj.as<sol::table>() : sol::table{};
@@ -162,7 +162,7 @@ namespace hob {
 
     void LuaScriptSystem::dump_factory_schemas_meta() {
         const std::filesystem::path out_path =
-            PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "factory_schemas_meta.generated.lua";
+            PathUtils::get_engine_root() / "scripts" / "meta" / "factory_schemas_meta.generated.lua";
 
         if (!m_impl->factory_schemas.write_meta_to_file(out_path)) {
             log::lua.error("LuaScriptSystem::dump_factory_schemas_meta: failed to write '{}'", out_path.string());
@@ -171,7 +171,7 @@ namespace hob {
 
     void LuaScriptSystem::dump_factory_aliases_meta() {
         const std::filesystem::path out_path =
-            PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "factory_aliases_meta.generated.lua";
+            PathUtils::get_project_root() / "scripts" / "meta" / "factory_aliases_meta.generated.lua";
 
         const sol::object names_obj = m_impl->lua["__factory_alias_names"];
         sol::table names_by_registry = names_obj.is<sol::table>() ? names_obj.as<sol::table>() : sol::table{};
@@ -220,7 +220,7 @@ namespace hob {
 
     void LuaScriptSystem::dump_entity_registry_meta() {
         const std::filesystem::path out_path =
-            PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "entity_registry_meta.generated.lua";
+            PathUtils::get_project_root() / "scripts" / "meta" / "entity_registry_meta.generated.lua";
 
         const sol::object reg = m_impl->lua["__entity_prefab_registry"];
         const sol::table reg_table = reg.is<sol::table>() ? reg.as<sol::table>() : sol::table{};
@@ -239,7 +239,7 @@ namespace hob {
 
     void LuaScriptSystem::dump_component_registry_meta() {
         const std::filesystem::path out_path =
-            PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "component_registry_meta.generated.lua";
+            PathUtils::get_project_root() / "scripts" / "meta" / "component_registry_meta.generated.lua";
 
         // Components defined via DefineComponent end up in __component_registry after
         // __finalize_components() runs; any still-pending ones live in __component_pending.
@@ -274,7 +274,7 @@ namespace hob {
 
     void LuaScriptSystem::dump_shader_params_meta() {
         const std::filesystem::path out_path =
-            PathUtils::get_root_path() / "scripts" / "engine" / "meta" / "shader_params_meta.generated.lua";
+            PathUtils::get_project_root() / "scripts" / "meta" / "shader_params_meta.generated.lua";
 
         sol::state& lua = m_impl->lua;
 

@@ -26,25 +26,25 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
 # Place the executable and its synced files in a per-config subfolder, ready to distribute.
 set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/$<CONFIG>")
 
-# Sync the assets/ folder next to the executable after every build.
+# Which game project this build targets. Override at configure time:
+#   cmake --preset debug-msvc -DHOB_PROJECT=my-game
+set(HOB_PROJECT "sandbox" CACHE STRING "Game project to build/run (folder name under projects/)")
+
+# Bake the default into the binary so a no-arg run loads the configured project.
+target_compile_definitions(${PROJECT_NAME} PRIVATE HOB_DEFAULT_PROJECT="${HOB_PROJECT}")
+
+# Sync the engine/ folder (builtin Lua framework + assets) next to the executable after every build.
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/assets" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
-        COMMAND ${CMAKE_COMMAND} -E echo "Synced assets to $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets"
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/engine"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/engine" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/engine"
+        COMMAND ${CMAKE_COMMAND} -E echo "Synced engine to $<TARGET_FILE_DIR:${PROJECT_NAME}>/engine"
 )
 
-# Sync the config/ folder next to the executable after every build.
+# Sync only the current project (projects/${HOB_PROJECT}) next to the executable after every build.
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/config"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/config" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/config"
-        COMMAND ${CMAKE_COMMAND} -E echo "Synced config to $<TARGET_FILE_DIR:${PROJECT_NAME}>/config"
-)
-
-# Sync the scripts/ folder next to the executable after every build.
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/scripts"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/scripts" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/scripts"
-        COMMAND ${CMAKE_COMMAND} -E echo "Synced scripts to $<TARGET_FILE_DIR:${PROJECT_NAME}>/scripts"
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/projects/${HOB_PROJECT}"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/projects/${HOB_PROJECT}" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/projects/${HOB_PROJECT}"
+        COMMAND ${CMAKE_COMMAND} -E echo "Synced project '${HOB_PROJECT}' to $<TARGET_FILE_DIR:${PROJECT_NAME}>/projects/${HOB_PROJECT}"
 )
 
 # Copy the (redistributable, Release) MSVC C++ runtime DLLs next to the executable.

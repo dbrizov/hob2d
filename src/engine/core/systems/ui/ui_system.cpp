@@ -16,8 +16,8 @@
 
 namespace hob {
     namespace {
-        constexpr const char* UI_FONT_PATH = "builtin/fonts/jetbrains_mono_bold.ttf";
-        constexpr const char* UI_BASE_STYLESHEET = "builtin/ui/base.rcss";
+        constexpr const char* UI_FONT_PATH = "fonts/jetbrains_mono_bold.ttf";
+        constexpr const char* UI_BASE_STYLESHEET = "ui/base.rcss";
         constexpr const char* UI_CONTEXT_NAME = "main";
 
         class CallbackListener : public Rml::EventListener {
@@ -562,35 +562,38 @@ namespace hob {
         }
         m_asset_watch_accumulator = 0.0f;
 
-        const std::filesystem::path assets_root = PathUtils::get_assets_root_path();
-
         std::filesystem::file_time_type newest_rml = std::filesystem::file_time_type::min();
         std::filesystem::file_time_type newest_rcss = std::filesystem::file_time_type::min();
         std::error_code ec;
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(assets_root, ec)) {
-            if (ec) {
-                return;
-            }
 
-            if (!entry.is_regular_file()) {
-                continue;
-            }
+        const std::filesystem::path roots[] = {PathUtils::get_project_assets_path(),
+                                               PathUtils::get_engine_assets_path()};
+        for (const auto& assets_root : roots) {
+            for (const auto& entry : std::filesystem::recursive_directory_iterator(assets_root, ec)) {
+                if (ec) {
+                    break;
+                }
 
-            const std::filesystem::path ext = entry.path().extension();
-            std::filesystem::file_time_type* bucket = nullptr;
-            if (ext == ".rml") {
-                bucket = &newest_rml;
-            }
-            else if (ext == ".rcss") {
-                bucket = &newest_rcss;
-            }
-            else {
-                continue;
-            }
+                if (!entry.is_regular_file()) {
+                    continue;
+                }
 
-            const std::filesystem::file_time_type t = entry.last_write_time(ec);
-            if (!ec && t > *bucket) {
-                *bucket = t;
+                const std::filesystem::path ext = entry.path().extension();
+                std::filesystem::file_time_type* bucket = nullptr;
+                if (ext == ".rml") {
+                    bucket = &newest_rml;
+                }
+                else if (ext == ".rcss") {
+                    bucket = &newest_rcss;
+                }
+                else {
+                    continue;
+                }
+
+                const std::filesystem::file_time_type t = entry.last_write_time(ec);
+                if (!ec && t > *bucket) {
+                    *bucket = t;
+                }
             }
         }
 

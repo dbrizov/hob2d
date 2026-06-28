@@ -23,7 +23,7 @@ namespace hob {
             }
         }
 
-        const std::filesystem::path full_path = PathUtils::get_assets_root_path() / path;
+        const std::filesystem::path full_path = PathUtils::resolve_asset_path(path);
         SDL_Surface* surface = IMG_Load(full_path.string().c_str());
         if (!surface) {
             log::renderer.error("IMG_Load failed: {}", SDL_GetError());

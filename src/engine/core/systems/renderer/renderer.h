@@ -46,9 +46,10 @@ namespace hob {
 
         static constexpr float DEBUG_FONT_SIZE_PX = 13.0f;
 
-        static constexpr std::string_view BUILTIN_SHADERS_DIR = "builtin/shaders";
-        static constexpr std::string_view DEFAULT_SPRITE_SHADER = "builtin/shaders/sprite";
-        static constexpr std::string_view DEBUG_FONT_PATH = "builtin/fonts/jetbrains_mono_bold.ttf";
+        // Relative to the engine assets root.
+        static constexpr std::string_view BUILTIN_SHADERS_DIR = "shaders";
+        static constexpr std::string_view DEFAULT_SPRITE_SHADER = "shaders/sprite";
+        static constexpr std::string_view DEBUG_FONT_PATH = "fonts/jetbrains_mono_bold.ttf";
 
         struct DebugLineVertex {
             Vector2 screen_pos;
