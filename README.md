@@ -1,6 +1,8 @@
 # Hob2D
 A 2D game engine written in C++.
 
+![gif](https://raw.githubusercontent.com/dbrizov/hob2d/refs/heads/master/docs/media/hob2d.gif)
+
 # Requirements
 Project dependencies are downloaded and linked automatically via `vcpkg` and `CMake`.<br>
 A C/C++ compiler with C++20 support (e.g. MSVC, GCC, or Clang)
