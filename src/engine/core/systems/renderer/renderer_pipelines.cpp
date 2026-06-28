@@ -95,6 +95,11 @@ namespace hob {
             }
         }
 
+        // Render state is baked into the pipeline, so each (path, blend, cull) combo is a distinct shader.
+        std::string shader_cache_key(const std::string& path, BlendMode blend, CullMode cull) {
+            return path + '|' + std::to_string(static_cast<int>(blend)) + '|' + std::to_string(static_cast<int>(cull));
+        }
+
         SDL_GPUCullMode to_sdl_cull(CullMode mode) {
             switch (mode) {
                 case CullMode::Back:
@@ -107,9 +112,78 @@ namespace hob {
             }
         }
 
-        // Render state is baked into the pipeline, so each (path, blend, cull) combo is a distinct shader.
-        std::string shader_cache_key(const std::string& path, BlendMode blend, CullMode cull) {
-            return path + '|' + std::to_string(static_cast<int>(blend)) + '|' + std::to_string(static_cast<int>(cull));
+        SDL_GPUVertexElementFormat to_sdl_vertex_format(ShaderParamType type) {
+            switch (type) {
+                case ShaderParamType::Float:
+                    return SDL_GPU_VERTEXELEMENTFORMAT_FLOAT;
+                case ShaderParamType::Float2:
+                    return SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
+                case ShaderParamType::Float3:
+                    return SDL_GPU_VERTEXELEMENTFORMAT_FLOAT3;
+                case ShaderParamType::Float4:
+                    return SDL_GPU_VERTEXELEMENTFORMAT_FLOAT4;
+                default:
+                    return SDL_GPU_VERTEXELEMENTFORMAT_INVALID;
+            }
+        }
+        
+        struct SpriteVertexSlot {
+            ShaderParamType type;
+            uint32_t location;
+            uint32_t offset;
+        };
+
+        constexpr SpriteVertexSlot SPRITE_VERTEX_LAYOUT[] = {
+            {ShaderParamType::Float2, 0, 0},
+            {ShaderParamType::Float2, 1, 2 * sizeof(float)},
+        };
+        constexpr uint32_t SPRITE_VERTEX_STRIDE = 4 * sizeof(float);
+
+        bool build_sprite_vertex_attributes(const std::string& path,
+                                            const std::vector<ShaderVertexInput>& inputs,
+                                            std::vector<SDL_GPUVertexAttribute>& out_attrs) {
+            constexpr uint32_t expected_count = std::size(SPRITE_VERTEX_LAYOUT);
+            if (inputs.size() != expected_count) {
+                log::renderer.error(
+                    "Shader '{}' has {} vertex input(s); the engine quad provides {} (pos float2 @loc0, uv float2 @loc1)",
+                    path,
+                    inputs.size(),
+                    expected_count);
+                return false;
+            }
+
+            for (const SpriteVertexSlot& slot : SPRITE_VERTEX_LAYOUT) {
+                const ShaderVertexInput* match = nullptr;
+                for (const ShaderVertexInput& in : inputs) {
+                    if (in.location == slot.location) {
+                        match = &in;
+                        break;
+                    }
+                }
+                if (!match) {
+                    log::renderer.error("Shader '{}' is missing vertex input at location {} (expected {})",
+                                        path,
+                                        slot.location,
+                                        to_string(slot.type));
+                    return false;
+                }
+                if (match->type != slot.type) {
+                    log::renderer.error("Shader '{}' vertex input at location {} is {}; engine quad provides {}",
+                                        path,
+                                        slot.location,
+                                        to_string(match->type),
+                                        to_string(slot.type));
+                    return false;
+                }
+
+                SDL_GPUVertexAttribute attr{};
+                attr.location = match->location;
+                attr.buffer_slot = 0;
+                attr.format = to_sdl_vertex_format(match->type);
+                attr.offset = slot.offset;
+                out_attrs.push_back(attr);
+            }
+            return true;
         }
     } // namespace
 
@@ -319,7 +393,7 @@ namespace hob {
 
     bool Renderer::init_quad_vbo() {
         // 6 vertices for two triangles covering the unit square [0,1] x [0,1].
-        // Layout per vertex: float2 pos, float2 uv.
+        // Layout per vertex: float2 pos, float2 uv. Must stay in sync with SPRITE_VERTEX_LAYOUT/STRIDE.
         // clang-format off
         const float verts[] = {
             0.0f, 0.0f, 0.0f, 0.0f,
@@ -653,7 +727,8 @@ namespace hob {
         const std::filesystem::path vert_path = assets_root / (path + ".vert.hlsl");
         const std::filesystem::path frag_path = assets_root / (path + ".frag.hlsl");
 
-        SDL_GPUShader* vs = load_shader(vert_path, SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
+        ShaderReflection vs_reflection;
+        SDL_GPUShader* vs = load_shader(vert_path, SDL_SHADERCROSS_SHADERSTAGE_VERTEX, &vs_reflection);
         if (!vs) {
             return nullptr;
         }
@@ -665,21 +740,18 @@ namespace hob {
             return nullptr;
         }
 
+        std::vector<SDL_GPUVertexAttribute> attrs;
+        if (!build_sprite_vertex_attributes(path, vs_reflection.vertex_inputs, attrs)) {
+            SDL_ReleaseGPUShader(m_gpu_device, vs);
+            SDL_ReleaseGPUShader(m_gpu_device, fs);
+            return nullptr;
+        }
+
         SDL_GPUVertexBufferDescription vbd{};
         vbd.slot = 0;
-        vbd.pitch = 4 * sizeof(float);
+        vbd.pitch = SPRITE_VERTEX_STRIDE;
         vbd.input_rate = SDL_GPU_VERTEXINPUTRATE_VERTEX;
         vbd.instance_step_rate = 0;
-
-        SDL_GPUVertexAttribute attrs[2]{};
-        attrs[0].location = 0;
-        attrs[0].buffer_slot = 0;
-        attrs[0].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
-        attrs[0].offset = 0;
-        attrs[1].location = 1;
-        attrs[1].buffer_slot = 0;
-        attrs[1].format = SDL_GPU_VERTEXELEMENTFORMAT_FLOAT2;
-        attrs[1].offset = 2 * sizeof(float);
 
         SDL_GPUColorTargetDescription ctd{};
         ctd.format = target_format;
@@ -690,8 +762,8 @@ namespace hob {
         gci.fragment_shader = fs;
         gci.vertex_input_state.vertex_buffer_descriptions = &vbd;
         gci.vertex_input_state.num_vertex_buffers = 1;
-        gci.vertex_input_state.vertex_attributes = attrs;
-        gci.vertex_input_state.num_vertex_attributes = 2;
+        gci.vertex_input_state.vertex_attributes = attrs.data();
+        gci.vertex_input_state.num_vertex_attributes = static_cast<Uint32>(attrs.size());
         gci.primitive_type = SDL_GPU_PRIMITIVETYPE_TRIANGLELIST;
         gci.rasterizer_state.fill_mode = SDL_GPU_FILLMODE_FILL;
         gci.rasterizer_state.cull_mode = to_sdl_cull(cull);
