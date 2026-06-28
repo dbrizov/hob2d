@@ -10,20 +10,18 @@ end
 -- lib/ and meta/ are excluded; hot_reload.lua is imperative, run on demand by C++.
 function _G.__load_engine_modules()
     Scripts.run_engine_folder("scripts", { "bootstrap.lua", "hot_reload.lua", "lib", "meta" })
-
-    -- Path registries first: factory configs (e.g. Materials) may reference Textures/Shaders.
     __install_path_registries()
     __install_factory_registries()
 end
 
 -- All user definition files + resolve the component inheritance graph.
-function _G.__load_game_definitions()
+function _G.__load_project_definitions()
     Scripts.run_project_folder("scripts", { "main.lua", "meta" })
     __finalize_components()
 end
 
 __load_engine_modules()
-__load_game_definitions()
+__load_project_definitions()
 __warmup_shaders()
 
 -- Entry point.

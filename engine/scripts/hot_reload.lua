@@ -15,7 +15,7 @@ _G.__component_registry = {}
 _G.__component_pending = {}
 
 -- 2a. Re-run the same definition files bootstrap uses, then re-finalize.
-__load_game_definitions()
+__load_project_definitions()
 
 -- 2b. Drop cached factory objects (materials, animation clips, ...) so redefined defs
 --     rebuild from their updated config on next unwrap.
