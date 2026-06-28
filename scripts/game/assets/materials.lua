@@ -1,33 +1,9 @@
-DefineShader.Outline = {
-    path = "shaders/outline",
-    defaults = {
-        tint = Color.white(),
-        alpha_threshold = 0.1
-    },
-}
-
-DefineShader.Psychedelic = {
-    path = "shaders/psychedelic",
-    defaults = {
-        tint = Color.white(),
-        alpha_threshold = 0.1
-    },
-}
-
-DefineShader.Distort = {
-    path = "shaders/distort",
-    defaults = {
-        tint = Color.white(),
-        alpha_threshold = 0.1,
-        distort_strength = 0.05,
-        distort_speed = 5.0,
-    },
-}
-
+---@type MaterialParams.Psychedelic
 DefineMaterial.Psychedelic = {
     shader = Shaders.Psychedelic,
 }
 
+---@type MaterialParams.Distort
 DefineMaterial.Distort = {
     shader = Shaders.Distort,
     textures = {
@@ -35,24 +11,28 @@ DefineMaterial.Distort = {
     },
 }
 
+---@type MaterialParams.Outline
 DefineMaterial.WhiteOutline = {
     shader = Shaders.Outline,
     outline_color = Color.white(),
     outline_width = 2.0,
 }
 
+---@type MaterialParams.Outline
 DefineMaterial.RedOutline = {
     shader = Shaders.Outline,
     outline_color = Color.red(),
     outline_width = 2.0,
 }
 
+---@type MaterialParams.Outline
 DefineMaterial.GreenOutline = {
     shader = Shaders.Outline,
     outline_color = Color.green(),
     outline_width = 2.0,
 }
 
+---@type MaterialParams.Outline
 DefineMaterial.BlueOutline = {
     shader = Shaders.Outline,
     outline_color = Color.blue(),

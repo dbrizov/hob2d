@@ -101,6 +101,7 @@ namespace hob {
         dump_factory_aliases_meta();
         dump_entity_registry_meta();
         dump_component_registry_meta();
+        dump_shader_params_meta();
 #endif
     }
 

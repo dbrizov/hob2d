@@ -331,7 +331,7 @@ namespace hob {
         }
 
         if (shader->get_engine_slot() != INVALID_SHADER_SLOT) {
-            std::array<uint8_t, ENGINE_CBUFFER_MAX_BYTES> scratch{};
+            std::array<uint8_t, ENGINE_CBUFFER_MAX_BYTES> engine_cbuffer{};
 
             const int32_t texel_off = shader->get_engine_offset(EngineBuiltin::TexelSize);
             if (texel_off >= 0) {
@@ -339,21 +339,21 @@ namespace hob {
                 const uint32_t tex_h = texture.get_height();
                 const float texel_size[2] = {tex_w > 0 ? 1.0f / static_cast<float>(tex_w) : 0.0f,
                                              tex_h > 0 ? 1.0f / static_cast<float>(tex_h) : 0.0f};
-                std::memcpy(scratch.data() + texel_off, texel_size, sizeof(texel_size));
+                std::memcpy(engine_cbuffer.data() + texel_off, texel_size, sizeof(texel_size));
             }
 
             const int32_t game_off = shader->get_engine_offset(EngineBuiltin::GameTime);
             if (game_off >= 0) {
-                std::memcpy(scratch.data() + game_off, &m_game_time, sizeof(float));
+                std::memcpy(engine_cbuffer.data() + game_off, &m_game_time, sizeof(float));
             }
 
             const int32_t real_off = shader->get_engine_offset(EngineBuiltin::RealTime);
             if (real_off >= 0) {
-                std::memcpy(scratch.data() + real_off, &m_real_time, sizeof(float));
+                std::memcpy(engine_cbuffer.data() + real_off, &m_real_time, sizeof(float));
             }
 
             SDL_PushGPUFragmentUniformData(
-                m_command_buffer, shader->get_engine_slot(), scratch.data(), shader->get_engine_size());
+                m_command_buffer, shader->get_engine_slot(), engine_cbuffer.data(), shader->get_engine_size());
         }
 
         if (shader->get_material_slot() != INVALID_SHADER_SLOT && material.get_params_size() > 0) {
