@@ -109,6 +109,17 @@ function _G.__clear_factory_caches()
     end
 end
 
+-- Eagerly build every declared shader so its GPU pipeline compiles at load, not on the gameplay hot path.
+-- Only shaders are warmed: materials are a cheap CPU param buffer (no compile).
+function _G.__warmup_shaders()
+    local names = _G.__factory_alias_names["Shaders"]
+    if names and Shaders then
+        for _, name in ipairs(names) do
+            unwrap_def(Shaders[name])
+        end
+    end
+end
+
 function _G.__install_factory_registries()
     local schemas = _G.__factory_schemas
     if schemas == nil then

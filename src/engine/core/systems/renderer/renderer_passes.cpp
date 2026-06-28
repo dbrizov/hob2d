@@ -74,9 +74,9 @@ namespace hob {
             SDL_EndGPURenderPass(pass);
         }
 
-        debug_texture_refs();
-        debug_shader_refs();
-        debug_material_refs();
+        debug_textures();
+        debug_shaders();
+        debug_materials();
         debug_sprite_queue();
     }
 

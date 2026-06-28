@@ -24,6 +24,7 @@ end
 
 __load_engine_modules()
 __load_game_definitions()
+__warmup_shaders()
 
 -- Entry point.
 Scripts.run_file("scripts/main.lua")

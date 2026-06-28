@@ -138,14 +138,14 @@ namespace hob {
         float m_debug_font_baked_inverse_pixel_density = 1.0f;
 
         // -- CVars --
-        bool m_cvar_log_texture_refs = false;
-        bool m_cvar_show_texture_refs = false;
+        bool m_cvar_log_textures = false;
+        bool m_cvar_show_textures = false;
 
-        bool m_cvar_log_material_refs = false;
-        bool m_cvar_show_material_refs = false;
+        bool m_cvar_log_materials = false;
+        bool m_cvar_show_materials = false;
 
-        bool m_cvar_log_shader_refs = false;
-        bool m_cvar_show_shader_refs = false;
+        bool m_cvar_log_shaders = false;
+        bool m_cvar_show_shaders = false;
 
         bool m_cvar_log_shader_reflection = false;
 
@@ -222,6 +222,8 @@ namespace hob {
     private:
         void release_texture(Texture& texture);
         void release_textures();
+        void release_shaders();
+        void release_materials();
         void track_material(const MaterialRef& material);
 
         bool init_offscreen_target();
@@ -241,9 +243,9 @@ namespace hob {
         void record_sprite_draw(SDL_GPURenderPass* pass, const SpriteDrawData& draw, const Shader*& bound_shader);
         void push_sprite_fragment_uniforms(const Texture& texture, const Material& material);
 
-        void debug_texture_refs();
-        void debug_shader_refs();
-        void debug_material_refs();
+        void debug_textures();
+        void debug_shaders();
+        void debug_materials();
         void debug_sprite_queue();
     };
 } // namespace hob

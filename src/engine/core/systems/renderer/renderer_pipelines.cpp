@@ -267,12 +267,26 @@ namespace hob {
 
         auto it = m_shaders.find(key);
         if (it != m_shaders.end()) {
+            if (m_cvar_log_shaders) {
+                log::renderer.info("Renderer::get_or_build_shader cache hit: '{}' [{}, {}] (rc={})",
+                                   normalized_path,
+                                   blend_mode_to_string(blend),
+                                   cull_mode_to_string(cull),
+                                   it->second.use_count());
+            }
             return it->second;
         }
 
         ShaderRef shader = build_shader(normalized_path, m_offscreen_format, blend, cull);
         if (!shader) {
             shader = m_default_shader;
+        }
+
+        if (m_cvar_log_shaders) {
+            log::renderer.info("Renderer::get_or_build_shader built: '{}' [{}, {}]",
+                               normalized_path,
+                               blend_mode_to_string(blend),
+                               cull_mode_to_string(cull));
         }
 
         m_shaders.emplace(key, shader);
@@ -349,6 +363,10 @@ namespace hob {
     MaterialRef Renderer::create_material(ShaderRef shader) {
         MaterialRef material = std::make_shared<Material>(shader ? std::move(shader) : m_default_shader);
         track_material(material);
+        if (m_cvar_log_materials) {
+            const Shader* s = material->get_shader();
+            log::renderer.info("Renderer::create_material: shader '{}'", s ? s->get_path() : "<none>");
+        }
         return material;
     }
 
@@ -356,6 +374,10 @@ namespace hob {
         MaterialRef material = source.clone();
         material->set_name(source.get_name() + " (clone)");
         track_material(material);
+        if (m_cvar_log_materials) {
+            log::renderer.info("Renderer::clone_material: from '{}'",
+                               source.get_name().empty() ? "<inline>" : source.get_name().c_str());
+        }
         return material;
     }
 
@@ -386,13 +408,6 @@ namespace hob {
 
     const SamplerDesc& Renderer::get_default_sampler_desc() const {
         return m_default_sampler_desc;
-    }
-
-    void Renderer::track_material(const MaterialRef& material) {
-        std::erase_if(m_materials, [](const MaterialWeakRef& weak) {
-            return weak.expired();
-        });
-        m_materials.push_back(material);
     }
 
     bool Renderer::init_offscreen_target() {

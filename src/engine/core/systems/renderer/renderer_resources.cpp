@@ -15,7 +15,7 @@ namespace hob {
         auto tex_it = m_textures.find(key);
         if (tex_it != m_textures.end()) {
             if (auto cached = tex_it->second.lock()) {
-                if (m_cvar_log_texture_refs) {
+                if (m_cvar_log_textures) {
                     log::renderer.info(
                         "Renderer::get_or_load_texture cache hit: '{}' (rc={})", key, cached.use_count());
                 }
@@ -71,7 +71,7 @@ namespace hob {
         TextureRef texture(new Texture(*this, gpu_tex, w, h, key));
         m_textures.emplace(key, texture);
 
-        if (m_cvar_log_texture_refs) {
+        if (m_cvar_log_textures) {
             log::renderer.info("Renderer::get_or_load_texture loaded: '{}' (rc=1)", key);
         }
 
@@ -104,7 +104,7 @@ namespace hob {
     }
 
     void Renderer::release_texture(Texture& texture) {
-        if (m_cvar_log_texture_refs) {
+        if (m_cvar_log_textures) {
             log::renderer.info("Renderer::release_texture: '{}' [destroyed]", texture.m_path);
         }
 
@@ -122,6 +122,7 @@ namespace hob {
         // holder dies before the Renderer, so the weak refs here should already be expired.
         // If anything is still alive, detach it from the renderer and release its GPU handle
         // directly so Texture::~Texture (which would call back into us) becomes a no-op.
+        m_fallback_texture.reset();
         std::vector<TextureRef> alive;
         for (auto& [path, weak] : m_textures) {
             if (auto texture = weak.lock()) {
@@ -137,6 +138,46 @@ namespace hob {
         for (auto& texture : alive) {
             release_texture(*texture);
         }
+    }
+
+    void Renderer::release_shaders() {
+        // The map holds one strong ref per shader; anything beyond that is an external holder (e.g. a
+        // surviving Material) that outlived the Renderer and will free its pipeline against a possibly
+        // dead GPU device. Diagnose before clearing the map.
+        m_default_shader.reset();
+        for (const auto& [key, shader] : m_shaders) {
+            if (shader.use_count() > 1) {
+                log::renderer.error(
+                    "Renderer::~Renderer: shader '{}' still has {} external holder(s) at shutdown — destruction order is wrong",
+                    shader->get_path(),
+                    shader.use_count() - 1);
+            }
+        }
+        m_shaders.clear();
+    }
+
+    void Renderer::release_materials() {
+        // Diagnostic only: a Material owns no GPU handle and has no renderer callback, so a survivor
+        // is harmless in itself. But by the destruction order every MaterialRef holder should be gone
+        // before the Renderer, so a live one here flags a leak / wrong destruction order.
+        // Call .lock() adds a temporary +1, so subtract it to report the real external holder count.
+        m_default_material.reset();
+        for (const auto& weak : m_materials) {
+            if (auto material = weak.lock()) {
+                log::renderer.error(
+                    "Renderer::~Renderer: material '{}' still has {} holder(s) at shutdown — destruction order is wrong",
+                    material->get_name().empty() ? "<inline>" : material->get_name().c_str(),
+                    material.use_count() - 1);
+            }
+        }
+        m_materials.clear();
+    }
+
+    void Renderer::track_material(const MaterialRef& material) {
+        std::erase_if(m_materials, [](const MaterialWeakRef& weak) {
+            return weak.expired();
+        });
+        m_materials.push_back(material);
     }
 
     bool Renderer::upload_buffer(SDL_GPUBuffer* dst_buffer, const void* data, uint32_t size) {

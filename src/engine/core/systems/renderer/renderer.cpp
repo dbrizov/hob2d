@@ -99,11 +99,9 @@ namespace hob {
         if (m_blit_pipeline)
             SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_blit_pipeline);
 
-        m_default_material.reset();
-        m_materials.clear();
-        m_default_shader.reset();
-        m_shaders.clear();
-        m_fallback_texture.reset();
+        // Materials first: they hold shader/texture refs the leak checks below would otherwise miscount.
+        release_materials();
+        release_shaders();
         release_textures();
 
         if (m_quad_vbo)

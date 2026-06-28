@@ -21,6 +21,10 @@ __load_game_definitions()
 --     rebuild from their updated config on next unwrap.
 __clear_factory_caches()
 
+-- 2c. Re-warm shaders so pipelines stay built (rebuilds hit the strong shader cache) instead of
+--     lazily recompiling the first time a reloaded material references them.
+__warmup_shaders()
+
 -- 3. Re-point every live component instance at its rebuilt class.
 --    Optional on_hot_reload() lets a component migrate state when a field's shape changed.
 --    Weak-keyed set, so iterate keys: `for inst in pairs(...)`.
