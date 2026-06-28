@@ -18,7 +18,7 @@
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
-#include "lua_bind_renderer.h"
+#include "lua_bind_helpers.h"
 #include "lua_meta.h"
 #include "lua_schema_component.h"
 #include "lua_schema_factory.h"

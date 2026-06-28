@@ -1,5 +1,3 @@
-#include "lua_bind_renderer.h"
-
 #include <string>
 
 #include "engine/core/engine.h"
@@ -7,6 +5,7 @@
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/math/color.h"
 #include "engine/math/vector2.h"
+#include "lua_bind_helpers.h"
 #include "lua_meta.h"
 #include "lua_schema_factory.h"
 #include "lua_script_system.h"
@@ -64,16 +63,6 @@ namespace hob {
             return mode;
         }
     } // namespace
-
-    TextureRef resolve_texture(Renderer& renderer, const sol::object& value) {
-        if (value.is<TextureRef>()) {
-            return value.as<TextureRef>();
-        }
-        if (value.is<std::string>()) {
-            return renderer.get_or_load_texture(value.as<std::string>());
-        }
-        return nullptr;
-    }
 
     void LuaScriptSystem::bind_renderer() {
         sol::state& lua = m_impl->lua;
