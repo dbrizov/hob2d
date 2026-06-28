@@ -9,8 +9,8 @@
 #include "renderer.h"
 
 namespace hob {
-    TextureRef Renderer::get_or_load_texture(const std::string& path) {
-        const std::string key = std::filesystem::path(path).lexically_normal().string();
+    TextureRef Renderer::get_or_load_texture(const std::string& relative_path) {
+        const std::string key = std::filesystem::path(relative_path).lexically_normal().string();
 
         auto tex_it = m_textures.find(key);
         if (tex_it != m_textures.end()) {
@@ -23,7 +23,7 @@ namespace hob {
             }
         }
 
-        const std::filesystem::path full_path = PathUtils::resolve_asset_path(path);
+        const std::filesystem::path full_path = PathUtils::resolve_asset_path(relative_path);
         SDL_Surface* surface = IMG_Load(full_path.string().c_str());
         if (!surface) {
             log::renderer.error("IMG_Load failed: {}", SDL_GetError());

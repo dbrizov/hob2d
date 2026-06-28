@@ -83,7 +83,7 @@ namespace hob {
 
     public:
         // clang-format off
-        Shader(SDL_GPUDevice* device, SDL_GPUGraphicsPipeline* pipeline, std::string path, BlendMode blend, CullMode cull);
+        Shader(SDL_GPUDevice* device, SDL_GPUGraphicsPipeline* pipeline, std::string relative_path, BlendMode blend, CullMode cull);
         ~Shader();
         // clang-format on
 

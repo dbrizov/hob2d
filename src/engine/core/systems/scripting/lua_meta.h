@@ -303,7 +303,7 @@ namespace hob {
             return nullptr;
         }
 
-        bool write_to_file(const std::filesystem::path& path) const;
+        bool write_to_file(const std::filesystem::path& full_path) const;
     };
 
     // ---------------------------------------------------------------------

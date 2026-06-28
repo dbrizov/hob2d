@@ -37,7 +37,7 @@ namespace hob {
                         std::string get_method,
                         std::vector<LuaComponentSchemaField> fields);
 
-        bool write_to_file(const std::filesystem::path& path) const;
+        bool write_to_file(const std::filesystem::path& full_path) const;
     };
 
     // Registers a C++ component type as authorable from a Lua prefab. One call

@@ -19,8 +19,8 @@ namespace hob {
 
         const std::vector<LuaPathSchemaInfo>& get_schemas() const;
 
-        bool write_to_file(const std::filesystem::path& path) const;
-        bool write_meta_to_file(const std::filesystem::path& path) const;
+        bool write_to_file(const std::filesystem::path& full_path) const;
+        bool write_meta_to_file(const std::filesystem::path& full_path) const;
     };
 
     inline void bind_path_schema(LuaPathSchemaRegistry& schemas,

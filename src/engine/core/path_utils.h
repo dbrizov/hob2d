@@ -16,7 +16,7 @@ namespace hob {
         static std::filesystem::path get_project_assets_path();
 
         // Resolve an asset by relative path: the project's assets win, engine assets are the fallback.
-        static std::filesystem::path resolve_asset_path(const std::filesystem::path& relative);
+        static std::filesystem::path resolve_asset_path(const std::filesystem::path& relative_path);
 
         static std::filesystem::path get_engine_config_path();
         static std::filesystem::path get_input_config_path();

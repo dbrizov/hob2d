@@ -48,7 +48,7 @@ namespace hob {
 
         const TextureRef& get_texture() const;
         void set_texture(TextureRef texture);
-        void set_texture(const std::string& path);
+        void set_texture(const std::string& relative_path);
         void clear_texture();
 
         const MaterialRef& get_material() const;

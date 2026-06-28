@@ -19,8 +19,8 @@
 
 namespace hob {
     namespace {
-        std::string read_text_file(const std::filesystem::path& path) {
-            std::ifstream f(path, std::ios::binary | std::ios::ate);
+        std::string read_text_file(const std::filesystem::path& full_path) {
+            std::ifstream f(full_path, std::ios::binary | std::ios::ate);
             if (!f) {
                 return {};
             }
@@ -69,10 +69,10 @@ namespace hob {
         };
         static_assert(std::size(ENGINE_BUILTINS) == ENGINE_BUILTIN_COUNT);
 
-        void resolve_engine_layout(const std::string& path, const ShaderUniformBlock& block, Shader& shader) {
+        void resolve_engine_layout(const std::string& relative_path, const ShaderUniformBlock& block, Shader& shader) {
             if (block.size > ENGINE_CBUFFER_MAX_BYTES) {
                 log::renderer.error("Shader '{}' Engine cbuffer is {} bytes; max supported is {} (left unfilled)",
-                                    path,
+                                    relative_path,
                                     block.size,
                                     ENGINE_CBUFFER_MAX_BYTES);
                 return;
@@ -92,14 +92,14 @@ namespace hob {
 
                 if (index < 0) {
                     log::renderer.error("Shader '{}' Engine member '{}' is not a known engine built-in (stays zero)",
-                                        path,
+                                        relative_path,
                                         member.name);
                     continue;
                 }
 
                 if (member.type != ENGINE_BUILTINS[index].type) {
                     log::renderer.error("Shader '{}' Engine built-in '{}' is {}; the engine provides {}",
-                                        path,
+                                        relative_path,
                                         member.name,
                                         to_string(member.type),
                                         to_string(ENGINE_BUILTINS[index].type));
@@ -166,8 +166,9 @@ namespace hob {
         }
 
         // Render state is baked into the pipeline, so each (path, blend, cull) combo is a distinct shader.
-        std::string shader_cache_key(const std::string& path, BlendMode blend, CullMode cull) {
-            return path + '|' + std::to_string(static_cast<int>(blend)) + '|' + std::to_string(static_cast<int>(cull));
+        std::string shader_cache_key(const std::string& relative_path, BlendMode blend, CullMode cull) {
+            return relative_path + '|' + std::to_string(static_cast<int>(blend)) + '|' +
+                   std::to_string(static_cast<int>(cull));
         }
 
         SDL_GPUCullMode to_sdl_cull(CullMode mode) {
@@ -209,14 +210,14 @@ namespace hob {
         };
         constexpr uint32_t SPRITE_VERTEX_STRIDE = 4 * sizeof(float);
 
-        bool build_sprite_vertex_attributes(const std::string& path,
+        bool build_sprite_vertex_attributes(const std::string& relative_path,
                                             const std::vector<ShaderVertexInput>& inputs,
                                             std::vector<SDL_GPUVertexAttribute>& out_attrs) {
             constexpr uint32_t expected_count = std::size(SPRITE_VERTEX_LAYOUT);
             if (inputs.size() != expected_count) {
                 log::renderer.error(
                     "Shader '{}' has {} vertex input(s); the engine quad provides {} (pos float2 @loc0, uv float2 @loc1)",
-                    path,
+                    relative_path,
                     inputs.size(),
                     expected_count);
                 return false;
@@ -232,14 +233,14 @@ namespace hob {
                 }
                 if (!match) {
                     log::renderer.error("Shader '{}' is missing vertex input at location {} (expected {})",
-                                        path,
+                                        relative_path,
                                         slot.location,
                                         to_string(slot.type));
                     return false;
                 }
                 if (match->type != slot.type) {
                     log::renderer.error("Shader '{}' vertex input at location {} is {}; engine quad provides {}",
-                                        path,
+                                        relative_path,
                                         slot.location,
                                         to_string(match->type),
                                         to_string(slot.type));
@@ -257,12 +258,12 @@ namespace hob {
         }
     } // namespace
 
-    ShaderRef Renderer::get_or_build_shader(const std::string& path, BlendMode blend, CullMode cull) {
-        if (path.empty()) {
+    ShaderRef Renderer::get_or_build_shader(const std::string& relative_path, BlendMode blend, CullMode cull) {
+        if (relative_path.empty()) {
             return m_default_shader;
         }
 
-        const std::string normalized_path = std::filesystem::path(path).lexically_normal().string();
+        const std::string normalized_path = std::filesystem::path(relative_path).lexically_normal().string();
         const std::string key = shader_cache_key(normalized_path, blend, cull);
 
         auto it = m_shaders.find(key);
@@ -804,12 +805,12 @@ namespace hob {
         return true;
     }
 
-    ShaderRef Renderer::build_shader(const std::string& path,
+    ShaderRef Renderer::build_shader(const std::string& relative_path,
                                      SDL_GPUTextureFormat target_format,
                                      BlendMode blend,
                                      CullMode cull) {
-        const std::filesystem::path vert_path = PathUtils::resolve_asset_path(path + ".vert.hlsl");
-        const std::filesystem::path frag_path = PathUtils::resolve_asset_path(path + ".frag.hlsl");
+        const std::filesystem::path vert_path = PathUtils::resolve_asset_path(relative_path + ".vert.hlsl");
+        const std::filesystem::path frag_path = PathUtils::resolve_asset_path(relative_path + ".frag.hlsl");
 
         ShaderReflection vs_reflection;
         SDL_GPUShader* vs = load_shader(vert_path, SDL_SHADERCROSS_SHADERSTAGE_VERTEX, &vs_reflection);
@@ -825,7 +826,7 @@ namespace hob {
         }
 
         std::vector<SDL_GPUVertexAttribute> attrs;
-        if (!build_sprite_vertex_attributes(path, vs_reflection.vertex_inputs, attrs)) {
+        if (!build_sprite_vertex_attributes(relative_path, vs_reflection.vertex_inputs, attrs)) {
             SDL_ReleaseGPUShader(m_gpu_device, vs);
             SDL_ReleaseGPUShader(m_gpu_device, fs);
             return nullptr;
@@ -863,15 +864,16 @@ namespace hob {
         SDL_ReleaseGPUShader(m_gpu_device, fs);
 
         if (!pipeline) {
-            log::renderer.error("SDL_CreateGPUGraphicsPipeline (sprite '{}') failed: {}", path, SDL_GetError());
+            log::renderer.error(
+                "SDL_CreateGPUGraphicsPipeline (sprite '{}') failed: {}", relative_path, SDL_GetError());
             return nullptr;
         }
 
-        auto shader = std::make_shared<Shader>(m_gpu_device, pipeline, path, blend, cull);
+        auto shader = std::make_shared<Shader>(m_gpu_device, pipeline, relative_path, blend, cull);
 
         for (const ShaderUniformBlock& block : fs_reflection.uniform_blocks) {
             if (block_is_named(block, "Engine")) {
-                resolve_engine_layout(path, block, *shader);
+                resolve_engine_layout(relative_path, block, *shader);
             }
             else if (block_is_named(block, "Material")) {
                 resolve_material_layout(block, *shader);
@@ -885,7 +887,7 @@ namespace hob {
             }
             if (tex.binding >= MAX_MATERIAL_TEXTURE_SLOTS) {
                 log::renderer.error("Shader '{}' texture '{}' binds slot {} beyond the max of {}",
-                                    path,
+                                    relative_path,
                                     tex.name,
                                     tex.binding,
                                     MAX_MATERIAL_TEXTURE_SLOTS);

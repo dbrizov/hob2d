@@ -231,14 +231,14 @@ namespace hob {
         return Vector2(x, y);
     }
 
-    UiDocumentId UiSystem::load_document(const std::string& path) {
-        Rml::ElementDocument* document = instantiate_document(path);
+    UiDocumentId UiSystem::load_document(const std::string& relative_path) {
+        Rml::ElementDocument* document = instantiate_document(relative_path);
         if (document == nullptr) {
             return INVALID_UI_DOCUMENT_ID;
         }
 
         const UiDocumentId id = m_next_document_id++;
-        m_documents.emplace(id, UiDocument{document, path});
+        m_documents.emplace(id, UiDocument{document, relative_path});
         return id;
     }
 
@@ -633,14 +633,14 @@ namespace hob {
         return (it != m_models.end()) ? &it->second : nullptr;
     }
 
-    Rml::ElementDocument* UiSystem::instantiate_document(const std::string& path) {
+    Rml::ElementDocument* UiSystem::instantiate_document(const std::string& relative_path) {
         if (m_context == nullptr) {
             return nullptr;
         }
 
-        Rml::ElementDocument* document = m_context->LoadDocument(path);
+        Rml::ElementDocument* document = m_context->LoadDocument(relative_path);
         if (document == nullptr) {
-            log::ui.error("UiSystem::instantiate_document: could not load '{}'", path);
+            log::ui.error("UiSystem::instantiate_document: could not load '{}'", relative_path);
             return nullptr;
         }
 

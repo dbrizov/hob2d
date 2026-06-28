@@ -66,11 +66,14 @@ namespace hob {
         return true;
     }
 
-    Shader::Shader(
-        SDL_GPUDevice* device, SDL_GPUGraphicsPipeline* pipeline, std::string path, BlendMode blend, CullMode cull)
+    Shader::Shader(SDL_GPUDevice* device,
+                   SDL_GPUGraphicsPipeline* pipeline,
+                   std::string relative_path,
+                   BlendMode blend,
+                   CullMode cull)
         : m_device(device)
         , m_pipeline(pipeline)
-        , m_path(std::move(path))
+        , m_path(std::move(relative_path))
         , m_blend_mode(blend)
         , m_cull_mode(cull) {}
 

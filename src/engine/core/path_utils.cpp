@@ -85,12 +85,12 @@ namespace hob {
         return get_project_root() / "assets";
     }
 
-    std::filesystem::path PathUtils::resolve_asset_path(const std::filesystem::path& relative) {
-        std::filesystem::path project_path = get_project_assets_path() / relative;
+    std::filesystem::path PathUtils::resolve_asset_path(const std::filesystem::path& relative_path) {
+        std::filesystem::path project_path = get_project_assets_path() / relative_path;
         if (std::filesystem::exists(project_path)) {
             return project_path;
         }
-        return get_engine_assets_path() / relative;
+        return get_engine_assets_path() / relative_path;
     }
 
     std::filesystem::path PathUtils::get_engine_config_path() {

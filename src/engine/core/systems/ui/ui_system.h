@@ -121,7 +121,7 @@ namespace hob {
 
         Vector2 screen_to_ui(const Vector2& screen_pos) const;
 
-        UiDocumentId load_document(const std::string& path);
+        UiDocumentId load_document(const std::string& relative_path);
         void unload_document(UiDocumentId id);
         void show_document(UiDocumentId id);
         void hide_document(UiDocumentId id);
@@ -158,7 +158,7 @@ namespace hob {
         UiElement* find_element(UiElementId id);
         UiDataModel* find_model(UiDataModelId id);
 
-        Rml::ElementDocument* instantiate_document(const std::string& path);
+        Rml::ElementDocument* instantiate_document(const std::string& relative_path);
         void apply_base_stylesheet(Rml::ElementDocument& document) const;
     };
 } // namespace hob

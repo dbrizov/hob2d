@@ -25,7 +25,11 @@ namespace hob {
         uint32_t m_height = 0;
         std::string m_path;
 
-        Texture(Renderer& renderer, SDL_GPUTexture* gpu_texture, uint32_t width, uint32_t height, std::string path);
+        Texture(Renderer& renderer,
+                SDL_GPUTexture* gpu_texture,
+                uint32_t width,
+                uint32_t height,
+                std::string relative_path);
 
     public:
         ~Texture();

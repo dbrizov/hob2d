@@ -50,8 +50,8 @@ namespace hob {
         m_render_dirty = true;
     }
 
-    void SpriteComponent::set_texture(const std::string& path) {
-        m_texture = get_engine().get_renderer().get_or_load_texture(path);
+    void SpriteComponent::set_texture(const std::string& relative_path) {
+        m_texture = get_engine().get_renderer().get_or_load_texture(relative_path);
         m_render_dirty = true;
     }
 

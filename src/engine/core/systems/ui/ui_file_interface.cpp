@@ -8,8 +8,8 @@
 #include "engine/core/path_utils.h"
 
 namespace hob {
-    Rml::FileHandle UiFileInterface::Open(const Rml::String& path) {
-        const std::filesystem::path full = PathUtils::resolve_asset_path(path);
+    Rml::FileHandle UiFileInterface::Open(const Rml::String& relative_path) {
+        const std::filesystem::path full = PathUtils::resolve_asset_path(relative_path);
 
         auto stream = std::make_unique<std::ifstream>(full, std::ios::binary);
         if (!stream->is_open()) {

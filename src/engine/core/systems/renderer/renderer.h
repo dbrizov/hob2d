@@ -201,10 +201,10 @@ namespace hob {
         void render_debug_lines_pass();
         void render_debug_text_pass();
 
-        TextureRef get_or_load_texture(const std::string& path);
+        TextureRef get_or_load_texture(const std::string& relative_path);
         TextureRef create_texture_from_rgba(const void* pixels, uint32_t width, uint32_t height);
 
-        ShaderRef get_or_build_shader(const std::string& path, BlendMode blend, CullMode cull);
+        ShaderRef get_or_build_shader(const std::string& relative_path, BlendMode blend, CullMode cull);
         ShaderRef get_default_shader() const;
         SDL_GPUShader* load_shader(const std::filesystem::path& hlsl_path,
                                    SDL_ShaderCross_ShaderStage stage,
@@ -236,7 +236,7 @@ namespace hob {
         bool init_debug_text_pipeline();
         bool init_debug_font();
 
-        ShaderRef build_shader(const std::string& path,
+        ShaderRef build_shader(const std::string& relative_path,
                                SDL_GPUTextureFormat target_format,
                                BlendMode blend,
                                CullMode cull);
