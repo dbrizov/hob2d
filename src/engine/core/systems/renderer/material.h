@@ -1,8 +1,8 @@
 #pragma once
 
+#include <array>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "shader.h"
@@ -17,7 +17,7 @@ namespace hob {
         std::string m_name;
         ShaderRef m_shader;
         std::vector<uint8_t> m_params; // mirrors the shader's Material cbuffer, ready to push as-is
-        std::unordered_map<std::string, TextureRef> m_textures;
+        std::array<TextureRef, MAX_MATERIAL_TEXTURE_SLOTS> m_textures{}; // indexed by reflected texture slot
 
     public:
         Material() = default;
@@ -34,7 +34,8 @@ namespace hob {
         const uint8_t* get_params_data() const;
         uint32_t get_params_size() const;
 
-        TextureRef get_texture(const std::string& name) const;
+        const TextureRef& get_texture(const std::string& name) const;
+        const TextureRef& get_texture(uint32_t slot) const;
         bool set_texture(const std::string& name, TextureRef texture);
 
         MaterialRef clone() const;

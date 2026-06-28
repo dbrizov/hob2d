@@ -31,7 +31,7 @@ namespace hob {
 
             std::string label;
             for (const ShaderTexture& st : shader->get_textures()) {
-                const TextureRef tex = material.get_texture(st.name);
+                const TextureRef& tex = material.get_texture(st.name);
                 if (!label.empty()) {
                     label += ", ";
                 }

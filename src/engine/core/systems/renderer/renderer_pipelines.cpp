@@ -866,9 +866,18 @@ namespace hob {
 
         std::vector<ShaderTexture> textures;
         for (const ShaderTextureBinding& tex : fs_reflection.textures) {
-            if (tex.binding != SPRITE_TEXTURE_SLOT) {
-                textures.push_back(ShaderTexture{tex.name, tex.binding});
+            if (tex.binding == SPRITE_TEXTURE_SLOT) {
+                continue;
             }
+            if (tex.binding >= MAX_MATERIAL_TEXTURE_SLOTS) {
+                log::renderer.error("Shader '{}' texture '{}' binds slot {} beyond the max of {}",
+                                    path,
+                                    tex.name,
+                                    tex.binding,
+                                    MAX_MATERIAL_TEXTURE_SLOTS);
+                continue;
+            }
+            textures.push_back(ShaderTexture{tex.name, tex.binding});
         }
         std::sort(textures.begin(), textures.end(), [](const ShaderTexture& a, const ShaderTexture& b) {
             return a.slot < b.slot;

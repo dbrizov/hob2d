@@ -32,6 +32,7 @@ namespace hob {
     // Slot of the per-draw sprite texture (sprite_tex at t0, space2).
     // Any other reflected texture binding is a material-provided texture.
     constexpr uint32_t SPRITE_TEXTURE_SLOT = 0;
+    constexpr uint32_t MAX_MATERIAL_TEXTURE_SLOTS = 16;
 
     enum class BlendMode {
         Alpha,

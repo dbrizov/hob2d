@@ -312,7 +312,7 @@ namespace hob {
         SDL_BindGPUFragmentSamplers(pass, SPRITE_TEXTURE_SLOT, &ts, 1);
 
         for (const ShaderTexture& st : shader->get_textures()) {
-            const TextureRef tex = material.get_texture(st.name);
+            const TextureRef& tex = material.get_texture(st.slot);
             const bool has_texture = tex && tex->m_gpu_texture;
 
             SDL_GPUTextureSamplerBinding extra{};
