@@ -14,6 +14,5 @@ int main(int argc, char* argv[]) {
     hob::Engine engine(config);
 
     engine.run();
-
     return 0;
 }
