@@ -88,9 +88,9 @@ namespace hob {
         std::vector<uint16_t> m_pending_debug_text_indices;
 
         // -- Projections --
-        Matrix4x4 m_offscreen_projection; // clip-space ortho mapping (0,0)..(w,h) -> (-1,-1)..(+1,+1) with y-down.
-        Matrix4x4 m_swapchain_projection; // same mapping, y-flipped for the swapchain's opposite NDC y convention.
-        Matrix4x4 m_camera_view_projection; // camera view-projection applied to sprites in the world pass.
+        Matrix4x4 m_offscreen_projection; // clip-space ortho mapping (0,0)..(w,h) -> (-1,-1)..(+1,+1) with y-down
+        Matrix4x4 m_swapchain_projection; // same mapping, y-flipped for the swapchain's opposite NDC y convention
+        Matrix4x4 m_camera_view_projection; // camera view-projection applied to sprites in the world pass
         bool m_has_camera_view_projection = false;
 
         // -- Command buffer --
