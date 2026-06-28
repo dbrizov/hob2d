@@ -5,9 +5,7 @@ SamplerState distort_samp : register(s1, space2);
 
 cbuffer Engine : register(b0, space3)
 {
-    float2 texel_size;
-    float  game_time;
-    float  real_time;
+    float game_time;
 };
 
 cbuffer Material : register(b1, space3)

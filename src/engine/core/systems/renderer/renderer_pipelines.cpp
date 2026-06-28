@@ -56,6 +56,76 @@ namespace hob {
             }
         }
 
+        struct EngineBuiltinInfo {
+            const char* name;
+            ShaderParamType type;
+        };
+
+        // Indexed by EngineBuiltin; matched against a shader's reflected `Engine` members by name.
+        constexpr EngineBuiltinInfo ENGINE_BUILTINS[] = {
+            {"texel_size", ShaderParamType::Float2},
+            {"game_time", ShaderParamType::Float},
+            {"real_time", ShaderParamType::Float},
+        };
+        static_assert(std::size(ENGINE_BUILTINS) == ENGINE_BUILTIN_COUNT);
+
+        void resolve_engine_layout(const std::string& path, const ShaderUniformBlock& block, Shader& shader) {
+            if (block.size > ENGINE_CBUFFER_MAX_BYTES) {
+                log::renderer.error("Shader '{}' Engine cbuffer is {} bytes; max supported is {} (left unfilled)",
+                                    path,
+                                    block.size,
+                                    ENGINE_CBUFFER_MAX_BYTES);
+                return;
+            }
+
+            std::array<int32_t, ENGINE_BUILTIN_COUNT> offsets{};
+            offsets.fill(-1);
+
+            for (const ShaderUniformMember& member : block.members) {
+                int32_t index = -1;
+                for (int32_t i = 0; i < ENGINE_BUILTIN_COUNT; ++i) {
+                    if (member.name == ENGINE_BUILTINS[i].name) {
+                        index = i;
+                        break;
+                    }
+                }
+
+                if (index < 0) {
+                    log::renderer.error("Shader '{}' Engine member '{}' is not a known engine built-in (stays zero)",
+                                        path,
+                                        member.name);
+                    continue;
+                }
+
+                if (member.type != ENGINE_BUILTINS[index].type) {
+                    log::renderer.error("Shader '{}' Engine built-in '{}' is {}; the engine provides {}",
+                                        path,
+                                        member.name,
+                                        to_string(member.type),
+                                        to_string(ENGINE_BUILTINS[index].type));
+                    continue;
+                }
+
+                offsets[index] = static_cast<int32_t>(member.offset);
+            }
+
+            // Round up to the 16-byte cbuffer footprint; reflection may report the unpadded size.
+            const uint32_t size = (block.size + 15u) & ~15u;
+            shader.set_engine_layout(block.binding, size, offsets);
+        }
+
+        void resolve_material_layout(const ShaderUniformBlock& block, Shader& shader) {
+            std::unordered_map<std::string, ShaderParam> params;
+            params.reserve(block.members.size());
+            for (const ShaderUniformMember& member : block.members) {
+                params.emplace(member.name, ShaderParam{member.type, member.offset, member.size});
+            }
+
+            // Round up to the 16-byte cbuffer footprint; reflection may report the unpadded size.
+            const uint32_t size = (block.size + 15u) & ~15u;
+            shader.set_material_layout(block.binding, size, std::move(params));
+        }
+
         bool block_is_named(const ShaderUniformBlock& block, std::string_view name) {
             if (block.name == name || block.type_name == name) {
                 return true;
@@ -126,7 +196,7 @@ namespace hob {
                     return SDL_GPU_VERTEXELEMENTFORMAT_INVALID;
             }
         }
-        
+
         struct SpriteVertexSlot {
             ShaderParamType type;
             uint32_t location;
@@ -787,17 +857,10 @@ namespace hob {
 
         for (const ShaderUniformBlock& block : fs_reflection.uniform_blocks) {
             if (block_is_named(block, "Engine")) {
-                shader->set_engine_slot(block.binding);
+                resolve_engine_layout(path, block, *shader);
             }
             else if (block_is_named(block, "Material")) {
-                std::unordered_map<std::string, ShaderParam> params;
-                params.reserve(block.members.size());
-                for (const ShaderUniformMember& m : block.members) {
-                    params.emplace(m.name, ShaderParam{m.type, m.offset, m.size});
-                }
-                // Round up to the 16-byte cbuffer footprint; reflection may report the unpadded size.
-                const uint32_t material_size = (block.size + 15u) & ~15u;
-                shader->set_material_layout(block.binding, material_size, std::move(params));
+                resolve_material_layout(block, *shader);
             }
         }
 

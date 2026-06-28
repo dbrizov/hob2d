@@ -100,8 +100,20 @@ namespace hob {
         return m_engine_slot;
     }
 
-    void Shader::set_engine_slot(uint32_t slot) {
+    uint32_t Shader::get_engine_size() const {
+        return m_engine_size;
+    }
+
+    int32_t Shader::get_engine_offset(EngineBuiltin builtin) const {
+        return m_engine_offsets[static_cast<size_t>(builtin)];
+    }
+
+    void Shader::set_engine_layout(uint32_t slot,
+                                   uint32_t size,
+                                   const std::array<int32_t, ENGINE_BUILTIN_COUNT>& offsets) {
         m_engine_slot = slot;
+        m_engine_size = size;
+        m_engine_offsets = offsets;
     }
 
     uint32_t Shader::get_material_slot() const {

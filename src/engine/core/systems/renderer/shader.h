@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -16,6 +17,17 @@ namespace hob {
     using ShaderRef = std::shared_ptr<Shader>;
 
     constexpr uint32_t INVALID_SHADER_SLOT = MAX_UINT32;
+
+    // Built-ins the engine fills into a shader's `Engine` cbuffer, matched by member name at build time.
+    enum class EngineBuiltin {
+        TexelSize,
+        GameTime,
+        RealTime,
+        Count,
+    };
+
+    constexpr uint32_t ENGINE_BUILTIN_COUNT = static_cast<uint32_t>(EngineBuiltin::Count);
+    constexpr uint32_t ENGINE_CBUFFER_MAX_BYTES = 256;
 
     // Slot of the per-draw sprite texture (sprite_tex at t0, space2).
     // Any other reflected texture binding is a material-provided texture.
@@ -59,6 +71,9 @@ namespace hob {
         CullMode m_cull_mode = CullMode::None;
 
         uint32_t m_engine_slot = INVALID_SHADER_SLOT; // engine-filled cbuffer
+        uint32_t m_engine_size = 0;
+        std::array<int32_t, ENGINE_BUILTIN_COUNT> m_engine_offsets{}; // per-built-in byte offset, -1 if not declared
+
         uint32_t m_material_slot = INVALID_SHADER_SLOT; // user-facing "Material" cbuffer
         uint32_t m_material_size = 0;
         std::unordered_map<std::string, ShaderParam> m_params;
@@ -83,7 +98,9 @@ namespace hob {
         SDL_GPUGraphicsPipeline* get_pipeline() const;
 
         uint32_t get_engine_slot() const;
-        void set_engine_slot(uint32_t slot);
+        uint32_t get_engine_size() const;
+        int32_t get_engine_offset(EngineBuiltin builtin) const;
+        void set_engine_layout(uint32_t slot, uint32_t size, const std::array<int32_t, ENGINE_BUILTIN_COUNT>& offsets);
 
         uint32_t get_material_slot() const;
         uint32_t get_material_size() const;

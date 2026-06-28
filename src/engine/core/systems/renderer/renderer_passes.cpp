@@ -22,15 +22,6 @@ namespace hob {
         };
 
         static_assert(sizeof(SpriteVSUniforms) == 96);
-
-        // Must match the `Engine` cbuffer in the sprite fragment shaders.
-        struct SpriteEngineFSUniforms {
-            float texel_size[2]; // 0..8
-            float game_time; // 8..12
-            float real_time; // 12..16
-        };
-
-        static_assert(sizeof(SpriteEngineFSUniforms) == 16);
     } // namespace
 
     void Renderer::render_world_pass() {
@@ -340,15 +331,29 @@ namespace hob {
         }
 
         if (shader->get_engine_slot() != INVALID_SHADER_SLOT) {
-            const uint32_t tex_w = texture.get_width();
-            const uint32_t tex_h = texture.get_height();
+            std::array<uint8_t, ENGINE_CBUFFER_MAX_BYTES> scratch{};
 
-            SpriteEngineFSUniforms engine{};
-            engine.texel_size[0] = tex_w > 0 ? 1.0f / static_cast<float>(tex_w) : 0.0f;
-            engine.texel_size[1] = tex_h > 0 ? 1.0f / static_cast<float>(tex_h) : 0.0f;
-            engine.game_time = m_game_time;
-            engine.real_time = m_real_time;
-            SDL_PushGPUFragmentUniformData(m_command_buffer, shader->get_engine_slot(), &engine, sizeof(engine));
+            const int32_t texel_off = shader->get_engine_offset(EngineBuiltin::TexelSize);
+            if (texel_off >= 0) {
+                const uint32_t tex_w = texture.get_width();
+                const uint32_t tex_h = texture.get_height();
+                const float texel_size[2] = {tex_w > 0 ? 1.0f / static_cast<float>(tex_w) : 0.0f,
+                                             tex_h > 0 ? 1.0f / static_cast<float>(tex_h) : 0.0f};
+                std::memcpy(scratch.data() + texel_off, texel_size, sizeof(texel_size));
+            }
+
+            const int32_t game_off = shader->get_engine_offset(EngineBuiltin::GameTime);
+            if (game_off >= 0) {
+                std::memcpy(scratch.data() + game_off, &m_game_time, sizeof(float));
+            }
+
+            const int32_t real_off = shader->get_engine_offset(EngineBuiltin::RealTime);
+            if (real_off >= 0) {
+                std::memcpy(scratch.data() + real_off, &m_real_time, sizeof(float));
+            }
+
+            SDL_PushGPUFragmentUniformData(
+                m_command_buffer, shader->get_engine_slot(), scratch.data(), shader->get_engine_size());
         }
 
         if (shader->get_material_slot() != INVALID_SHADER_SLOT && material.get_params_size() > 0) {
