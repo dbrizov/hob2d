@@ -1,0 +1,25 @@
+{
+    "files.eol": "\n",
+    "files.encoding": "utf8",
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "files.associations": {
+        "*.lua": "lua"
+    },
+    "Lua.hint.enable": true,
+    "Lua.workspace.checkThirdParty": false,
+    "Lua.workspace.library": [
+        "${workspaceFolder}/../../engine/scripts/meta"
+    ],
+    "Lua.diagnostics.disable": [
+        "lowercase-global",
+        "undefined-global",
+        "undefined-field",
+        "duplicate-set-field",
+        "need-check-nil",
+        "deprecated",
+        "cast-local-type"
+    ]
+}

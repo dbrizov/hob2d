@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Launch sandbox",
+            "type": "shell",
+            "command": "${workspaceFolder}/../../build/debug/windows-msvc/Debug/hob2d.exe",
+            "args": [
+                "--project",
+                "sandbox"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/../../build/debug/windows-msvc/Debug"
+            },
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "clear": true
+            }
+        }
+    ]
+}

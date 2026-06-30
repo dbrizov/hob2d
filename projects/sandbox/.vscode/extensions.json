@@ -1,0 +1,7 @@
+{
+    "recommendations": [
+        "ms-vscode.cpptools",
+        "sumneko.lua",
+        "tomblind.local-lua-debugger-vscode"
+    ]
+}

@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug",
+            "type": "lua-local",
+            "request": "launch",
+            "program": {
+                "command": "${workspaceFolder}/../../build/debug/windows-msvc/Debug/hob2d.exe"
+            },
+            "args": [
+                "--project",
+                "sandbox"
+            ],
+            "cwd": "${workspaceFolder}/../../build/debug/windows-msvc/Debug"
+        },
+        {
+            "name": "Launch",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/../../build/debug/windows-msvc/Debug/hob2d.exe",
+            "args": [
+                "--project",
+                "sandbox"
+            ],
+            "cwd": "${workspaceFolder}/../../build/debug/windows-msvc/Debug",
+            "console": "integratedTerminal"
+        }
+    ]
+}
