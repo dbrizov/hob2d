@@ -466,6 +466,9 @@ function Entity:get_transform() end
 ---@return RigidbodyComponent?
 function Entity:get_rigidbody() end
 
+---@return CharacterBodyComponent?
+function Entity:get_character_body() end
+
 ---@return BoxColliderComponent?
 function Entity:get_box_collider() end
 
@@ -475,8 +478,8 @@ function Entity:get_capsule_collider() end
 ---@return CircleColliderComponent?
 function Entity:get_circle_collider() end
 
----@return CharacterBodyComponent?
-function Entity:get_character_body() end
+---@return InputComponent?
+function Entity:get_input() end
 
 ---@return SpriteComponent?
 function Entity:get_sprite() end
@@ -484,11 +487,11 @@ function Entity:get_sprite() end
 ---@return SpriteAnimatorComponent?
 function Entity:get_sprite_animator() end
 
----@return InputComponent?
-function Entity:get_input() end
-
 ---@return CameraComponent?
 function Entity:get_camera() end
+
+---@return AudioComponent?
+function Entity:get_audio() end
 
 ---@param class_name string
 ---@return LuaComponent?
@@ -515,17 +518,20 @@ function Entity:add_capsule_collider() end
 ---@return CircleColliderComponent?
 function Entity:add_circle_collider() end
 
+---@return InputComponent?
+function Entity:add_input() end
+
 ---@return SpriteComponent?
 function Entity:add_sprite() end
 
 ---@return SpriteAnimatorComponent?
 function Entity:add_sprite_animator() end
 
----@return InputComponent?
-function Entity:add_input() end
-
 ---@return CameraComponent?
 function Entity:add_camera() end
+
+---@return AudioComponent?
+function Entity:add_audio() end
 
 _G.Entity = Entity
 
@@ -925,6 +931,55 @@ function CameraComponent:world_to_screen(world_pos) end
 function CameraComponent:screen_to_world(screen_pos) end
 
 _G.CameraComponent = CameraComponent
+
+-- AudioComponent
+---@class AudioComponent : Component
+local AudioComponent = {}
+
+function AudioComponent:play() end
+
+function AudioComponent:stop() end
+
+---@return boolean
+function AudioComponent:is_playing() end
+
+---@return AudioClip?
+function AudioComponent:get_clip() end
+
+---@param clip AudioClip?
+function AudioComponent:set_clip(clip) end
+
+---@return number
+function AudioComponent:get_volume() end
+
+---@param volume number
+function AudioComponent:set_volume(volume) end
+
+---@return boolean
+function AudioComponent:is_looping() end
+
+---@param looping boolean
+function AudioComponent:set_looping(looping) end
+
+---@return boolean
+function AudioComponent:is_spatial() end
+
+---@param spatial boolean
+function AudioComponent:set_spatial(spatial) end
+
+---@return number
+function AudioComponent:get_max_distance() end
+
+---@param max_distance number
+function AudioComponent:set_max_distance(max_distance) end
+
+---@return boolean
+function AudioComponent:get_autoplay() end
+
+---@param autoplay boolean
+function AudioComponent:set_autoplay(autoplay) end
+
+_G.AudioComponent = AudioComponent
 
 -- Texture
 ---@class Texture

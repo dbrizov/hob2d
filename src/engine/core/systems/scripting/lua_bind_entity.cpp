@@ -1,6 +1,7 @@
 #include <format>
 #include <string>
 
+#include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
 #include "engine/components/input_component.h"
 #include "engine/components/lua_script_component.h"
@@ -71,6 +72,11 @@ namespace hob {
                         Entity* e = r.resolve();
                         return e ? e->get_rigidbody() : nullptr;
                     })
+            .method("get_character_body",
+                    [](const EntityRef& r) -> CharacterBodyComponent* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_component<CharacterBodyComponent>() : nullptr;
+                    })
             .method("get_box_collider",
                     [](const EntityRef& r) -> BoxColliderComponent* {
                         Entity* e = r.resolve();
@@ -86,10 +92,10 @@ namespace hob {
                         Entity* e = r.resolve();
                         return e ? e->get_component<CircleColliderComponent>() : nullptr;
                     })
-            .method("get_character_body",
-                    [](const EntityRef& r) -> CharacterBodyComponent* {
+            .method("get_input",
+                    [](const EntityRef& r) -> InputComponent* {
                         Entity* e = r.resolve();
-                        return e ? e->get_component<CharacterBodyComponent>() : nullptr;
+                        return e ? e->get_component<InputComponent>() : nullptr;
                     })
             .method("get_sprite",
                     [](const EntityRef& r) -> SpriteComponent* {
@@ -101,15 +107,15 @@ namespace hob {
                         Entity* e = r.resolve();
                         return e ? e->get_component<SpriteAnimatorComponent>() : nullptr;
                     })
-            .method("get_input",
-                    [](const EntityRef& r) -> InputComponent* {
-                        Entity* e = r.resolve();
-                        return e ? e->get_component<InputComponent>() : nullptr;
-                    })
             .method("get_camera",
                     [](const EntityRef& r) -> CameraComponent* {
                         Entity* e = r.resolve();
                         return e ? e->get_component<CameraComponent>() : nullptr;
+                    })
+            .method("get_audio",
+                    [](const EntityRef& r) -> AudioComponent* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_component<AudioComponent>() : nullptr;
                     })
             .method_sig(
                 "get_lua_component",

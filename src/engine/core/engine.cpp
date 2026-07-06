@@ -4,6 +4,7 @@
 // clang-format on
 
 #include "debug.h"
+#include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
 #include "engine/components/physics/rigidbody_component.h"
 #include "engine/components/sprite_component.h"
@@ -94,6 +95,10 @@ namespace hob {
 
             for (Entity* entity : m_entity_spawner.get_ticking_entities()) {
                 entity->late_tick(scaled_delta_time);
+            }
+
+            for (AudioComponent* audio_source : m_entity_spawner.get_audio_sources()) {
+                audio_source->update_spatialization();
             }
 
             m_ui_system.tick();

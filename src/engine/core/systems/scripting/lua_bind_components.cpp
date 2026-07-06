@@ -1,6 +1,7 @@
 #include <string>
 
 #include "engine/animation/animation_clip.h"
+#include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
 #include "engine/components/input_component.h"
 #include "engine/components/physics/box_collider_component.h"
@@ -33,6 +34,7 @@ namespace hob {
         LuaComponentSchemaRegistry& schemas = m_impl->component_schemas;
         LuaFactorySchemaRegistry& factory_schemas = m_impl->factory_schemas;
 
+        // Component
         bind_usertype<Component>(lua, meta)
             .method("get_entity",
                     [](Component& c) {
@@ -41,6 +43,7 @@ namespace hob {
             .op_tostring(&Component::to_string)
             .op_concat(&Component::to_string);
 
+        // TransformComponent
         bind_usertype<TransformComponent>(lua, meta, Bases<Component>{})
             .method("get_position", &TransformComponent::get_position)
             .method("set_position", &TransformComponent::set_position, {"position"})
@@ -64,6 +67,15 @@ namespace hob {
             .method("get_interpolate_physics", &TransformComponent::get_interpolate_physics)
             .method("set_interpolate_physics", &TransformComponent::set_interpolate_physics, {"value"});
 
+        bind_component_schema<TransformComponent>(
+            schemas,
+            "transform",
+            "get_transform",
+            {
+                {"interpolate_physics", "get_interpolate_physics", "set_interpolate_physics"},
+            });
+
+        // RigidbodyComponent
         bind_enum<BodyType>(lua,
                             meta,
                             {
@@ -84,6 +96,18 @@ namespace hob {
             .method("get_rotation", &RigidbodyComponent::get_rotation)
             .method("set_rotation", &RigidbodyComponent::set_rotation, {"radians"});
 
+        bind_component_schema<RigidbodyComponent>(lua,
+                                                  meta,
+                                                  schemas,
+                                                  "rigidbody",
+                                                  "add_rigidbody",
+                                                  "get_rigidbody",
+                                                  {
+                                                      {"body_type", "get_body_type", "set_body_type"},
+                                                      {"fixed_rotation", "has_fixed_rotation", "set_fixed_rotation"},
+                                                  });
+
+        // CharacterBodyComponent
         bind_usertype<CharacterBodyComponent>(lua, meta, Bases<Component>{})
             // Masks/layers are uint64_t (matching Box2D), but sol2 can't push values above
             // MAX_INT64, so reinterpret to/from int64_t at the Lua boundary (bit pattern is preserved).
@@ -124,6 +148,21 @@ namespace hob {
             .method("get_rotation", &CharacterBodyComponent::get_rotation)
             .method("set_rotation", &CharacterBodyComponent::set_rotation, {"radians"});
 
+        bind_component_schema<CharacterBodyComponent>(
+            lua,
+            meta,
+            schemas,
+            "character_body",
+            "add_character_body",
+            "get_character_body",
+            {
+                {"collision_layer", "get_collision_layer", "set_collision_layer"},
+                {"collision_mask", "get_collision_mask", "set_collision_mask"},
+                {"solver_ignore_mask", "get_solver_ignore_mask", "set_solver_ignore_mask"},
+                {"capsule", "get_capsule", "set_capsule"},
+            });
+
+        // ColliderComponent
         bind_usertype<ColliderComponent>(lua, meta, Bases<Component>{})
             .method("get_density", &ColliderComponent::get_density)
             .method("set_density", &ColliderComponent::set_density, {"density"})
@@ -154,21 +193,76 @@ namespace hob {
             .method("is_trigger", &ColliderComponent::is_trigger)
             .method("set_trigger", &ColliderComponent::set_trigger, {"trigger"});
 
+        // BoxColliderComponent
         bind_usertype<BoxColliderComponent>(lua, meta, Bases<ColliderComponent, Component>{})
             .method("get_aabb", &BoxColliderComponent::get_aabb)
             .method("set_aabb", &BoxColliderComponent::set_aabb, {"aabb"})
             .method("get_scaled_aabb", &BoxColliderComponent::get_scaled_aabb);
 
+        bind_component_schema<BoxColliderComponent>(
+            lua,
+            meta,
+            schemas,
+            "box_collider",
+            "add_box_collider",
+            "get_box_collider",
+            {
+                {"aabb", "get_aabb", "set_aabb"},
+                {"density", "get_density", "set_density"},
+                {"friction", "get_friction", "set_friction"},
+                {"bounciness", "get_bounciness", "set_bounciness"},
+                {"collision_layer", "get_collision_layer", "set_collision_layer"},
+                {"collision_mask", "get_collision_mask", "set_collision_mask"},
+                {"trigger", "is_trigger", "set_trigger"},
+            });
+
+        // CapsuleColliderComponent
         bind_usertype<CapsuleColliderComponent>(lua, meta, Bases<ColliderComponent, Component>{})
             .method("get_capsule", &CapsuleColliderComponent::get_capsule)
             .method("set_capsule", &CapsuleColliderComponent::set_capsule, {"capsule"})
             .method("get_scaled_capsule", &CapsuleColliderComponent::get_scaled_capsule);
 
+        bind_component_schema<CapsuleColliderComponent>(
+            lua,
+            meta,
+            schemas,
+            "capsule_collider",
+            "add_capsule_collider",
+            "get_capsule_collider",
+            {
+                {"capsule", "get_capsule", "set_capsule"},
+                {"density", "get_density", "set_density"},
+                {"friction", "get_friction", "set_friction"},
+                {"bounciness", "get_bounciness", "set_bounciness"},
+                {"collision_layer", "get_collision_layer", "set_collision_layer"},
+                {"collision_mask", "get_collision_mask", "set_collision_mask"},
+                {"trigger", "is_trigger", "set_trigger"},
+            });
+
+        // CircleColliderComponent
         bind_usertype<CircleColliderComponent>(lua, meta, Bases<ColliderComponent, Component>{})
             .method("get_circle", &CircleColliderComponent::get_circle)
             .method("set_circle", &CircleColliderComponent::set_circle, {"circle"})
             .method("get_scaled_circle", &CircleColliderComponent::get_scaled_circle);
 
+        bind_component_schema<CircleColliderComponent>(
+            lua,
+            meta,
+            schemas,
+            "circle_collider",
+            "add_circle_collider",
+            "get_circle_collider",
+            {
+                {"circle", "get_circle", "set_circle"},
+                {"density", "get_density", "set_density"},
+                {"friction", "get_friction", "set_friction"},
+                {"bounciness", "get_bounciness", "set_bounciness"},
+                {"collision_layer", "get_collision_layer", "set_collision_layer"},
+                {"collision_mask", "get_collision_mask", "set_collision_mask"},
+                {"trigger", "is_trigger", "set_trigger"},
+            });
+
+        // InputComponent
         bind_enum<InputEventType>(lua,
                                   meta,
                                   {
@@ -219,6 +313,9 @@ namespace hob {
                 "(name: string, id: integer)")
             .method("clear_all_bindings", &InputComponent::clear_all_bindings);
 
+        bind_component_schema<InputComponent>(lua, meta, schemas, "input", "add_input", "get_input", {});
+
+        // SpriteComponent
         bind_usertype<SpriteComponent>(lua, meta, Bases<Component>{})
             .method("get_texture", &SpriteComponent::get_texture)
             .method_sig(
@@ -250,7 +347,22 @@ namespace hob {
             .method("get_pixels_per_meter", &SpriteComponent::get_pixels_per_meter)
             .method("set_pixels_per_meter", &SpriteComponent::set_pixels_per_meter, {"value"});
 
-        // shared_ptr lets multiple animators share an instance and keeps the TextureRefs alive.
+        bind_component_schema<SpriteComponent>(lua,
+                                               meta,
+                                               schemas,
+                                               "sprite",
+                                               "add_sprite",
+                                               "get_sprite",
+                                               {
+                                                   {"texture", "get_texture", "set_texture"},
+                                                   {"material", "get_material", "set_material"},
+                                                   {"pivot", "get_pivot", "set_pivot"},
+                                                   {"scale", "get_scale", "set_scale"},
+                                                   {"z_index", "get_z_index", "set_z_index"},
+                                                   {"pixels_per_meter", "get_pixels_per_meter", "set_pixels_per_meter"},
+                                               });
+
+        // SpriteAnimatorComponent
         Renderer& renderer = m_engine.get_renderer();
         bind_usertype<AnimationClip>(lua, meta)
             .factory_ctor(
@@ -325,6 +437,18 @@ namespace hob {
                 },
                 "(clips: table<string, AnimationClip>)");
 
+        bind_component_schema<SpriteAnimatorComponent>(lua,
+                                                       meta,
+                                                       schemas,
+                                                       "sprite_animator",
+                                                       "add_sprite_animator",
+                                                       "get_sprite_animator",
+                                                       {
+                                                           {"clips", "get_clips", "set_clips"},
+                                                           {"default_clip", "get_default_clip", "set_default_clip"},
+                                                       });
+
+        // CameraComponent
         bind_usertype<CameraComponent>(lua, meta, Bases<Component>{})
             .method("get_screen_pixels_per_meter", &CameraComponent::get_screen_pixels_per_meter)
             .method("set_screen_pixels_per_meter", &CameraComponent::set_screen_pixels_per_meter, {"value"})
@@ -337,119 +461,6 @@ namespace hob {
                     sol::resolve<Vector2(const Vector2&) const>(&CameraComponent::screen_to_world),
                     {"screen_pos"});
 
-        // Order is load-bearing: Box2D bodies must be attached before colliders.
-        bind_component_schema<TransformComponent>(
-            schemas,
-            "transform",
-            "get_transform",
-            {
-                {"interpolate_physics", "get_interpolate_physics", "set_interpolate_physics"},
-            });
-
-        bind_component_schema<RigidbodyComponent>(lua,
-                                                  meta,
-                                                  schemas,
-                                                  "rigidbody",
-                                                  "add_rigidbody",
-                                                  "get_rigidbody",
-                                                  {
-                                                      {"body_type", "get_body_type", "set_body_type"},
-                                                      {"fixed_rotation", "has_fixed_rotation", "set_fixed_rotation"},
-                                                  });
-
-        bind_component_schema<CharacterBodyComponent>(
-            lua,
-            meta,
-            schemas,
-            "character_body",
-            "add_character_body",
-            "get_character_body",
-            {
-                {"collision_layer", "get_collision_layer", "set_collision_layer"},
-                {"collision_mask", "get_collision_mask", "set_collision_mask"},
-                {"solver_ignore_mask", "get_solver_ignore_mask", "set_solver_ignore_mask"},
-                {"capsule", "get_capsule", "set_capsule"},
-            });
-
-        bind_component_schema<BoxColliderComponent>(
-            lua,
-            meta,
-            schemas,
-            "box_collider",
-            "add_box_collider",
-            "get_box_collider",
-            {
-                {"aabb", "get_aabb", "set_aabb"},
-                {"density", "get_density", "set_density"},
-                {"friction", "get_friction", "set_friction"},
-                {"bounciness", "get_bounciness", "set_bounciness"},
-                {"collision_layer", "get_collision_layer", "set_collision_layer"},
-                {"collision_mask", "get_collision_mask", "set_collision_mask"},
-                {"trigger", "is_trigger", "set_trigger"},
-            });
-
-        bind_component_schema<CapsuleColliderComponent>(
-            lua,
-            meta,
-            schemas,
-            "capsule_collider",
-            "add_capsule_collider",
-            "get_capsule_collider",
-            {
-                {"capsule", "get_capsule", "set_capsule"},
-                {"density", "get_density", "set_density"},
-                {"friction", "get_friction", "set_friction"},
-                {"bounciness", "get_bounciness", "set_bounciness"},
-                {"collision_layer", "get_collision_layer", "set_collision_layer"},
-                {"collision_mask", "get_collision_mask", "set_collision_mask"},
-                {"trigger", "is_trigger", "set_trigger"},
-            });
-
-        bind_component_schema<CircleColliderComponent>(
-            lua,
-            meta,
-            schemas,
-            "circle_collider",
-            "add_circle_collider",
-            "get_circle_collider",
-            {
-                {"circle", "get_circle", "set_circle"},
-                {"density", "get_density", "set_density"},
-                {"friction", "get_friction", "set_friction"},
-                {"bounciness", "get_bounciness", "set_bounciness"},
-                {"collision_layer", "get_collision_layer", "set_collision_layer"},
-                {"collision_mask", "get_collision_mask", "set_collision_mask"},
-                {"trigger", "is_trigger", "set_trigger"},
-            });
-
-        bind_component_schema<SpriteComponent>(lua,
-                                               meta,
-                                               schemas,
-                                               "sprite",
-                                               "add_sprite",
-                                               "get_sprite",
-                                               {
-                                                   {"texture", "get_texture", "set_texture"},
-                                                   {"material", "get_material", "set_material"},
-                                                   {"pivot", "get_pivot", "set_pivot"},
-                                                   {"scale", "get_scale", "set_scale"},
-                                                   {"z_index", "get_z_index", "set_z_index"},
-                                                   {"pixels_per_meter", "get_pixels_per_meter", "set_pixels_per_meter"},
-                                               });
-
-        bind_component_schema<SpriteAnimatorComponent>(lua,
-                                                       meta,
-                                                       schemas,
-                                                       "sprite_animator",
-                                                       "add_sprite_animator",
-                                                       "get_sprite_animator",
-                                                       {
-                                                           {"clips", "get_clips", "set_clips"},
-                                                           {"default_clip", "get_default_clip", "set_default_clip"},
-                                                       });
-
-        bind_component_schema<InputComponent>(lua, meta, schemas, "input", "add_input", "get_input", {});
-
         bind_component_schema<CameraComponent>(
             lua,
             meta,
@@ -460,5 +471,38 @@ namespace hob {
             {
                 {"screen_pixels_per_meter", "get_screen_pixels_per_meter", "set_screen_pixels_per_meter"},
             });
+
+        // AudioComponent
+        bind_usertype<AudioComponent>(lua, meta, Bases<Component>{})
+            .method("play", &AudioComponent::play)
+            .method("stop", &AudioComponent::stop)
+            .method("is_playing", &AudioComponent::is_playing)
+            .method("get_clip", &AudioComponent::get_clip)
+            .method("set_clip", &AudioComponent::set_clip, {"clip"})
+            .method("get_volume", &AudioComponent::get_volume)
+            .method("set_volume", &AudioComponent::set_volume, {"volume"})
+            .method("is_looping", &AudioComponent::is_looping)
+            .method("set_looping", &AudioComponent::set_looping, {"looping"})
+            .method("is_spatial", &AudioComponent::is_spatial)
+            .method("set_spatial", &AudioComponent::set_spatial, {"spatial"})
+            .method("get_max_distance", &AudioComponent::get_max_distance)
+            .method("set_max_distance", &AudioComponent::set_max_distance, {"max_distance"})
+            .method("get_autoplay", &AudioComponent::get_autoplay)
+            .method("set_autoplay", &AudioComponent::set_autoplay, {"autoplay"});
+
+        bind_component_schema<AudioComponent>(lua,
+                                              meta,
+                                              schemas,
+                                              "audio",
+                                              "add_audio",
+                                              "get_audio",
+                                              {
+                                                  {"clip", "get_clip", "set_clip"},
+                                                  {"volume", "get_volume", "set_volume"},
+                                                  {"looping", "is_looping", "set_looping"},
+                                                  {"spatial", "is_spatial", "set_spatial"},
+                                                  {"max_distance", "get_max_distance", "set_max_distance"},
+                                                  {"autoplay", "get_autoplay", "set_autoplay"},
+                                              });
     }
 } // namespace hob

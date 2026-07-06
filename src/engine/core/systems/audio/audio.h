@@ -30,6 +30,8 @@ namespace hob {
         Audio& operator=(Audio&&) = delete;
 
         bool is_enabled() const;
+        void set_enabled(bool enabled);
+
         MIX_Mixer* get_mixer() const;
 
         AudioClipRef get_or_load_clip(const std::string& relative_path);
@@ -38,6 +40,15 @@ namespace hob {
 
         float get_master_volume() const;
         void set_master_volume(float volume);
+
+        MIX_Track* create_track();
+        void destroy_track(MIX_Track* track);
+        void play_track(MIX_Track* track, const AudioClipRef& clip, float volume, bool loop);
+        void stop_track(MIX_Track* track);
+        bool is_track_playing(MIX_Track* track) const;
+        void set_track_gain(MIX_Track* track, float volume);
+        void set_track_pan(MIX_Track* track, float pan); // -1 = full left, 0 = center, +1 = full right
+        void clear_track_pan(MIX_Track* track);
 
     private:
         MIX_Track* acquire_oneshot_track();

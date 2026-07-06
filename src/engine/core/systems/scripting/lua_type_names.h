@@ -21,18 +21,19 @@ namespace hob {
     class EntityRef;
     class Component;
     class TransformComponent;
-    class SpriteComponent;
-    class SpriteAnimatorComponent;
-    class CameraComponent;
+    enum class BodyType;
     class RigidbodyComponent;
+    class CharacterBodyComponent;
     class ColliderComponent;
     class BoxColliderComponent;
     class CapsuleColliderComponent;
     class CircleColliderComponent;
-    class CharacterBodyComponent;
-    class InputComponent;
-    enum class BodyType;
     enum class InputEventType;
+    class InputComponent;
+    class SpriteComponent;
+    class SpriteAnimatorComponent;
+    class CameraComponent;
+    class AudioComponent;
 
     // clang-format off
     HOB_LUA_TYPE(Vector2, "Vector2")
@@ -49,17 +50,18 @@ namespace hob {
     HOB_LUA_TYPE(EntityRef, "Entity")
     HOB_LUA_TYPE(Component, "Component")
     HOB_LUA_TYPE(TransformComponent, "TransformComponent")
-    HOB_LUA_TYPE(SpriteComponent, "SpriteComponent")
-    HOB_LUA_TYPE(SpriteAnimatorComponent, "SpriteAnimatorComponent")
-    HOB_LUA_TYPE(CameraComponent, "CameraComponent")
+    HOB_LUA_TYPE(BodyType, "BodyType")
     HOB_LUA_TYPE(RigidbodyComponent, "RigidbodyComponent")
+    HOB_LUA_TYPE(CharacterBodyComponent, "CharacterBodyComponent")
     HOB_LUA_TYPE(ColliderComponent, "ColliderComponent")
     HOB_LUA_TYPE(BoxColliderComponent, "BoxColliderComponent")
     HOB_LUA_TYPE(CapsuleColliderComponent, "CapsuleColliderComponent")
     HOB_LUA_TYPE(CircleColliderComponent, "CircleColliderComponent")
-    HOB_LUA_TYPE(CharacterBodyComponent, "CharacterBodyComponent")
-    HOB_LUA_TYPE(InputComponent, "InputComponent")
-    HOB_LUA_TYPE(BodyType, "BodyType")
     HOB_LUA_TYPE(InputEventType, "InputEventType")
+    HOB_LUA_TYPE(InputComponent, "InputComponent")
+    HOB_LUA_TYPE(SpriteComponent, "SpriteComponent")
+    HOB_LUA_TYPE(SpriteAnimatorComponent, "SpriteAnimatorComponent")
+    HOB_LUA_TYPE(CameraComponent, "CameraComponent")
+    HOB_LUA_TYPE(AudioComponent, "AudioComponent")
     // clang-format on
 } // namespace hob

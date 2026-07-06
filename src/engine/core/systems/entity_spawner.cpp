@@ -1,5 +1,6 @@
 #include "entity_spawner.h"
 
+#include "engine/components/audio_component.h"
 #include "engine/components/physics/rigidbody_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
@@ -156,6 +157,30 @@ namespace hob {
 
     const std::vector<RigidbodyComponent*>& EntitySpawner::get_simulated_rigidbodies() const {
         return m_simulated_rigidbodies;
+    }
+
+    void EntitySpawner::register_audio(AudioComponent* audio) {
+        audio->m_audio_index = static_cast<AudioIndex>(m_audio_sources.size());
+        m_audio_sources.push_back(audio);
+    }
+
+    void EntitySpawner::unregister_audio(AudioComponent* audio) {
+        // Swap-pop; fix the moved source's stored index.
+        const AudioIndex index = audio->m_audio_index;
+        HOB_ASSERT(index != INVALID_AUDIO_INDEX && index < m_audio_sources.size(),
+                   "Unregistering an audio source that isn't registered");
+        const AudioIndex last_index = static_cast<AudioIndex>(m_audio_sources.size() - 1);
+        if (index != last_index) {
+            m_audio_sources[index] = m_audio_sources[last_index];
+            m_audio_sources[index]->m_audio_index = index;
+        }
+
+        m_audio_sources.pop_back();
+        audio->m_audio_index = INVALID_AUDIO_INDEX;
+    }
+
+    const std::vector<AudioComponent*>& EntitySpawner::get_audio_sources() const {
+        return m_audio_sources;
     }
 
     void EntitySpawner::resolve_requests() {

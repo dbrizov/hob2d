@@ -12,6 +12,7 @@ namespace hob {
     class Engine;
     class SpriteComponent;
     class RigidbodyComponent;
+    class AudioComponent;
 
     using EntityIndex = uint32_t;
     constexpr EntityIndex INVALID_ENTITY_INDEX = std::numeric_limits<EntityIndex>::max();
@@ -41,6 +42,7 @@ namespace hob {
         std::vector<Entity*> m_ticking_entities; // Registry of in-play entities with ticking enabled
         std::vector<SpriteComponent*> m_sprites; // Registry of in-play sprites
         std::vector<RigidbodyComponent*> m_simulated_rigidbodies; // Registry of in-play non-static rigidbodies
+        std::vector<AudioComponent*> m_audio_sources; // Registry of in-play audio sources
 
     public:
         explicit EntitySpawner(Engine& engine);
@@ -70,6 +72,10 @@ namespace hob {
         void register_simulated_rigidbody(RigidbodyComponent* rigidbody);
         void unregister_simulated_rigidbody(RigidbodyComponent* rigidbody);
         const std::vector<RigidbodyComponent*>& get_simulated_rigidbodies() const;
+
+        void register_audio(AudioComponent* audio);
+        void unregister_audio(AudioComponent* audio);
+        const std::vector<AudioComponent*>& get_audio_sources() const;
 
     private:
         void resolve_requests();

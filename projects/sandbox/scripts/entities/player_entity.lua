@@ -19,5 +19,8 @@ DefineEntity.Player = {
         },
         default_clip = "idle",
     },
+    audio = {
+        clip = AudioClips.Whoosh,
+    },
     lua_components = { Components.Player, Components.ContactLogger },
 }

@@ -106,6 +106,12 @@ local schemas = {
             trigger = "set_trigger",
         },
     },
+    input = {
+        add = "add_input",
+        get = "get_input",
+        getters = {},
+        setters = {},
+    },
     sprite = {
         add = "add_sprite",
         get = "get_sprite",
@@ -138,12 +144,6 @@ local schemas = {
             default_clip = "set_default_clip",
         },
     },
-    input = {
-        add = "add_input",
-        get = "get_input",
-        getters = {},
-        setters = {},
-    },
     camera = {
         add = "add_camera",
         get = "get_camera",
@@ -152,6 +152,26 @@ local schemas = {
         },
         setters = {
             screen_pixels_per_meter = "set_screen_pixels_per_meter",
+        },
+    },
+    audio = {
+        add = "add_audio",
+        get = "get_audio",
+        getters = {
+            clip = "get_clip",
+            volume = "get_volume",
+            looping = "is_looping",
+            spatial = "is_spatial",
+            max_distance = "get_max_distance",
+            autoplay = "get_autoplay",
+        },
+        setters = {
+            clip = "set_clip",
+            volume = "set_volume",
+            looping = "set_looping",
+            spatial = "set_spatial",
+            max_distance = "set_max_distance",
+            autoplay = "set_autoplay",
         },
     },
 }
@@ -163,10 +183,11 @@ schemas.__order = {
     "box_collider",
     "capsule_collider",
     "circle_collider",
+    "input",
     "sprite",
     "sprite_animator",
-    "input",
     "camera",
+    "audio",
 }
 
 _G.__component_schemas = schemas

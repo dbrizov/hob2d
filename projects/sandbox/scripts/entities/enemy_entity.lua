@@ -18,5 +18,12 @@ DefineEntity.Enemy = {
         },
         default_clip = "idle",
     },
+    -- audio = {
+    --     clip = AudioClips.Whoosh,
+    --     spatial = true,
+    --     looping = true,
+    --     autoplay = true,
+    --     max_distance = 20.0,
+    -- },
     lua_components = { Components.ContactLogger, Components.EnemyHealthbar },
 }
