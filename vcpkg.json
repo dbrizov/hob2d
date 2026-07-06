@@ -16,6 +16,7 @@
       ]
     },
     "sdl3-ttf",
+    "sdl3-mixer",
     "sdl3-shadercross",
     "spirv-reflect",
     "box2d",

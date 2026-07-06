@@ -35,10 +35,17 @@ namespace hob {
         bool interpolation_enabled = true;
     };
 
+    struct AudioConfig {
+        float master_volume = 1.0f;
+        uint32_t channels = 32;
+        bool enabled = true;
+    };
+
     struct EngineConfig {
         GraphicsConfig graphics_config;
         UiSystemConfig ui_system_config;
         PhysicsConfig physics_config;
+        AudioConfig audio_config;
 
         EngineConfig() = default;
         explicit EngineConfig(const std::filesystem::path& json_path);

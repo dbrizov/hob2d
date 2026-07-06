@@ -23,7 +23,7 @@ namespace hob {
     SdlContext::SdlContext(const GraphicsConfig& graphics_config) {
         SDL_SetLogOutputFunction(sdl_log_output, nullptr);
 
-        const bool sdl_initialized = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMEPAD);
+        const bool sdl_initialized = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMEPAD);
         HOB_CHECK(sdl_initialized, "SDL_Init failed: {}", SDL_GetError());
 
         log::sdl.info("SDL_Init");

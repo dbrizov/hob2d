@@ -97,6 +97,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE SDL3_image::SDL3_image)
 find_package(SDL3_ttf CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3_ttf::SDL3_ttf)
 
+# Find and link SDL3_mixer.
+find_package(SDL3_mixer CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE SDL3_mixer::SDL3_mixer)
+
 # Find and link SDL3_shadercross.
 find_package(SDL3_shadercross CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE SDL3_shadercross::SDL3_shadercross)
