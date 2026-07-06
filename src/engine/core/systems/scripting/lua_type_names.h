@@ -16,6 +16,7 @@ namespace hob {
     class Shader;
     struct Material;
     struct AnimationClip;
+    class AudioClip;
     struct RaycastHit;
     class EntityRef;
     class Component;
@@ -43,6 +44,7 @@ namespace hob {
     HOB_LUA_TYPE(Shader, "Shader")
     HOB_LUA_TYPE(Material, "Material")
     HOB_LUA_TYPE(AnimationClip, "AnimationClip")
+    HOB_LUA_TYPE(AudioClip, "AudioClip")
     HOB_LUA_TYPE(RaycastHit, "RaycastHit")
     HOB_LUA_TYPE(EntityRef, "Entity")
     HOB_LUA_TYPE(Component, "Component")

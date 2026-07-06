@@ -38,4 +38,11 @@ _G.__factory_schemas = {
             { name = "textures" },
         },
     },
+    AudioClips = {
+        define = "DefineAudioClip",
+        lua_type = "AudioClip",
+        fields = {
+            { name = "path" },
+        },
+    },
 }

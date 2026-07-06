@@ -87,7 +87,6 @@ namespace hob {
         if (json.contains("audio")) {
             const auto& a = json["audio"];
             audio_config.master_volume = a.value("master_volume", audio_config.master_volume);
-            audio_config.channels = a.value("channels", audio_config.channels);
             audio_config.enabled = a.value("enabled", audio_config.enabled);
         }
     }

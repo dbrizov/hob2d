@@ -1,5 +1,6 @@
 #pragma once
 
+#include "systems/audio/audio.h"
 #include "systems/console.h"
 #include "systems/entity_spawner.h"
 #include "systems/imgui_system.h"
@@ -25,6 +26,7 @@ namespace hob {
         ImGuiSystem m_imgui_system;
         Console m_console;
         Physics m_physics;
+        Audio m_audio;
         EntitySpawner m_entity_spawner;
         LuaScriptSystem m_lua_script_system;
 
@@ -43,6 +45,7 @@ namespace hob {
         Input& get_input();
         UiSystem& get_ui_system();
         Physics& get_physics();
+        Audio& get_audio();
         EntitySpawner& get_entity_spawner();
         LuaScriptSystem& get_lua_script_system();
 

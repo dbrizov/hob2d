@@ -1,7 +1,6 @@
 #pragma once
 
 #include <format>
-#include <string>
 #include <string_view>
 
 namespace hob::log {
@@ -47,9 +46,10 @@ namespace hob::log {
     // Engine systems
     inline constexpr LogChannel engine{"Engine"};
     inline constexpr LogChannel renderer{"Renderer"};
-    inline constexpr LogChannel physics{"Physics"};
     inline constexpr LogChannel input{"Input"};
     inline constexpr LogChannel ui{"UI"};
+    inline constexpr LogChannel physics{"Physics"};
+    inline constexpr LogChannel audio{"Audio"};
     inline constexpr LogChannel lua{"Lua"};
 
     // Libraries

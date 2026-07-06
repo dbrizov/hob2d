@@ -68,6 +68,7 @@ namespace hob {
         void bind_input();
         void bind_ui();
         void bind_physics();
+        void bind_audio();
         void bind_entity_spawner();
         void bind_scripts();
         void bind_assets();

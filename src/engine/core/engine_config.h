@@ -37,7 +37,6 @@ namespace hob {
 
     struct AudioConfig {
         float master_volume = 1.0f;
-        uint32_t channels = 32;
         bool enabled = true;
     };
 

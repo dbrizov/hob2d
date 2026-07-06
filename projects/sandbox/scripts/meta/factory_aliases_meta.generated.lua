@@ -40,3 +40,6 @@
 ---@field RedOutline Material
 ---@field WhiteOutline Material
 
+---@class AudioClips
+---@field Whoosh AudioClip
+

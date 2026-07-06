@@ -58,6 +58,7 @@ function Player:enter_play()
 
     self.fire_action_id = input:bind_action("fire", InputEventType.Pressed, function()
         self:set_health(self.health - self.fire_damage)
+        Audio.play_oneshot(unwrap_def(AudioClips.Whoosh))
     end)
 
     self.slow_motion_action_id = input:bind_action("slow_motion", InputEventType.Pressed, function()

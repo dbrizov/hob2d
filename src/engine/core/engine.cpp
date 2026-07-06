@@ -21,6 +21,7 @@ namespace hob {
         , m_imgui_system(m_sdl_context)
         , m_console()
         , m_physics(config.physics_config)
+        , m_audio(config.audio_config)
         , m_entity_spawner(*this)
         , m_lua_script_system(*this) {
         m_renderer.register_cvars(m_console);
@@ -156,6 +157,10 @@ namespace hob {
 
     Physics& Engine::get_physics() {
         return m_physics;
+    }
+
+    Audio& Engine::get_audio() {
+        return m_audio;
     }
 
     EntitySpawner& Engine::get_entity_spawner() {

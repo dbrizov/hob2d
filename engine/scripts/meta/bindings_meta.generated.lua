@@ -186,6 +186,20 @@ function Physics.raycast(origin, direction, distance, layer_mask) end
 ---@return RaycastHit[]
 function Physics.raycast_all(origin, direction, distance, layer_mask) end
 
+-- Audio
+---@class Audio
+Audio = {}
+
+---@param clip AudioClip
+---@param volume number?
+function Audio.play_oneshot(clip, volume) end
+
+---@return number
+function Audio.get_master_volume() end
+
+---@param volume number
+function Audio.set_master_volume(volume) end
+
 -- EntitySpawner
 ---@class EntitySpawner
 EntitySpawner = {}
@@ -970,4 +984,14 @@ _G.Material = Material
 local RaycastHit = {}
 
 _G.RaycastHit = RaycastHit
+
+-- AudioClip
+---@class AudioClip
+---@overload fun(config: table): AudioClip
+local AudioClip = {}
+
+---@return string
+function AudioClip:get_path() end
+
+_G.AudioClip = AudioClip
 

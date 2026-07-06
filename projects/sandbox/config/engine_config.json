@@ -25,5 +25,9 @@
     "ticks_per_second": 60,
     "sub_steps_per_tick": 4,
     "interpolation_enabled": true
+  },
+  "audio": {
+    "master_volume": 1.0,
+    "enabled": true
   }
 }

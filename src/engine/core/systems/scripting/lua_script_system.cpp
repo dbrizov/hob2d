@@ -286,6 +286,7 @@ namespace hob {
         bind_input();
         bind_ui();
         bind_physics();
+        bind_audio();
         bind_entity_spawner();
         bind_scripts();
         bind_assets();
