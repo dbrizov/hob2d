@@ -6,13 +6,20 @@
 
 #include <SDL3/SDL.h>
 #include <SDL3_mixer/SDL_mixer.h>
+#include <imgui.h>
 
 #include "engine/core/assert.h"
 #include "engine/core/engine_config.h"
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
+#include "engine/core/systems/console.h"
 
 namespace hob {
+    namespace {
+        constexpr ImGuiWindowFlags DEBUG_WINDOW_FLAGS =
+            ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
+    } // namespace
+
     Audio::Audio(const AudioConfig& audio_config)
         : m_enabled(audio_config.enabled) {
         if (!m_enabled) {
@@ -42,6 +49,58 @@ namespace hob {
             MIX_Quit();
             log::audio.info("Audio shut down");
         }
+    }
+
+    void Audio::register_cvars(Console& console) {
+        console.register_cvar("a_show_clips",
+                              "Show an audio clip cache window (refs, path)",
+                              to_cvar_string(m_cvar_show_clips),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_show_clips = cvar.bool_value();
+                              });
+    }
+
+    void Audio::debug_clips() {
+        if (!m_cvar_show_clips) {
+            return;
+        }
+
+        if (ImGui::Begin("Audio Clip Refs", nullptr, DEBUG_WINDOW_FLAGS)) {
+            size_t live = 0;
+            int total_refs = 0;
+            for (const auto& [path, weak] : m_clips) {
+                if (auto clip = weak.lock()) {
+                    // Subtract 1 for the strong ref held only for this iteration.
+                    total_refs += static_cast<int>(clip.use_count()) - 1;
+                    live += 1;
+                }
+            }
+            ImGui::Text("Clips: %zu | Refs: %d", live, total_refs);
+
+            const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
+            if (ImGui::BeginTable("clips", 2, flags)) {
+                ImGui::TableSetupColumn("refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+                ImGui::TableSetupColumn("path", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableHeadersRow();
+
+                for (const auto& [path, weak] : m_clips) {
+                    auto clip = weak.lock();
+                    if (!clip) {
+                        continue;
+                    }
+
+                    ImGui::TableNextRow();
+                    ImGui::TableSetColumnIndex(0);
+                    ImGui::Text("%d", static_cast<int>(clip.use_count()) - 1);
+                    ImGui::TableSetColumnIndex(1);
+                    ImGui::TextUnformatted(clip->get_path().c_str());
+                }
+                ImGui::EndTable();
+            }
+        }
+        ImGui::End();
     }
 
     bool Audio::is_enabled() const {
