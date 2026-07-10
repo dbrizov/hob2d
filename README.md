@@ -113,10 +113,10 @@ cmake --build --preset windows-debug-msvc-x64
 # Run (no arg loads the default project, 'sandbox')
 ./build/debug/windows-msvc/Debug/hob2d.exe
 
-# Run a specific game project
-./build/debug/windows-msvc/Debug/hob2d.exe --project projects/sandbox
+# Run a specific game project (bare name, or a path relative to the repo root)
+./build/debug/windows-msvc/Debug/hob2d.exe --project sandbox
 ```
 
-The engine loads one game project from `projects/<name>/` at launch. The bundled sample is
-`projects/sandbox/`. Set the build's default game at configure time with `-DHOB_PROJECT=<name>`,
-or select it at runtime with `--project <path>`.
+The engine loads one game project from `content/projects/<name>/` at launch. The bundled sample is
+`content/projects/sandbox/`. Set the build's default game at configure time with `-DHOB_PROJECT=<name>`,
+or select it at runtime with `--project <name>` (a bare name resolves under `content/projects/`).

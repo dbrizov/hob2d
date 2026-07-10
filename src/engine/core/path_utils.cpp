@@ -14,8 +14,8 @@ namespace hob {
     namespace {
         std::filesystem::path s_project_root;
 
-        // Base directory that holds engine/ and projects/.
-        std::filesystem::path content_base() {
+        // Root directory that holds the content/ tree (content/engine, content/projects) and hob2d.log.
+        std::filesystem::path root_dir() {
 #ifndef NDEBUG
             // (DEBUG) the repo root, derived from this file's location.
             const std::filesystem::path source_file_path = __FILE__;
@@ -25,14 +25,14 @@ namespace hob {
                 .parent_path() // src
                 .parent_path(); // repo root
 #else
-            // (RELEASE) the executable directory, where engine/ and projects/ are synced.
+            // (RELEASE) the executable directory, where content/ is synced.
             return std::filesystem::current_path();
 #endif
         }
     } // namespace
 
     std::filesystem::path PathUtils::get_engine_root() {
-        return content_base() / "engine";
+        return root_dir() / "content" / "engine";
     }
 
     std::filesystem::path PathUtils::get_engine_assets_path() {
@@ -66,7 +66,7 @@ namespace hob {
         if (project_path.is_relative()) {
             const bool is_bare_name = project.find('/') == std::string::npos && project.find('\\') == std::string::npos;
             project_path =
-                is_bare_name ? (content_base() / "projects" / project_path) : (content_base() / project_path);
+                is_bare_name ? (root_dir() / "content" / "projects" / project_path) : (root_dir() / project_path);
         }
 
         return project_path.lexically_normal();
@@ -102,6 +102,6 @@ namespace hob {
     }
 
     std::filesystem::path PathUtils::get_log_path() {
-        return content_base() / "hob2d.log";
+        return root_dir() / "hob2d.log";
     }
 } // namespace hob

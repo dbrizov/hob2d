@@ -10,7 +10,7 @@
 DefineAsset = {}
 
 --- Registry of Asset aliases declared via `DefineAsset`. `Assets.Foo` returns a deferred reference
---- that resolves to the registered path via unwrap_def (see engine/scripts/unwrap.lua).
+--- that resolves to the registered path via unwrap_def (see content/engine/scripts/unwrap.lua).
 ---@class Assets
 Assets = {}
 

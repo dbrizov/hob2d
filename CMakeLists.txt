@@ -33,18 +33,18 @@ set(HOB_PROJECT "sandbox" CACHE STRING "Game project to build/run (folder name u
 # Bake the default into the binary so a no-arg run loads the configured project.
 target_compile_definitions(${PROJECT_NAME} PRIVATE HOB_DEFAULT_PROJECT="${HOB_PROJECT}")
 
-# Sync the engine/ folder (builtin Lua framework + assets) next to the executable after every build.
+# Sync the content/engine folder (builtin Lua framework + assets) next to the executable after every build.
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/engine"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/engine" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/engine"
-        COMMAND ${CMAKE_COMMAND} -E echo "Synced engine to $<TARGET_FILE_DIR:${PROJECT_NAME}>/engine"
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/content/engine"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/content/engine" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/content/engine"
+        COMMAND ${CMAKE_COMMAND} -E echo "Synced engine to $<TARGET_FILE_DIR:${PROJECT_NAME}>/content/engine"
 )
 
-# Sync only the current project (projects/${HOB_PROJECT}) next to the executable after every build.
+# Sync only the current project (content/projects/${HOB_PROJECT}) next to the executable after every build.
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/projects/${HOB_PROJECT}"
-        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/projects/${HOB_PROJECT}" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/projects/${HOB_PROJECT}"
-        COMMAND ${CMAKE_COMMAND} -E echo "Synced project '${HOB_PROJECT}' to $<TARGET_FILE_DIR:${PROJECT_NAME}>/projects/${HOB_PROJECT}"
+        COMMAND ${CMAKE_COMMAND} -E rm -rf "$<TARGET_FILE_DIR:${PROJECT_NAME}>/content/projects/${HOB_PROJECT}"
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/content/projects/${HOB_PROJECT}" "$<TARGET_FILE_DIR:${PROJECT_NAME}>/content/projects/${HOB_PROJECT}"
+        COMMAND ${CMAKE_COMMAND} -E echo "Synced project '${HOB_PROJECT}' to $<TARGET_FILE_DIR:${PROJECT_NAME}>/content/projects/${HOB_PROJECT}"
 )
 
 # Copy the (redistributable, Release) MSVC C++ runtime DLLs next to the executable.

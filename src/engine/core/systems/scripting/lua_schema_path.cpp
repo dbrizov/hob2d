@@ -61,7 +61,7 @@ namespace hob {
 
             out << "--- Registry of " << s.type_label << " aliases declared via `" << s.define_name << "`. `"
                 << s.registry_name << ".Foo` returns a deferred reference\n";
-            out << "--- that resolves to the registered path via unwrap_def (see engine/scripts/unwrap.lua).\n";
+            out << "--- that resolves to the registered path via unwrap_def (see content/engine/scripts/unwrap.lua).\n";
             out << "---@class " << s.registry_name << "\n";
             out << s.registry_name << " = {}\n\n";
         }
