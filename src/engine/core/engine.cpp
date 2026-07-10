@@ -179,15 +179,12 @@ namespace hob {
     }
 
     CameraComponent* Engine::get_active_camera() const {
-        if (m_active_camera == nullptr) {
-            log::engine.error(
-                "Engine::get_active_camera: no active camera (spawn a Camera entity before any rendering or camera query)");
-        }
         return m_active_camera;
     }
 
     void Engine::set_active_camera(CameraComponent* camera) {
         m_active_camera = camera;
+        m_warned_no_active_camera = false;
     }
 
     void Engine::clear_active_camera(CameraComponent* camera) {
@@ -199,6 +196,10 @@ namespace hob {
     void Engine::draw_entities() {
         const CameraComponent* camera = get_active_camera();
         if (camera == nullptr) {
+            if (!m_warned_no_active_camera) {
+                log::engine.error("Engine::draw_entities: no active camera (spawn a Camera entity to render)");
+                m_warned_no_active_camera = true;
+            }
             return;
         }
 

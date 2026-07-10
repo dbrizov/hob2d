@@ -31,6 +31,7 @@ namespace hob {
         LuaScriptSystem m_lua_script_system;
 
         CameraComponent* m_active_camera = nullptr;
+        bool m_warned_no_active_camera = false;
 
     public:
         explicit Engine(const EngineConfig& config);
