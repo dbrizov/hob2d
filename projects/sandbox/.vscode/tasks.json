@@ -4,13 +4,27 @@
         {
             "label": "Launch sandbox",
             "type": "shell",
-            "command": "${workspaceFolder}/../../build/debug/windows-msvc/Debug/hob2d.exe",
             "args": [
                 "--project",
                 "sandbox"
             ],
-            "options": {
-                "cwd": "${workspaceFolder}/../../build/debug/windows-msvc/Debug"
+            "windows": {
+                "command": "${workspaceFolder}/../../build/debug/windows-msvc/Debug/hob2d.exe",
+                "options": {
+                    "cwd": "${workspaceFolder}/../../build/debug/windows-msvc/Debug"
+                }
+            },
+            "linux": {
+                "command": "${workspaceFolder}/../../build/debug/linux-gcc/Debug/hob2d",
+                "options": {
+                    "cwd": "${workspaceFolder}/../../build/debug/linux-gcc/Debug"
+                }
+            },
+            "osx": {
+                "command": "${workspaceFolder}/../../build/debug/macos-clang/Debug/hob2d",
+                "options": {
+                    "cwd": "${workspaceFolder}/../../build/debug/macos-clang/Debug"
+                }
             },
             "problemMatcher": [],
             "group": {
