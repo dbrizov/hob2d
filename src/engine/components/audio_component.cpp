@@ -45,7 +45,7 @@ namespace hob {
             update_spatialization();
         }
         else {
-            audio.clear_track_pan(m_track);
+            audio.reset_track_pan(m_track);
         }
     }
 
@@ -71,7 +71,7 @@ namespace hob {
 
     void AudioComponent::set_volume(float volume) {
         m_volume = volume;
-        get_engine().get_audio().set_track_gain(m_track, volume);
+        apply_gain();
     }
 
     bool AudioComponent::is_looping() const {
@@ -89,11 +89,10 @@ namespace hob {
     void AudioComponent::set_spatial(bool spatial) {
         m_spatial = spatial;
         if (!m_spatial) {
-            // Drop back to plain, centered playback at the base volume.
-            Audio& audio = get_engine().get_audio();
-            audio.clear_track_pan(m_track);
-            audio.set_track_gain(m_track, m_volume);
+            // Drop back to plain, centered playback; apply_gain restores the base volume.
+            get_engine().get_audio().reset_track_pan(m_track);
         }
+        apply_gain();
     }
 
     float AudioComponent::get_max_distance() const {
@@ -137,5 +136,14 @@ namespace hob {
         // Pan by horizontal direction (independent of distance): -1 = left, +1 = right.
         const float pan = (distance > EPSILON) ? std::clamp(relative.x / distance, -1.0f, 1.0f) : 0.0f;
         audio.set_track_pan(m_track, pan);
+    }
+
+    void AudioComponent::apply_gain() {
+        if (m_spatial) {
+            update_spatialization(); // derives base*falloff (+pan); no-op when not playing
+        }
+        else {
+            get_engine().get_audio().set_track_gain(m_track, m_volume);
+        }
     }
 } // namespace hob

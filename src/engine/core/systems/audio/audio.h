@@ -48,7 +48,7 @@ namespace hob {
         bool is_track_playing(MIX_Track* track) const;
         void set_track_gain(MIX_Track* track, float volume);
         void set_track_pan(MIX_Track* track, float pan); // -1 = full left, 0 = center, +1 = full right
-        void clear_track_pan(MIX_Track* track);
+        void reset_track_pan(MIX_Track* track);
 
     private:
         MIX_Track* acquire_oneshot_track();

@@ -57,8 +57,9 @@ namespace hob {
         bool get_autoplay() const;
         void set_autoplay(bool autoplay);
 
-        // Recompute this source's listener-relative 3D position. Driven by Audio::tick so it runs
-        // regardless of whether the owning entity is ticking.
         void update_spatialization();
+
+    private:
+        void apply_gain();
     };
 } // namespace hob

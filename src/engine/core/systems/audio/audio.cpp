@@ -194,7 +194,7 @@ namespace hob {
         MIX_SetTrackStereo(track, &gains);
     }
 
-    void Audio::clear_track_pan(MIX_Track* track) {
+    void Audio::reset_track_pan(MIX_Track* track) {
         if (!m_enabled || !track) {
             return;
         }
