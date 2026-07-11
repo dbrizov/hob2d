@@ -95,11 +95,13 @@
     {
       "name": "windows-debug-msvc-x64",
       "configurePreset": "debug-msvc",
+      "configuration": "Debug",
       "description": "Windows debug build using MSVC."
     },
     {
       "name": "windows-release-msvc-x64",
       "configurePreset": "release-msvc",
+      "configuration": "Release",
       "description": "Windows release build using MSVC."
     },
     {
