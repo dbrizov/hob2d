@@ -15,6 +15,32 @@
             "problemMatcher": []
         },
         {
+            "label": "CMake configure (debug-gcc)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "debug-gcc"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake configure (debug-clang)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "debug-clang"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
             "label": "CMake build (windows-debug-msvc-x64)",
             "type": "shell",
             "command": "cmake",
@@ -67,6 +93,32 @@
             "args": [
                 "--preset",
                 "release-msvc"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake configure (release-gcc)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "release-gcc"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake configure (release-clang)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "release-clang"
             ],
             "options": {
                 "cwd": "${workspaceFolder}"

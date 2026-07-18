@@ -108,6 +108,12 @@
             "name": "Debug Lua",
             "type": "lua-local",
             "request": "launch",
+            "windows": {
+                "program": {
+                    "command": "${workspaceFolder}/build/debug/windows-msvc/Debug/hob2d.exe"
+                },
+                "cwd": "${workspaceFolder}/build/debug/windows-msvc/Debug"
+            },
             "linux": {
                 "program": {
                     "command": "${workspaceFolder}/build/debug/linux-gcc/Debug/hob2d"
@@ -119,12 +125,6 @@
                     "command": "${workspaceFolder}/build/debug/macos-clang/Debug/hob2d"
                 },
                 "cwd": "${workspaceFolder}/build/debug/macos-clang/Debug"
-            },
-            "windows": {
-                "program": {
-                    "command": "${workspaceFolder}/build/debug/windows-msvc/Debug/hob2d.exe"
-                },
-                "cwd": "${workspaceFolder}/build/debug/windows-msvc/Debug"
             }
         }
     ]
