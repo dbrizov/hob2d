@@ -450,8 +450,8 @@ namespace hob {
 
         // CameraComponent
         bind_usertype<CameraComponent>(lua, meta, Bases<Component>{})
-            .method("get_screen_pixels_per_meter", &CameraComponent::get_screen_pixels_per_meter)
-            .method("set_screen_pixels_per_meter", &CameraComponent::set_screen_pixels_per_meter, {"value"})
+            .method("get_pixels_per_meter", &CameraComponent::get_pixels_per_meter)
+            .method("set_pixels_per_meter", &CameraComponent::set_pixels_per_meter, {"value"})
             .method("get_zoom", &CameraComponent::get_zoom)
             .method("set_zoom", &CameraComponent::set_zoom, {"multiplier"})
             .method("world_to_screen",
@@ -461,16 +461,15 @@ namespace hob {
                     sol::resolve<Vector2(const Vector2&) const>(&CameraComponent::screen_to_world),
                     {"screen_pos"});
 
-        bind_component_schema<CameraComponent>(
-            lua,
-            meta,
-            schemas,
-            "camera",
-            "add_camera",
-            "get_camera",
-            {
-                {"screen_pixels_per_meter", "get_screen_pixels_per_meter", "set_screen_pixels_per_meter"},
-            });
+        bind_component_schema<CameraComponent>(lua,
+                                               meta,
+                                               schemas,
+                                               "camera",
+                                               "add_camera",
+                                               "get_camera",
+                                               {
+                                                   {"pixels_per_meter", "get_pixels_per_meter", "set_pixels_per_meter"},
+                                               });
 
         // AudioComponent
         bind_usertype<AudioComponent>(lua, meta, Bases<Component>{})

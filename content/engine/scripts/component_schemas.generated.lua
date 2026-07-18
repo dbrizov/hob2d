@@ -148,10 +148,10 @@ local schemas = {
         add = "add_camera",
         get = "get_camera",
         getters = {
-            screen_pixels_per_meter = "get_screen_pixels_per_meter",
+            pixels_per_meter = "get_pixels_per_meter",
         },
         setters = {
-            screen_pixels_per_meter = "set_screen_pixels_per_meter",
+            pixels_per_meter = "set_pixels_per_meter",
         },
     },
     audio = {

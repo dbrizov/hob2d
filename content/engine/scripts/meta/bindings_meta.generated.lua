@@ -37,6 +37,18 @@ Camera = {}
 ---@return Entity?
 function Camera.get_active() end
 
+---@return number
+function Camera.get_pixels_per_meter() end
+
+---@param value number
+function Camera.set_pixels_per_meter(value) end
+
+---@return number
+function Camera.get_zoom() end
+
+---@param multiplier number
+function Camera.set_zoom(multiplier) end
+
 ---@param world_pos Vector2
 ---@return Vector2
 function Camera.world_to_screen(world_pos) end
@@ -50,12 +62,6 @@ function Camera.get_position() end
 
 ---@param position Vector2
 function Camera.set_position(position) end
-
----@return number
-function Camera.get_zoom() end
-
----@param multiplier number
-function Camera.set_zoom(multiplier) end
 
 -- Timer
 ---@class Timer
@@ -911,10 +917,10 @@ _G.SpriteAnimatorComponent = SpriteAnimatorComponent
 local CameraComponent = {}
 
 ---@return number
-function CameraComponent:get_screen_pixels_per_meter() end
+function CameraComponent:get_pixels_per_meter() end
 
 ---@param value number
-function CameraComponent:set_screen_pixels_per_meter(value) end
+function CameraComponent:set_pixels_per_meter(value) end
 
 ---@return number
 function CameraComponent:get_zoom() end

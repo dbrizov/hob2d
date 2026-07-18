@@ -6,8 +6,8 @@
 
 namespace hob {
     class CameraComponent : public Component {
-        float m_screen_pixels_per_meter = 64.0f;
-        float m_base_screen_pixels_per_meter = 64.0f;
+        float m_pixels_per_meter = 64.0f;
+        float m_base_pixels_per_meter = 64.0f;
         bool m_base_captured = false;
 
     public:
@@ -18,8 +18,8 @@ namespace hob {
 
         std::string to_string() const override;
 
-        float get_screen_pixels_per_meter() const;
-        void set_screen_pixels_per_meter(float value);
+        float get_pixels_per_meter() const;
+        void set_pixels_per_meter(float value);
 
         float get_zoom() const;
         void set_zoom(float multiplier);

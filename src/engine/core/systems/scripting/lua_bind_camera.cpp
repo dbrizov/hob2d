@@ -28,6 +28,32 @@ namespace hob {
                                             EntityRef(cam->get_entity().get_id(), engine.get_entity_spawner()));
                 },
                 "(): Entity?")
+            .func("get_pixels_per_meter",
+                  [&engine]() {
+                      CameraComponent* cam = engine.get_active_camera();
+                      return cam ? cam->get_pixels_per_meter() : 0.0f;
+                  })
+            .func("set_pixels_per_meter",
+                  [&engine](float value) {
+                      CameraComponent* cam = engine.get_active_camera();
+                      if (cam != nullptr) {
+                          cam->set_pixels_per_meter(value);
+                      }
+                  },
+                  {"value"})
+            .func("get_zoom",
+                  [&engine]() {
+                      CameraComponent* cam = engine.get_active_camera();
+                      return cam ? cam->get_zoom() : 1.0f;
+                  })
+            .func("set_zoom",
+                  [&engine](float multiplier) {
+                      CameraComponent* cam = engine.get_active_camera();
+                      if (cam != nullptr) {
+                          cam->set_zoom(multiplier);
+                      }
+                  },
+                  {"multiplier"})
             .func("world_to_screen",
                   [&engine](const Vector2& world_pos) {
                       CameraComponent* cam = engine.get_active_camera();
@@ -52,19 +78,6 @@ namespace hob {
                           cam->get_entity().get_transform()->set_position(p);
                       }
                   },
-                  {"position"})
-            .func("get_zoom",
-                  [&engine]() {
-                      CameraComponent* cam = engine.get_active_camera();
-                      return cam ? cam->get_zoom() : 1.0f;
-                  })
-            .func("set_zoom",
-                  [&engine](float multiplier) {
-                      CameraComponent* cam = engine.get_active_camera();
-                      if (cam != nullptr) {
-                          cam->set_zoom(multiplier);
-                      }
-                  },
-                  {"multiplier"});
+                  {"position"});
     }
 } // namespace hob
