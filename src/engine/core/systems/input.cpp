@@ -36,10 +36,14 @@ namespace hob {
         }
 
         adopt_any_gamepad();
+
+        log::input.info(
+            "Input::Initialise ({} axes, {} digital sources)", m_input_config.axes.size(), m_digital_sources.size());
     }
 
     Input::~Input() {
         close_gamepad();
+        log::input.info("Input::Shutdown");
     }
 
     void Input::process_event(const SDL_Event& event) {

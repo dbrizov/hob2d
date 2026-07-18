@@ -20,6 +20,7 @@ namespace hob {
 
     public:
         explicit Timer(const GraphicsConfig& graphics_config);
+        ~Timer();
 
         Timer(const Timer&) = delete;
         Timer& operator=(const Timer&) = delete;

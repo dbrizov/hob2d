@@ -3,6 +3,7 @@
 #include <SDL3/SDL_timer.h>
 
 #include "engine/core/engine_config.h"
+#include "engine/core/logging.h"
 
 namespace hob {
     Timer::Timer(const GraphicsConfig& graphics_config)
@@ -18,6 +19,12 @@ namespace hob {
         m_frequency = SDL_GetPerformanceFrequency();
         m_frame_start_ticks = SDL_GetPerformanceCounter();
         m_last_frame_start_ticks = SDL_GetPerformanceCounter();
+
+        log::engine.info("Timer::Initialise ({} fps, vsync {})", m_target_fps, m_vsync_enabled ? "on" : "off");
+    }
+
+    Timer::~Timer() {
+        log::engine.info("Timer::Shutdown");
     }
 
     uint32_t Timer::get_fps() const {

@@ -66,7 +66,7 @@ namespace hob {
 
         m_initialized = true;
 
-        log::renderer.info("Renderer::Initialise (logical {}x{}, render_scale {})",
+        log::renderer.info("Renderer::Initialise (logical {}x{}, render scale {})",
                            m_logical_size.x,
                            m_logical_size.y,
                            m_render_scale);

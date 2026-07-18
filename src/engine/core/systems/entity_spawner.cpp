@@ -6,14 +6,18 @@
 #include "engine/components/transform_component.h"
 #include "engine/core/assert.h"
 #include "engine/core/engine.h"
+#include "engine/core/logging.h"
 #include "engine/entity/entity.h"
 
 namespace hob {
     EntitySpawner::EntitySpawner(Engine& engine)
-        : m_engine(engine) {}
+        : m_engine(engine) {
+        log::engine.info("EntitySpawner::Initialise");
+    }
 
     EntitySpawner::~EntitySpawner() {
         clear();
+        log::engine.info("EntitySpawner::Shutdown");
     }
 
     Entity& EntitySpawner::spawn_entity() {

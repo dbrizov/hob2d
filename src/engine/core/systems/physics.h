@@ -47,6 +47,7 @@ namespace hob {
         bool cvar_show_colliders = true;
 
         explicit Physics(const PhysicsConfig& physics_config);
+        ~Physics();
 
         Physics(const Physics&) = delete;
         Physics& operator=(const Physics&) = delete;

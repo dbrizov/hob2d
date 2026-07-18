@@ -8,6 +8,7 @@
 
 #include "engine/core/assert.h"
 #include "engine/core/engine.h"
+#include "engine/core/logging.h"
 
 namespace hob {
     namespace {
@@ -455,6 +456,12 @@ namespace hob {
                 log("{:3}: {}", i, m_history[i]);
             }
         });
+
+        log::engine.info("Console::Initialise");
+    }
+
+    Console::~Console() {
+        log::engine.info("Console::Shutdown");
     }
 
     bool Console::is_open() const {

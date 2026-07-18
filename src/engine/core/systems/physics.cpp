@@ -53,7 +53,18 @@ namespace hob {
         , m_fixed_delta_time(delta_time_from_ticks(physics_config.ticks_per_second))
         , m_sub_steps_per_tick(physics_config.sub_steps_per_tick)
         , m_interpolation_fraction(0.0f)
-        , m_interpolation_enabled(physics_config.interpolation_enabled) {}
+        , m_interpolation_enabled(physics_config.interpolation_enabled) {
+        log::physics.info("Physics::Initialise (gravity ({}, {}), {} ticks/s, {} sub-steps, interpolation {})",
+                          physics_config.gravity.x,
+                          physics_config.gravity.y,
+                          physics_config.ticks_per_second,
+                          physics_config.sub_steps_per_tick,
+                          physics_config.interpolation_enabled ? "on" : "off");
+    }
+
+    Physics::~Physics() {
+        log::physics.info("Physics::Shutdown");
+    }
 
     void Physics::tick(float frame_delta_time, const std::vector<RigidbodyComponent*>& rigidbodies) {
         m_accumulator += frame_delta_time;

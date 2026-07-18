@@ -34,7 +34,7 @@ namespace hob {
         HOB_CHECK(m_mixer, "MIX_CreateMixerDevice failed: {}", SDL_GetError());
 
         MIX_SetMixerGain(m_mixer, audio_config.master_volume);
-        log::audio.info("Audio initialized (master volume {})", audio_config.master_volume);
+        log::audio.info("Audio::Initialise (master volume {})", audio_config.master_volume);
     }
 
     Audio::~Audio() {
@@ -47,7 +47,7 @@ namespace hob {
             MIX_DestroyMixer(m_mixer);
             m_mixer = nullptr;
             MIX_Quit();
-            log::audio.info("Audio shut down");
+            log::audio.info("Audio::Shutdown");
         }
     }
 

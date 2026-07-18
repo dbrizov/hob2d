@@ -103,9 +103,13 @@ namespace hob {
         dump_component_registry_meta();
         dump_shader_params_meta();
 #endif
+
+        log::lua.info("LuaScriptSystem::Initialise");
     }
 
-    LuaScriptSystem::~LuaScriptSystem() = default;
+    LuaScriptSystem::~LuaScriptSystem() {
+        log::lua.info("LuaScriptSystem::Shutdown");
+    }
 
     sol::state& LuaScriptSystem::get_lua() {
         return m_impl->lua;

@@ -137,6 +137,7 @@ namespace hob {
 
     public:
         Console();
+        ~Console();
 
         Console(const Console&) = delete;
         Console& operator=(const Console&) = delete;
