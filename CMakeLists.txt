@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.25)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -129,15 +129,22 @@ target_link_libraries(${PROJECT_NAME} PRIVATE ${LUA_LIBRARIES})
 find_package(sol2 CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE sol2::sol2)
 
-# sol2's template-heavy bindings exceed MSVC's default COFF section limit.
 if (MSVC)
-    target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
-endif ()
-
-# Force-include <cstdint> into every translation unit.
-if (MSVC)
+    # Force-include <cstdint> into every translation unit.
     target_compile_options(${PROJECT_NAME} PRIVATE /FIcstdint)
+
+    # sol2's template-heavy bindings exceed MSVC's default COFF section limit.
+    target_compile_options(${PROJECT_NAME} PRIVATE /bigobj)
+
+    # Compile the target's TUs in parallel across cores.
+    target_compile_options(${PROJECT_NAME} PRIVATE /MP)
+
+    # Embed debug info in .obj instead of a shared .pdb: avoids the mspdbsrv
+    # serialization bottleneck under /MP, and lets sccache cache objects.
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+            MSVC_DEBUG_INFORMATION_FORMAT "$<$<CONFIG:Debug>:Embedded>")
 else ()
+    # Force-include <cstdint> into every translation unit.
     target_compile_options(${PROJECT_NAME} PRIVATE -include cstdint)
 endif ()
 
