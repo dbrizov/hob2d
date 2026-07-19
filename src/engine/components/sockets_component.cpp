@@ -17,7 +17,7 @@ namespace hob {
     bool SocketsComponent::cvar_show_sockets = false;
 
     void SocketsComponent::register_cvars(Console& console) {
-        console.register_cvar("s_show_sockets",
+        console.register_cvar("e_show_sockets",
                               "Show entity sockets",
                               to_cvar_string(cvar_show_sockets),
                               ConsoleVariableType::Bool,

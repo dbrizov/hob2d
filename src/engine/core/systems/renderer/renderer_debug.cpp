@@ -52,7 +52,7 @@ namespace hob {
                               });
 
         console.register_cvar("r_show_textures",
-                              "Show a texture cache window (size, refs, filter, wrap, path)",
+                              "Show texture cache window (size, refs, filter, wrap, path)",
                               to_cvar_string(m_cvar_show_textures),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
@@ -70,7 +70,7 @@ namespace hob {
                               });
 
         console.register_cvar("r_show_materials",
-                              "Show a material window (refs, shader, textures)",
+                              "Show material window (refs, shader, textures)",
                               to_cvar_string(m_cvar_show_materials),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
@@ -88,7 +88,7 @@ namespace hob {
                               });
 
         console.register_cvar("r_show_shaders",
-                              "Show a shader window (refs, path)",
+                              "Show shader window (refs, path)",
                               to_cvar_string(m_cvar_show_shaders),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
@@ -115,7 +115,7 @@ namespace hob {
                               });
 
         console.register_cvar("r_show_sprite_queue",
-                              "Show a sprite queue window (z_index, shader_id, texture)",
+                              "Show sprite queue window (z_index, shader_id, texture)",
                               to_cvar_string(m_cvar_show_sprite_queue),
                               ConsoleVariableType::Bool,
                               ConsoleVariableFlags::None,
@@ -276,7 +276,7 @@ namespace hob {
                 ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
                 ImGui::TableSetupColumn("shader", ImGuiTableColumnFlags_WidthFixed);
-                ImGui::TableSetupColumn("textures", ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("textures", ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableHeadersRow();
 
                 for (const auto& weak : m_materials) {
@@ -348,9 +348,9 @@ namespace hob {
 
                 if (ImGui::BeginTable("queue", columns, flags)) {
                     ImGui::TableSetupColumn("count", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-                    ImGui::TableSetupColumn("z_index", ImGuiTableColumnFlags_WidthFixed, 80.0f);
-                    ImGui::TableSetupColumn("shader", ImGuiTableColumnFlags_WidthStretch);
-                    ImGui::TableSetupColumn("texture", ImGuiTableColumnFlags_WidthStretch);
+                    ImGui::TableSetupColumn("z_index", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+                    ImGui::TableSetupColumn("shader", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("texture", ImGuiTableColumnFlags_WidthFixed);
                     ImGui::TableHeadersRow();
 
                     for (size_t i = 0; i < m_sprite_draw_order.size();) {
