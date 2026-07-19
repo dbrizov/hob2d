@@ -73,13 +73,10 @@ namespace hob {
             return track;
         }
 
-        void build_track(Renderer& renderer, const sol::table& t, AnimationClip& clip) {
+        void build_track(const sol::table& t, AnimationClip& clip) {
             const std::string type = t.get<sol::optional<std::string>>("type").value_or("");
 
-            if (type == "texture") {
-                clip.tracks.push_back(build_texture_track(renderer, t));
-            }
-            else if (type == "socket_position") {
+            if (type == "socket_position") {
                 auto track = std::make_unique<SocketPositionTrack>();
                 track->socket = t.get<sol::optional<std::string>>("socket").value_or("");
                 if (auto keys = t.get<sol::optional<sol::table>>("keys")) {
@@ -461,7 +458,7 @@ namespace hob {
                     if (auto tracks = animclip_t.get<sol::optional<sol::table>>("tracks")) {
                         for (int i = 1; i <= tracks->size(); ++i) {
                             if (auto track_t = tracks->get<sol::optional<sol::table>>(i)) {
-                                build_track(renderer, *track_t, *clip);
+                                build_track(*track_t, *clip);
                             }
                         }
                     }
