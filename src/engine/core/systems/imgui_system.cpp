@@ -1,11 +1,15 @@
 #include "imgui_system.h"
 
+#include <filesystem>
+#include <string>
+
 #include <imgui.h>
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlgpu3.h>
 
 #include "engine/core/assert.h"
 #include "engine/core/logging.h"
+#include "engine/core/path_utils.h"
 #include "sdl_context.h"
 
 namespace hob {
@@ -26,9 +30,11 @@ namespace hob {
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
         io.ConfigFlags |= ImGuiConfigFlags_NoMouseCursorChange;
 
-        ImFontConfig font_cfg{};
-        font_cfg.SizePixels = DEFAULT_FONT_SIZE_PX;
-        io.Fonts->AddFontDefault(&font_cfg);
+        const std::filesystem::path font_path =
+            PathUtils::get_engine_assets_path() / "fonts" / "jetbrains_mono_bold.ttf";
+        const std::string font_path_str = font_path.string();
+        ImFont* font = io.Fonts->AddFontFromFileTTF(font_path_str.c_str(), DEFAULT_FONT_SIZE_PX);
+        HOB_CHECK(font, "Failed to load ImGui font: {}", font_path_str);
 
         ImGui::StyleColorsDark();
 

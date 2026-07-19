@@ -172,11 +172,11 @@ namespace hob {
             const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
 
             if (ImGui::BeginTable("textures", 5, flags)) {
-                ImGui::TableSetupColumn("size", ImGuiTableColumnFlags_WidthFixed, 90.0f);
-                ImGui::TableSetupColumn("refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-                ImGui::TableSetupColumn("filter", ImGuiTableColumnFlags_WidthFixed, 70.0f);
-                ImGui::TableSetupColumn("wrap", ImGuiTableColumnFlags_WidthFixed, 70.0f);
-                ImGui::TableSetupColumn("path", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Size", ImGuiTableColumnFlags_WidthFixed, 90.0f);
+                ImGui::TableSetupColumn("Refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+                ImGui::TableSetupColumn("Filter", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+                ImGui::TableSetupColumn("Wrap", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+                ImGui::TableSetupColumn("Path", ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableHeadersRow();
 
                 for (const auto& [path, weak] : m_textures) {
@@ -222,8 +222,8 @@ namespace hob {
 
             const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
             if (ImGui::BeginTable("shaders", 2, flags)) {
-                ImGui::TableSetupColumn("refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-                ImGui::TableSetupColumn("shader", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+                ImGui::TableSetupColumn("Shader", ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableHeadersRow();
 
                 for (const auto& [key, shader] : m_shaders) {
@@ -273,10 +273,10 @@ namespace hob {
 
             const ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
             if (ImGui::BeginTable("materials", 4, flags)) {
-                ImGui::TableSetupColumn("name", ImGuiTableColumnFlags_WidthFixed);
-                ImGui::TableSetupColumn("refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-                ImGui::TableSetupColumn("shader", ImGuiTableColumnFlags_WidthFixed);
-                ImGui::TableSetupColumn("textures", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Refs", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+                ImGui::TableSetupColumn("Shader", ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("Textures", ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableHeadersRow();
 
                 for (const auto& weak : m_materials) {
@@ -347,10 +347,10 @@ namespace hob {
                     ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
 
                 if (ImGui::BeginTable("queue", columns, flags)) {
-                    ImGui::TableSetupColumn("count", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-                    ImGui::TableSetupColumn("z_index", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-                    ImGui::TableSetupColumn("shader", ImGuiTableColumnFlags_WidthFixed);
-                    ImGui::TableSetupColumn("texture", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("Count", ImGuiTableColumnFlags_WidthFixed, 60.0f);
+                    ImGui::TableSetupColumn("Z Index", ImGuiTableColumnFlags_WidthFixed, 70.0f);
+                    ImGui::TableSetupColumn("Shader", ImGuiTableColumnFlags_WidthFixed);
+                    ImGui::TableSetupColumn("Texture", ImGuiTableColumnFlags_WidthFixed);
                     ImGui::TableHeadersRow();
 
                     for (size_t i = 0; i < m_sprite_draw_order.size();) {

@@ -9,7 +9,7 @@ namespace hob {
     class SdlContext;
 
     class ImGuiSystem {
-        static constexpr float DEFAULT_FONT_SIZE_PX = 13.0f;
+        static constexpr float DEFAULT_FONT_SIZE_PX = 20.0f;
 
         ImGuiContext* m_context = nullptr;
         SDL_GPUDevice* m_gpu_device = nullptr;

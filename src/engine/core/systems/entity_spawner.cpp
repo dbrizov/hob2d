@@ -1,5 +1,7 @@
 #include "entity_spawner.h"
 
+#include <cstring>
+
 #include <imgui.h>
 
 #include "engine/components/audio_component.h"
@@ -210,9 +212,9 @@ namespace hob {
         constexpr ImGuiWindowFlags window_flags =
             ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-        ImGui::SetNextWindowSize(ImVec2(560.0f, 400.0f), ImGuiCond_FirstUseEver);
+        ImGui::SetNextWindowSize(ImVec2(700.0f, 550.0f), ImGuiCond_FirstUseEver);
         if (ImGui::Begin("Entity Hierarchy", nullptr, window_flags)) {
-            ImGui::BeginChild("Tree", ImVec2(230.0f, 0.0f), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders);
+            ImGui::BeginChild("Tree", ImVec2(300.0f, 0.0f), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders);
             {
                 ImGui::Text("Entities: %zu", m_entities.size());
                 ImGui::Separator();
@@ -287,17 +289,25 @@ namespace hob {
         ImGui::SameLine();
         ImGui::TextDisabled("#%lld", static_cast<long long>(entity->get_id()));
 
-        if (!entity->get_prefab_name().empty()) {
-            ImGui::TextDisabled("Prefab: %s", entity->get_prefab_name().c_str());
-        }
-        ImGui::TextDisabled("In Play: %s", entity->is_in_play() ? "true" : "false");
-        ImGui::TextDisabled("Ticking: %s", entity->is_ticking() ? "true" : "false");
+        const char* prefab_name = !entity->get_prefab_name().empty() ? entity->get_prefab_name().c_str() : "";
+        ImGui::TextDisabled("Prefab: %s", prefab_name);
+
+        constexpr float label_width = 100.0f;
+        constexpr ImGuiInputTextFlags field_flags = ImGuiInputTextFlags_ReadOnly;
+
+        const auto bool_field = [&](const char* label, const char* id, bool value) {
+            char buffer[8];
+            std::strcpy(buffer, value ? "true" : "false");
+            ImGui::TextUnformatted(label);
+            ImGui::SameLine(label_width);
+            ImGui::SetNextItemWidth(-EPSILON);
+            ImGui::InputText(id, buffer, sizeof(buffer), field_flags);
+        };
+
+        bool_field("Ticking", "##ticking", entity->is_ticking());
 
         if (const TransformComponent* transform = entity->get_transform()) {
             ImGui::SeparatorText("Transform");
-
-            constexpr float label_width = 70.0f;
-            constexpr ImGuiInputTextFlags field_flags = ImGuiInputTextFlags_ReadOnly;
 
             const auto vec2_field = [&](const char* label, const char* id, const Vector2& v) {
                 float xy[2] = {v.x, v.y};
