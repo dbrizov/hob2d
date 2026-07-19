@@ -29,6 +29,7 @@ namespace hob {
         m_renderer.register_cvars(m_console);
         m_physics.register_cvars(m_console);
         m_audio.register_cvars(m_console);
+        m_entity_spawner.register_cvars(m_console);
         m_lua_script_system.register_cvars(m_console);
         SocketsComponent::register_cvars(m_console);
     }
@@ -103,7 +104,9 @@ namespace hob {
             for (AudioComponent* audio_source : m_entity_spawner.get_audio_sources()) {
                 audio_source->update_spatialization();
             }
+
             m_audio.debug_clips();
+            m_entity_spawner.debug_hierarchy();
 
             m_ui_system.tick();
 

@@ -1,7 +1,6 @@
 #include "sprite_animator_component.h"
 
 #include <cmath>
-#include <format>
 #include <utility>
 
 #include "engine/entity/entity.h"
@@ -49,7 +48,7 @@ namespace hob {
     }
 
     std::string SpriteAnimatorComponent::to_string() const {
-        return std::format("SpriteAnimatorComponent(entity_id = {})", get_entity().get_id());
+        return "SpriteAnimatorComponent";
     }
 
     void SpriteAnimatorComponent::add_clip(const std::string& name, AnimationClipRef clip) {

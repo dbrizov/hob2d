@@ -186,6 +186,6 @@ namespace hob {
     }
 
     std::string LuaScriptComponent::to_string() const {
-        return std::format("LuaScriptComponent(entity_id = {}, class = {})", get_entity().get_id(), get_class_name());
+        return std::format("LuaScriptComponent(class = {})", get_class_name());
     }
 } // namespace hob

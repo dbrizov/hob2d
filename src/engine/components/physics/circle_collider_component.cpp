@@ -1,7 +1,6 @@
 #include "circle_collider_component.h"
 
 #include <cmath>
-#include <format>
 
 #include <box2d/box2d.h>
 #include <box2d/collision.h>
@@ -17,7 +16,7 @@ namespace hob {
         : ColliderComponent(entity) {}
 
     std::string CircleColliderComponent::to_string() const {
-        return std::format("CircleColliderComponent(entity_id = {})", get_entity().get_id());
+        return "CircleColliderComponent";
     }
 
     Circle CircleColliderComponent::get_circle() const {

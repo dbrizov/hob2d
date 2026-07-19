@@ -83,8 +83,11 @@ namespace hob {
     }
 
     std::string Entity::to_string() const {
-        std::string result =
-            std::format("Entity(id = {}, in_play = {}, ticking = {})", get_id(), is_in_play(), is_ticking());
+        std::string result = std::format("Entity(name = {}, id = {}, in_play = {}, ticking = {})",
+                                         get_display_name(),
+                                         get_id(),
+                                         is_in_play(),
+                                         is_ticking());
 
         if (const TransformComponent* transform = get_transform()) {
             result += std::format("\n  position = {}, rotation = {}, scale = {}",
@@ -111,6 +114,34 @@ namespace hob {
 
     void Entity::set_id(EntityId id) {
         m_id = id;
+    }
+
+    const std::string& Entity::get_name() const {
+        return m_name;
+    }
+
+    void Entity::set_name(std::string name) {
+        m_name = std::move(name);
+    }
+
+    const std::string& Entity::get_prefab_name() const {
+        return m_prefab_name;
+    }
+
+    void Entity::set_prefab_name(std::string name) {
+        m_prefab_name = std::move(name);
+    }
+
+    std::string Entity::get_display_name() const {
+        if (!m_name.empty()) {
+            return m_name;
+        }
+
+        if (!m_prefab_name.empty()) {
+            return m_prefab_name;
+        }
+
+        return std::format("Entity {}", m_id);
     }
 
     bool Entity::is_in_play() const {

@@ -55,8 +55,7 @@ namespace hob {
     }
 
     std::string SocketsComponent::to_string() const {
-        return std::format(
-            "SocketsComponent(entity_id = {}, sockets = {})", get_entity().get_id(), m_socket_ids.size());
+        return "SocketsComponent";
     }
 
     void SocketsComponent::add_socket(const std::string& name, const Vector2& local_position, float local_rotation) {
@@ -109,6 +108,7 @@ namespace hob {
 
     void SocketsComponent::create_socket_entity(const std::string& name, const SocketPose& pose) {
         Entity& socket = get_engine().get_entity_spawner().spawn_entity();
+        socket.set_name(std::format("Socket_{0}", name));
         TransformComponent* transform = socket.get_transform();
         transform->set_parent(get_entity().get_transform(), false);
         transform->set_local_position(pose.local_position);

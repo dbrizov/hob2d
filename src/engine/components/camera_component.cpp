@@ -1,7 +1,5 @@
 #include "camera_component.h"
 
-#include <format>
-
 #include "engine/core/engine.h"
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/entity/entity.h"
@@ -20,7 +18,7 @@ namespace hob {
     }
 
     std::string CameraComponent::to_string() const {
-        return std::format("CameraComponent(entity_id = {})", get_entity().get_id());
+        return "CameraComponent";
     }
 
     float CameraComponent::get_pixels_per_meter() const {

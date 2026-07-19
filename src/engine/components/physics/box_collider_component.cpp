@@ -1,7 +1,6 @@
 #include "box_collider_component.h"
 
 #include <cmath>
-#include <format>
 
 #include <box2d/box2d.h>
 #include <box2d/collision.h>
@@ -16,7 +15,7 @@ namespace hob {
         : ColliderComponent(entity) {}
 
     std::string BoxColliderComponent::to_string() const {
-        return std::format("BoxColliderComponent(entity_id = {})", get_entity().get_id());
+        return "BoxColliderComponent";
     }
 
     AABB BoxColliderComponent::get_aabb() const {

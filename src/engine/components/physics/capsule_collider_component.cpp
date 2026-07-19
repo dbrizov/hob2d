@@ -1,7 +1,6 @@
 #include "capsule_collider_component.h"
 
 #include <cmath>
-#include <format>
 
 #include <box2d/types.h>
 
@@ -16,7 +15,7 @@ namespace hob {
         : ColliderComponent(entity) {}
 
     std::string CapsuleColliderComponent::to_string() const {
-        return std::format("CapsuleColliderComponent(entity_id = {})", get_entity().get_id());
+        return "CapsuleColliderComponent";
     }
 
     Capsule CapsuleColliderComponent::get_capsule() const {

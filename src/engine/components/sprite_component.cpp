@@ -1,7 +1,5 @@
 #include "sprite_component.h"
 
-#include <format>
-
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/renderer/renderer.h"
@@ -27,7 +25,7 @@ namespace hob {
     }
 
     std::string SpriteComponent::to_string() const {
-        return std::format("SpriteComponent(entity_id = {})", get_entity().get_id());
+        return "SpriteComponent";
     }
 
     SpriteDrawId SpriteComponent::get_sprite_draw_id() const {

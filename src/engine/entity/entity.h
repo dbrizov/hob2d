@@ -27,6 +27,8 @@ namespace hob {
 
         Engine& m_engine;
         EntityId m_id = 0;
+        std::string m_name;
+        std::string m_prefab_name;
         bool m_is_in_play = false;
 
         TickIndex m_tick_index = INVALID_TICK_INDEX; // Slot in EntitySpawner's ticking registry.
@@ -62,6 +64,14 @@ namespace hob {
 
         EntityId get_id() const;
         void set_id(EntityId id);
+
+        const std::string& get_name() const;
+        void set_name(std::string name);
+
+        const std::string& get_prefab_name() const;
+        void set_prefab_name(std::string name);
+
+        std::string get_display_name() const;
 
         bool is_in_play() const;
 

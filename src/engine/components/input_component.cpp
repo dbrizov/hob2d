@@ -1,7 +1,5 @@
 #include "input_component.h"
 
-#include <format>
-
 #include "engine/core/engine.h"
 #include "engine/entity/entity.h"
 
@@ -24,7 +22,7 @@ namespace hob {
     }
 
     std::string InputComponent::to_string() const {
-        return std::format("InputComponent(entity_id = {})", get_entity().get_id());
+        return "InputComponent";
     }
 
     BindingId InputComponent::bind_axis(const char* axis_name, AxisBindingFunc function) {

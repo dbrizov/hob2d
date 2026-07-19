@@ -1,7 +1,5 @@
 #include "component.h"
 
-#include <format>
-
 #include "engine/entity/entity.h"
 
 namespace hob {
@@ -35,6 +33,6 @@ namespace hob {
     // clang-format on
 
     std::string Component::to_string() const {
-        return std::format("Component(entity_id = {})", m_entity.get_id());
+        return "Component";
     }
 } // namespace hob

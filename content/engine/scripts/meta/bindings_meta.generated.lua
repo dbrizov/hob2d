@@ -450,6 +450,18 @@ local Entity = {}
 ---@return integer
 function Entity:get_id() end
 
+---@return string
+function Entity:get_name() end
+
+---@param name string
+function Entity:set_name(name) end
+
+---@return string
+function Entity:get_prefab_name() end
+
+---@param name string
+function Entity:set_prefab_name(name) end
+
 ---@return boolean
 function Entity:is_valid() end
 

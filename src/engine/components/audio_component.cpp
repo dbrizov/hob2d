@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <format>
 #include <utility>
 
 #include "engine/components/camera_component.h"
@@ -33,7 +32,7 @@ namespace hob {
     }
 
     std::string AudioComponent::to_string() const {
-        return std::format("AudioComponent(entity_id = {})", get_entity().get_id());
+        return "AudioComponent";
     }
 
     void AudioComponent::play() {

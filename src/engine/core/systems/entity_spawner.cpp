@@ -1,5 +1,7 @@
 #include "entity_spawner.h"
 
+#include <imgui.h>
+
 #include "engine/components/audio_component.h"
 #include "engine/components/physics/rigidbody_component.h"
 #include "engine/components/sprite_component.h"
@@ -7,7 +9,9 @@
 #include "engine/core/assert.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
+#include "engine/core/systems/console.h"
 #include "engine/entity/entity.h"
+#include "engine/math/constants.h"
 
 namespace hob {
     EntitySpawner::EntitySpawner(Engine& engine)
@@ -185,6 +189,143 @@ namespace hob {
 
     const std::vector<AudioComponent*>& EntitySpawner::get_audio_sources() const {
         return m_audio_sources;
+    }
+
+    void EntitySpawner::register_cvars(Console& console) {
+        console.register_cvar("e_show_hierarchy",
+                              "Show an entity hierarchy window (nested transforms, id, components)",
+                              to_cvar_string(m_cvar_show_hierarchy),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_show_hierarchy = cvar.bool_value();
+                              });
+    }
+
+    void EntitySpawner::debug_hierarchy() {
+        if (!m_cvar_show_hierarchy) {
+            return;
+        }
+
+        constexpr ImGuiWindowFlags window_flags =
+            ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+        ImGui::SetNextWindowSize(ImVec2(560.0f, 400.0f), ImGuiCond_FirstUseEver);
+        if (ImGui::Begin("Entity Hierarchy", nullptr, window_flags)) {
+            ImGui::BeginChild("Tree", ImVec2(230.0f, 0.0f), ImGuiChildFlags_ResizeX | ImGuiChildFlags_Borders);
+            {
+                ImGui::Text("Entities: %zu", m_entities.size());
+                ImGui::Separator();
+
+                for (const auto& entity : m_entities) {
+                    if (!entity) {
+                        continue;
+                    }
+
+                    const TransformComponent* transform = entity->get_transform();
+                    if (transform && transform->get_parent() != nullptr) {
+                        continue; // Reached via its parent instead.
+                    }
+
+                    debug_hierarchy_node(transform);
+                }
+            }
+            ImGui::EndChild();
+
+            ImGui::SameLine();
+
+            ImGui::BeginChild("Inspector", ImVec2(0.0f, 0.0f), ImGuiChildFlags_Borders);
+            debug_inspector();
+            ImGui::EndChild();
+        }
+        ImGui::End();
+    }
+
+    void EntitySpawner::debug_hierarchy_node(const TransformComponent* transform) {
+        if (transform == nullptr) {
+            return;
+        }
+
+        const Entity& entity = transform->get_entity();
+        const std::vector<TransformComponent*>& children = transform->get_children();
+
+        ImGuiTreeNodeFlags flags =
+            ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth;
+        if (children.empty()) {
+            flags |= ImGuiTreeNodeFlags_Leaf;
+        }
+        if (entity.get_id() == m_selected_entity_id) {
+            flags |= ImGuiTreeNodeFlags_Selected;
+        }
+
+        const bool open = ImGui::TreeNodeEx(reinterpret_cast<void*>(static_cast<intptr_t>(entity.get_id())),
+                                            flags,
+                                            "%s  #%lld",
+                                            entity.get_display_name().c_str(),
+                                            static_cast<long long>(entity.get_id()));
+
+        if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
+            m_selected_entity_id = entity.get_id();
+        }
+
+        if (open) {
+            for (TransformComponent* child : children) {
+                debug_hierarchy_node(child);
+            }
+            ImGui::TreePop();
+        }
+    }
+
+    void EntitySpawner::debug_inspector() {
+        Entity* entity = get_entity(m_selected_entity_id);
+        if (entity == nullptr) {
+            ImGui::TextDisabled("Select an entity");
+            return;
+        }
+
+        ImGui::Text("%s", entity->get_display_name().c_str());
+        ImGui::SameLine();
+        ImGui::TextDisabled("#%lld", static_cast<long long>(entity->get_id()));
+
+        if (!entity->get_prefab_name().empty()) {
+            ImGui::TextDisabled("Prefab: %s", entity->get_prefab_name().c_str());
+        }
+        ImGui::TextDisabled("In Play: %s", entity->is_in_play() ? "true" : "false");
+        ImGui::TextDisabled("Ticking: %s", entity->is_ticking() ? "true" : "false");
+
+        if (const TransformComponent* transform = entity->get_transform()) {
+            ImGui::SeparatorText("Transform");
+
+            constexpr float label_width = 70.0f;
+            constexpr ImGuiInputTextFlags field_flags = ImGuiInputTextFlags_ReadOnly;
+
+            const auto vec2_field = [&](const char* label, const char* id, const Vector2& v) {
+                float xy[2] = {v.x, v.y};
+                ImGui::TextUnformatted(label);
+                ImGui::SameLine(label_width);
+                ImGui::SetNextItemWidth(-EPSILON);
+                ImGui::InputFloat2(id, xy, "%.2f", field_flags);
+            };
+
+            const Vector2 local_pos = transform->get_local_position();
+            float local_rot = transform->get_local_rotation();
+            const Vector2 local_scale = transform->get_local_scale();
+
+            vec2_field("Position", "##position", local_pos);
+
+            ImGui::TextUnformatted("Rotation");
+            ImGui::SameLine(label_width);
+            ImGui::SetNextItemWidth(-EPSILON);
+            ImGui::InputFloat("##rotation", &local_rot, 0.0f, 0.0f, "%.2f", field_flags);
+
+            vec2_field("Scale", "##scale", local_scale);
+        }
+
+        const std::vector<Component*> components = entity->get_components<Component>();
+        ImGui::SeparatorText("Components");
+        for (const Component* component : components) {
+            ImGui::BulletText("%s", component->to_string().c_str());
+        }
     }
 
     void EntitySpawner::resolve_requests() {

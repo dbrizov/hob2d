@@ -98,6 +98,10 @@ end
 local function apply_prefab(entity, prefab)
     entity:set_ticking(resolve_ticking(prefab))
 
+    if prefab.name then
+        entity:set_name(prefab.name)
+    end
+
     for_each_section(entity, prefab, "add", function(_, schema, section, component)
         if schema.map_setter then
             call_setter(component, schema.map_setter, unwrap_def(section))
@@ -231,6 +235,7 @@ EntitySpawner.spawn_entity = function(name, position, rotation_deg, scale)
     end
 
     local entity = spawn_entity_c()
+    entity:set_prefab_name(name)
 
     apply_prefab(entity, prefab)
     _G.__entity_prefab_by_id[entity:get_id()] = name

@@ -29,6 +29,30 @@ namespace hob {
 
         bind_usertype<EntityRef>(m_lua, m_meta)
             .method("get_id", &EntityRef::get_id)
+            .method("get_name",
+                    [](const EntityRef& r) -> std::string {
+                        Entity* e = r.resolve();
+                        return e ? e->get_name() : std::string();
+                    })
+            .method("set_name",
+                    [](const EntityRef& r, const std::string& name) {
+                        if (Entity* e = r.resolve()) {
+                            e->set_name(name);
+                        }
+                    },
+                    {"name"})
+            .method("get_prefab_name",
+                    [](const EntityRef& r) -> std::string {
+                        Entity* e = r.resolve();
+                        return e ? e->get_prefab_name() : std::string();
+                    })
+            .method("set_prefab_name",
+                    [](const EntityRef& r, const std::string& name) {
+                        if (Entity* e = r.resolve()) {
+                            e->set_prefab_name(name);
+                        }
+                    },
+                    {"name"})
             .method("is_valid", &EntityRef::is_valid)
             .method("is_in_play",
                     [](const EntityRef& r) {

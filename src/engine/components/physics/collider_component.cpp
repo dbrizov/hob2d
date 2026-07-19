@@ -1,7 +1,5 @@
 #include "collider_component.h"
 
-#include <format>
-
 #include <box2d/box2d.h>
 
 #include "engine/components/transform_component.h"
@@ -54,7 +52,7 @@ namespace hob {
     }
 
     std::string ColliderComponent::to_string() const {
-        return std::format("ColliderComponent(entity_id = {})", get_entity().get_id());
+        return "ColliderComponent";
     }
 
     b2BodyId ColliderComponent::get_body_id() const {

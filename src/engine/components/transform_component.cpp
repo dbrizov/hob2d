@@ -1,7 +1,6 @@
 #include "transform_component.h"
 
 #include <cmath>
-#include <format>
 
 #include "engine/components/physics/collider_component.h"
 #include "engine/core/logging.h"
@@ -19,7 +18,7 @@ namespace hob {
     }
 
     std::string TransformComponent::to_string() const {
-        return std::format("TransformComponent(entity_id = {})", get_entity().get_id());
+        return "TransformComponent";
     }
 
     Vector2 TransformComponent::get_position() const {

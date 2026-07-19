@@ -10,9 +10,11 @@
 
 namespace hob {
     class Engine;
-    class SpriteComponent;
-    class RigidbodyComponent;
+    class Console;
     class AudioComponent;
+    class SpriteComponent;
+    class TransformComponent;
+    class RigidbodyComponent;
 
     using EntityIndex = uint32_t;
     constexpr EntityIndex INVALID_ENTITY_INDEX = std::numeric_limits<EntityIndex>::max();
@@ -43,6 +45,9 @@ namespace hob {
         std::vector<SpriteComponent*> m_sprites; // Registry of in-play sprites
         std::vector<RigidbodyComponent*> m_simulated_rigidbodies; // Registry of in-play non-static rigidbodies
         std::vector<AudioComponent*> m_audio_sources; // Registry of in-play audio sources
+
+        bool m_cvar_show_hierarchy = false;
+        EntityId m_selected_entity_id = INVALID_ENTITY_ID; // Entity shown in the inspector pane.
 
     public:
         explicit EntitySpawner(Engine& engine);
@@ -77,7 +82,13 @@ namespace hob {
         void unregister_audio(AudioComponent* audio);
         const std::vector<AudioComponent*>& get_audio_sources() const;
 
+        void register_cvars(Console& console);
+        void debug_hierarchy();
+
     private:
+        void debug_hierarchy_node(const TransformComponent* transform);
+        void debug_inspector();
+
         void resolve_requests();
         void resolve_spawn_requests();
         void resolve_destroy_requests();

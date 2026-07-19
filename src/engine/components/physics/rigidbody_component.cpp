@@ -1,7 +1,5 @@
 #include "rigidbody_component.h"
 
-#include <format>
-
 #include <box2d/box2d.h>
 
 #include "engine//components/transform_component.h"
@@ -77,7 +75,7 @@ namespace hob {
     }
 
     std::string RigidbodyComponent::to_string() const {
-        return std::format("RigidbodyComponent(entity_id = {})", get_entity().get_id());
+        return "RigidbodyComponent";
     }
 
     b2BodyId RigidbodyComponent::get_body_id() const {
