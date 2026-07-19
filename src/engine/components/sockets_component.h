@@ -10,6 +10,7 @@
 
 namespace hob {
     class TransformComponent;
+    class Console;
 
     class SocketsComponent : public Component {
         struct SocketPose {
@@ -21,12 +22,16 @@ namespace hob {
         std::unordered_map<std::string, EntityId> m_socket_ids;
 
     public:
+        static bool cvar_show_sockets;
+        static void register_cvars(Console& console);
+
         explicit SocketsComponent(Entity& entity);
 
         int get_priority() const override;
 
         void enter_play() override;
         void exit_play() override;
+        void debug_draw_tick(float delta_time) override;
 
         std::string to_string() const override;
 

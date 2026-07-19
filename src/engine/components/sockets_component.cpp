@@ -4,10 +4,29 @@
 #include <iterator>
 
 #include "engine/components/transform_component.h"
+#include "engine/core/debug.h"
 #include "engine/core/engine.h"
+#include "engine/core/systems/console.h"
 #include "engine/core/systems/entity_spawner.h"
 
 namespace hob {
+    namespace {
+        constexpr float SOCKET_DEBUG_RADIUS = 0.12f;
+    } // namespace
+
+    bool SocketsComponent::cvar_show_sockets = false;
+
+    void SocketsComponent::register_cvars(Console& console) {
+        console.register_cvar("s_show_sockets",
+                              "Show entity sockets",
+                              to_cvar_string(cvar_show_sockets),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [](const ConsoleVariable& cvar) {
+                                  cvar_show_sockets = cvar.bool_value();
+                              });
+    }
+
     SocketsComponent::SocketsComponent(Entity& entity)
         : Component(entity) {}
 
@@ -21,6 +40,18 @@ namespace hob {
 
     void SocketsComponent::exit_play() {
         destroy_socket_entities();
+    }
+
+    void SocketsComponent::debug_draw_tick(float delta_time) {
+        if (!cvar_show_sockets) {
+            return;
+        }
+
+        for (const auto& [name, id] : m_socket_ids) {
+            if (const TransformComponent* transform = get_socket(name)) {
+                debug::draw_circle(transform->get_position(), SOCKET_DEBUG_RADIUS, Color::green());
+            }
+        }
     }
 
     std::string SocketsComponent::to_string() const {

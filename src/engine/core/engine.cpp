@@ -7,6 +7,7 @@
 #include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
 #include "engine/components/physics/rigidbody_component.h"
+#include "engine/components/sockets_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
 #include "engine/math/matrix2x3.h"
@@ -29,6 +30,7 @@ namespace hob {
         m_physics.register_cvars(m_console);
         m_audio.register_cvars(m_console);
         m_lua_script_system.register_cvars(m_console);
+        SocketsComponent::register_cvars(m_console);
     }
 
     Engine::~Engine() {
