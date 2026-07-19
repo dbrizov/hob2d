@@ -99,7 +99,11 @@ local function apply_prefab(entity, prefab)
     entity:set_ticking(resolve_ticking(prefab))
 
     for_each_section(entity, prefab, "add", function(_, schema, section, component)
-        apply_setters(component, section, schema.setters)
+        if schema.map_setter then
+            call_setter(component, schema.map_setter, unwrap_def(section))
+        else
+            apply_setters(component, section, schema.setters)
+        end
     end)
 
     if prefab.lua_components then
@@ -141,9 +145,13 @@ local function reapply_prefab(entity, prefab, get_defaults)
     entity:set_ticking(resolve_ticking(prefab))
 
     for_each_section(entity, prefab, "get", function(key, schema, section, component)
-        local defaults = get_defaults(key)
-        for field, setter in pairs(schema.setters) do
-            call_setter(component, setter, resolve_field_value(section, field, defaults))
+        if schema.map_setter then
+            call_setter(component, schema.map_setter, unwrap_def(section))
+        else
+            local defaults = get_defaults(key)
+            for field, setter in pairs(schema.setters) do
+                call_setter(component, setter, resolve_field_value(section, field, defaults))
+            end
         end
     end)
 end

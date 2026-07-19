@@ -1,62 +1,50 @@
 #include "sprite_animator_component.h"
 
+#include <cmath>
 #include <format>
 #include <utility>
 
 #include "engine/entity/entity.h"
-#include "sprite_component.h"
 
 namespace hob {
     SpriteAnimatorComponent::SpriteAnimatorComponent(Entity& entity)
         : Component(entity) {}
 
     void SpriteAnimatorComponent::enter_play() {
-        m_sprite = get_entity().get_component<SpriteComponent>();
-
         if (!m_default_clip_name.empty() && m_clips.contains(m_default_clip_name)) {
             play(m_default_clip_name);
         }
     }
 
     void SpriteAnimatorComponent::tick(float delta_time) {
-        if (!m_playing || m_current_clip == nullptr || m_sprite == nullptr) {
+        if (!m_playing || m_current_clip == nullptr) {
             return;
         }
 
-        const int frame_count = static_cast<int>(m_current_clip->frames.size());
-        if (frame_count == 0) {
-            return;
-        }
+        const float duration = m_current_clip->duration;
+        m_time += delta_time;
 
-        const float fps = m_current_clip->fps;
-        if (fps <= 0.0f) {
-            return;
-        }
-
-        const float step = 1.0f / fps;
-        m_elapsed += delta_time;
-
-        bool frame_changed = false;
-        while (m_elapsed >= step) {
-            m_elapsed -= step;
-            m_frame_index += 1;
-            frame_changed = true;
-
-            if (m_frame_index >= frame_count) {
-                if (m_current_clip->looping) {
-                    m_frame_index = 0;
-                }
-                else {
-                    m_frame_index = frame_count - 1;
-                    m_playing = false;
-                    m_elapsed = 0.0f;
-                    break;
-                }
+        if (m_time >= duration) {
+            if (m_current_clip->looping) {
+                m_time = duration > 0.0f ? std::fmod(m_time, duration) : 0.0f;
+            }
+            else {
+                m_time = duration;
+                m_playing = false;
             }
         }
 
-        if (frame_changed) {
-            m_sprite->set_texture(m_current_clip->frames[m_frame_index].texture);
+        apply_key_values();
+    }
+
+    void SpriteAnimatorComponent::apply_key_values() {
+        if (m_current_clip == nullptr) {
+            return;
+        }
+
+        Entity& entity = get_entity();
+        for (const AnimationTrackRef& track : m_current_clip->tracks) {
+            track->apply_key_values(entity, m_time);
         }
     }
 
@@ -74,6 +62,16 @@ namespace hob {
 
     void SpriteAnimatorComponent::set_clips(AnimationClips clips) {
         m_clips = std::move(clips);
+
+        // Re-point the active clip at its replacement so hot-reloaded clip data (new tracks/keyframes)
+        // takes effect on the currently-playing clip, not just the next play(). Keeps the time cursor.
+        if (!m_current_clip_name.empty()) {
+            auto it = m_clips.find(m_current_clip_name);
+            m_current_clip = it != m_clips.end() ? it->second : nullptr;
+            if (m_current_clip == nullptr) {
+                m_playing = false;
+            }
+        }
     }
 
     void SpriteAnimatorComponent::clear_clips() {
@@ -92,10 +90,6 @@ namespace hob {
         return m_current_clip_name;
     }
 
-    int SpriteAnimatorComponent::get_current_frame() const {
-        return m_frame_index;
-    }
-
     void SpriteAnimatorComponent::play(const std::string& name) {
         auto it = m_clips.find(name);
         if (it == m_clips.end()) {
@@ -104,13 +98,11 @@ namespace hob {
 
         m_current_clip = it->second;
         m_current_clip_name = name;
-        m_frame_index = 0;
-        m_elapsed = 0.0f;
+        m_time = 0.0f;
         m_playing = true;
 
-        if (m_sprite != nullptr && !m_current_clip->frames.empty()) {
-            m_sprite->set_texture(m_current_clip->frames[0].texture);
-        }
+        // Show the first frame / pose immediately.
+        apply_key_values();
     }
 
     void SpriteAnimatorComponent::resume() {
@@ -125,8 +117,7 @@ namespace hob {
 
     void SpriteAnimatorComponent::stop() {
         m_playing = false;
-        m_frame_index = 0;
-        m_elapsed = 0.0f;
+        m_time = 0.0f;
     }
 
     bool SpriteAnimatorComponent::is_playing() const {

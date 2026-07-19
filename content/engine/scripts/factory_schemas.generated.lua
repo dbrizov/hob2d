@@ -9,6 +9,8 @@ _G.__factory_schemas = {
             { name = "textures" },
             { name = "fps" },
             { name = "looping" },
+            { name = "tracks" },
+            { name = "duration" },
         },
     },
     Textures = {

@@ -26,6 +26,11 @@ namespace hob {
         std::string add_method; // Entity method, e.g. "add_rigidbody"
         std::string get_method; // Entity method, e.g. "get_rigidbody"
         std::vector<LuaComponentSchemaField> fields;
+
+        // "Map" component: the whole prefab section is a table of arbitrary keys applied wholesale to
+        // `map_setter` (e.g. `sockets = { gun_left = Vector2(), ... }`), instead of being iterated as named fields.
+        // When set, `fields` is unused.
+        std::string map_setter;
     };
 
     class LuaComponentSchemaRegistry {
@@ -36,6 +41,8 @@ namespace hob {
                         std::string add_method,
                         std::string get_method,
                         std::vector<LuaComponentSchemaField> fields);
+
+        void add_map_schema(std::string key, std::string add_method, std::string get_method, std::string map_setter);
 
         bool write_to_file(const std::filesystem::path& full_path) const;
     };
@@ -84,5 +91,34 @@ namespace hob {
         // Always-present component: `existing_method` is its getter, so add == get.
         schemas.add_schema(
             key, existing_method, existing_method, std::vector<LuaComponentSchemaField>(fields.begin(), fields.end()));
+    }
+
+    // Registers a "map" component whose prefab section is a table of arbitrary keys (e.g.
+    // `sockets = { gun_left = Vector2(), ... }`) passed wholesale to `set_method`, instead of fixed named fields.
+    // Synthesizes `entity:<add_method>()`; `get_method` must be bound separately on the Entity usertype.
+    template<typename T>
+    void bind_component_schema_map(sol::state& lua,
+                                   LuaMetaRegistry& meta,
+                                   LuaComponentSchemaRegistry& schemas,
+                                   const char* key,
+                                   const char* add_method,
+                                   const char* get_method,
+                                   const char* set_method) {
+        const char* entity_lua_name = LuaTypeName<EntityRef>::value;
+        sol::table entity_ut = lua[entity_lua_name];
+        entity_ut[add_method] = [](const EntityRef& r) -> T* {
+            Entity* e = r.resolve();
+            return e ? e->add_component<T>() : nullptr;
+        };
+
+        if (LuaUsertypeInfo* entity_info = meta.find_usertype(entity_lua_name)) {
+            LuaMethodInfo info;
+            info.name = add_method;
+            info.ret = meta_detail::lua_name<T*>();
+            info.is_static = false;
+            entity_info->methods.push_back(std::move(info));
+        }
+
+        schemas.add_map_schema(key, add_method, get_method, set_method);
     }
 } // namespace hob

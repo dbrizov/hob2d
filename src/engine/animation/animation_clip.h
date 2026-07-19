@@ -3,16 +3,12 @@
 #include <memory>
 #include <vector>
 
-#include "engine/core/systems/renderer/texture.h"
+#include "animation_track.h"
 
 namespace hob {
-    struct AnimationFrame {
-        TextureRef texture;
-    };
-
     struct AnimationClip {
-        std::vector<AnimationFrame> frames;
-        float fps = 12.0f;
+        std::vector<AnimationTrackRef> tracks;
+        float duration = 0.0f; // seconds
         bool looping = true;
     };
 

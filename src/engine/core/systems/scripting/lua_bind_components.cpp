@@ -1,6 +1,10 @@
+#include <algorithm>
+#include <memory>
 #include <string>
+#include <unordered_set>
 
 #include "engine/animation/animation_clip.h"
+#include "engine/animation/animation_track.h"
 #include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
 #include "engine/components/input_component.h"
@@ -10,6 +14,7 @@
 #include "engine/components/physics/circle_collider_component.h"
 #include "engine/components/physics/collider_component.h"
 #include "engine/components/physics/rigidbody_component.h"
+#include "engine/components/sockets_component.h"
 #include "engine/components/sprite_animator_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
@@ -19,6 +24,7 @@
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
+#include "engine/math/constants.h"
 #include "lua_bind_helpers.h"
 #include "lua_meta.h"
 #include "lua_schema_component.h"
@@ -28,6 +34,84 @@
 #include "lua_type_names.h" // IWYU pragma: keep
 
 namespace hob {
+    namespace {
+        template<typename T>
+        void sort_keys(std::vector<Keyframe<T>>& keys) {
+            std::stable_sort(keys.begin(), keys.end(), [](const Keyframe<T>& a, const Keyframe<T>& b) {
+                return a.time < b.time;
+            });
+        }
+
+        AnimationTrackRef build_texture_track(Renderer& renderer, const sol::table& t) {
+            auto track = std::make_unique<TextureTrack>();
+            const float fps = t.get_or("fps", 12.0f);
+            const float step = fps > 0.0f ? 1.0f / fps : 0.0f;
+
+            if (auto textures = t.get<sol::optional<sol::table>>("textures")) {
+                for (int i = 1; i <= textures->size(); ++i) {
+                    if (TextureRef texture = resolve_texture(renderer, textures->get<sol::object>(i))) {
+                        track->keys.push_back({static_cast<float>(track->keys.size()) * step, std::move(texture)});
+                    }
+                }
+                // Every frame (including the last) is shown for one 1/fps slice, so the loop spans all frames.
+                track->length = static_cast<float>(track->keys.size()) * step;
+            }
+
+            if (auto keys = t.get<sol::optional<sol::table>>("keys")) {
+                for (int i = 1; i <= keys->size(); ++i) {
+                    if (auto k = keys->get<sol::optional<sol::table>>(i)) {
+                        if (TextureRef texture = resolve_texture(renderer, k->get<sol::object>(2))) {
+                            const float time = k->get_or(1, 0.0f);
+                            track->keys.push_back({time, std::move(texture)});
+                            track->length = std::max(track->length, time);
+                        }
+                    }
+                }
+            }
+
+            sort_keys(track->keys);
+            return track;
+        }
+
+        void build_track(Renderer& renderer, const sol::table& t, AnimationClip& clip) {
+            const std::string type = t.get<sol::optional<std::string>>("type").value_or("");
+
+            if (type == "texture") {
+                clip.tracks.push_back(build_texture_track(renderer, t));
+            }
+            else if (type == "socket_position") {
+                auto track = std::make_unique<SocketPositionTrack>();
+                track->socket = t.get<sol::optional<std::string>>("socket").value_or("");
+                if (auto keys = t.get<sol::optional<sol::table>>("keys")) {
+                    for (int i = 1; i <= keys->size(); ++i) {
+                        if (auto k = keys->get<sol::optional<sol::table>>(i)) {
+                            const Vector2 value = k->get<sol::optional<Vector2>>(2).value_or(Vector2());
+                            track->keys.push_back({k->get_or(1, 0.0f), value});
+                        }
+                    }
+                }
+                sort_keys(track->keys);
+                clip.tracks.push_back(std::move(track));
+            }
+            else if (type == "socket_rotation") {
+                auto track = std::make_unique<SocketRotationTrack>();
+                track->socket = t.get<sol::optional<std::string>>("socket").value_or("");
+                if (auto keys = t.get<sol::optional<sol::table>>("keys")) {
+                    for (int i = 1; i <= keys->size(); ++i) {
+                        if (auto k = keys->get<sol::optional<sol::table>>(i)) {
+                            track->keys.push_back({k->get_or(1, 0.0f), k->get_or(2, 0.0f) * DEG_TO_RAD});
+                        }
+                    }
+                }
+                sort_keys(track->keys);
+                clip.tracks.push_back(std::move(track));
+            }
+            else {
+                log::lua.error("Unknown animation track type '{}'", type);
+            }
+        }
+    } // namespace
+
     void LuaScriptSystem::bind_components() {
         sol::state& lua = m_impl->lua;
         LuaMetaRegistry& meta = m_impl->meta;
@@ -368,33 +452,40 @@ namespace hob {
             .factory_ctor(
                 [&renderer](const sol::table& animclip_t) {
                     auto clip = std::make_shared<AnimationClip>();
-                    if (auto textures = animclip_t.get<sol::optional<sol::table>>("textures")) {
-                        clip->frames.reserve(textures->size());
-                        for (size_t i = 1; i <= textures->size(); ++i) {
-                            if (TextureRef texture = resolve_texture(renderer, textures->get<sol::object>(i))) {
-                                clip->frames.push_back({std::move(texture)});
+                    clip->looping = animclip_t.get_or("looping", true);
+
+                    if (animclip_t.get<sol::optional<sol::table>>("textures")) {
+                        clip->tracks.push_back(build_texture_track(renderer, animclip_t));
+                    }
+
+                    if (auto tracks = animclip_t.get<sol::optional<sol::table>>("tracks")) {
+                        for (int i = 1; i <= tracks->size(); ++i) {
+                            if (auto track_t = tracks->get<sol::optional<sol::table>>(i)) {
+                                build_track(renderer, *track_t, *clip);
                             }
                         }
                     }
-                    clip->fps = animclip_t.get_or("fps", 12.0f);
-                    clip->looping = animclip_t.get_or("looping", true);
+
+                    clip->duration = animclip_t.get_or("duration", 0.0f);
+                    for (const AnimationTrackRef& track : clip->tracks) {
+                        clip->duration = std::max(clip->duration, track->get_duration());
+                    }
+
                     return clip;
                 },
                 {"config"})
-            .method("get_fps",
+            .method("get_duration",
                     [](const AnimationClip& self) {
-                        return self.fps;
+                        return self.duration;
                     })
-            .method("get_looping",
-                    [](const AnimationClip& self) {
-                        return self.looping;
-                    })
-            .method("get_frame_count", [](const AnimationClip& self) {
-                return static_cast<int>(self.frames.size());
+            .method("get_looping", [](const AnimationClip& self) {
+                return self.looping;
             });
 
-        bind_factory_schema<AnimationClip>(
-            factory_schemas, "DefineAnimationClip", "AnimationClips", {"textures", "fps", "looping"});
+        bind_factory_schema<AnimationClip>(factory_schemas,
+                                           "DefineAnimationClip",
+                                           "AnimationClips",
+                                           {"textures", "fps", "looping", "tracks", "duration"});
 
         bind_usertype<SpriteAnimatorComponent>(lua, meta, Bases<Component>{})
             .method("add_clip", &SpriteAnimatorComponent::add_clip, {"name", "clip"})
@@ -402,7 +493,6 @@ namespace hob {
             .method("set_default_clip", &SpriteAnimatorComponent::set_default_clip, {"name"})
             .method("get_default_clip", &SpriteAnimatorComponent::get_default_clip)
             .method("get_current_clip", &SpriteAnimatorComponent::get_current_clip)
-            .method("get_current_frame", &SpriteAnimatorComponent::get_current_frame)
             .method("play", &SpriteAnimatorComponent::play, {"name"})
             .method("resume", &SpriteAnimatorComponent::resume)
             .method("pause", &SpriteAnimatorComponent::pause)
@@ -447,6 +537,39 @@ namespace hob {
                                                            {"clips", "get_clips", "set_clips"},
                                                            {"default_clip", "get_default_clip", "set_default_clip"},
                                                        });
+
+        // SocketsComponent
+        bind_usertype<SocketsComponent>(lua, meta, Bases<Component>{})
+            .method("get_socket", &SocketsComponent::get_socket, {"name"})
+            .method("has_socket", &SocketsComponent::has_socket, {"name"})
+            .method_sig(
+                "set_sockets",
+                [](SocketsComponent& self, const sol::table& sockets_t) {
+                    std::unordered_set<std::string> names;
+                    for (auto& kv : sockets_t) {
+                        if (!kv.first.is<std::string>()) {
+                            continue;
+                        }
+
+                        const std::string name = kv.first.as<std::string>();
+                        names.insert(name);
+                        if (!kv.second.is<sol::table>()) {
+                            log::lua.error("SocketsComponent:set_sockets expects {{position, rotation}} for '{}'",
+                                           name);
+                            continue;
+                        }
+
+                        const sol::table pose = kv.second.as<sol::table>();
+                        const Vector2 position = pose.get<sol::optional<Vector2>>("position").value_or(Vector2());
+                        const float rotation_deg = pose.get_or("rotation", 0.0f);
+                        self.add_socket(name, position, rotation_deg * DEG_TO_RAD);
+                    }
+                    self.retain_sockets(names);
+                },
+                "(sockets: table<string, { position: Vector2, rotation: number }>)");
+
+        bind_component_schema_map<SocketsComponent>(
+            lua, meta, schemas, "sockets", "add_sockets", "get_sockets", "set_sockets");
 
         // CameraComponent
         bind_usertype<CameraComponent>(lua, meta, Bases<Component>{})

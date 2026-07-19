@@ -9,6 +9,7 @@ namespace hob {
 
     namespace component_priority {
         constexpr int CP_INPUT = -100;
+        constexpr int CP_SOCKETS = -50;
         constexpr int CP_DEFAULT = 0;
     } // namespace component_priority
 
