@@ -222,23 +222,23 @@ end
 -- Wrap spawn so a prefab name resolves to a fully-built entity (spawn_entity_c is the raw C++ spawn).
 local spawn_entity_c = EntitySpawner.spawn_entity_c
 
----@param name string
+---@param prefab_name string
 ---@param position? Vector2
 ---@param rotation_deg? number
 ---@param scale? Vector2
 ---@return Entity|nil
-EntitySpawner.spawn_entity = function(name, position, rotation_deg, scale)
-    local prefab = _G.__entity_prefab_registry[name]
+EntitySpawner.spawn_entity = function(prefab_name, position, rotation_deg, scale)
+    local prefab = _G.__entity_prefab_registry[prefab_name]
     if not prefab then
-        Log.error("EntitySpawner.spawn_entity: prefab '" .. name .. "' is not registered")
+        Log.error("EntitySpawner.spawn_entity: prefab '" .. prefab_name .. "' is not registered")
         return nil
     end
 
     local entity = spawn_entity_c()
-    entity:set_prefab_name(name)
+    entity:set_prefab_name(prefab_name)
 
     apply_prefab(entity, prefab)
-    _G.__entity_prefab_by_id[entity:get_id()] = name
+    _G.__entity_prefab_by_id[entity:get_id()] = prefab_name
 
     local transform = entity:get_transform()
     transform:set_position(position or Vector2())
