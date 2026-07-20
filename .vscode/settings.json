@@ -44,6 +44,9 @@
         "undefined-global",
         "undefined-field",
         "duplicate-set-field",
+        "duplicate-doc-field",
+        "duplicate-doc-param",
+        "duplicate-doc-alias",
         "need-check-nil",
         "deprecated",
         "cast-local-type"

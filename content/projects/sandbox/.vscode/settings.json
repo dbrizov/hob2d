@@ -11,13 +11,16 @@
     "Lua.hint.enable": true,
     "Lua.workspace.checkThirdParty": false,
     "Lua.workspace.library": [
-        "${workspaceFolder}/../../engine/scripts/meta"
+        "../../engine/scripts"
     ],
     "Lua.diagnostics.disable": [
         "lowercase-global",
         "undefined-global",
         "undefined-field",
         "duplicate-set-field",
+        "duplicate-doc-field",
+        "duplicate-doc-param",
+        "duplicate-doc-alias",
         "need-check-nil",
         "deprecated",
         "cast-local-type"
