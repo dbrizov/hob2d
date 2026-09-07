@@ -399,6 +399,58 @@ function Editor.remove_prefab_section(name, key, is_lua)
     return removed
 end
 
+---@param path string
+---@return string|nil
+function Editor.get_prefab_name_for_file(path)
+    return __def_name_from_file(path, FileExtension.PREFAB)
+end
+
+---@param path string
+---@return string|nil reason, nil when a prefab may be created at this path
+function Editor.get_prefab_create_error(path)
+    local name = Editor.get_prefab_name_for_file(path)
+    local is_registered = name ~= nil and _G.__entity_prefab_registry[name] ~= nil
+
+    return Editor.get_definition_create_error(DefRegistry.ENTITIES, path, FileExtension.PREFAB, is_registered)
+end
+
+local function merge_section(section, overrides)
+    for field, value in pairs(overrides) do
+        if value == None then
+            section[field] = nil
+        else
+            section[field] = value
+        end
+    end
+end
+
+---@param entity_id integer
+---@return table|nil the source prefab's definition with the instance's overrides folded in
+function Editor.create_prefab_def_from_entity(entity_id)
+    local inst = _G.__scene_instance_by_entity_id[entity_id]
+    if inst == nil then
+        Log.error("Editor.create_prefab_def_from_entity: entity " .. tostring(entity_id) .. " is not a scene instance")
+        return nil
+    end
+
+    local source = get_prefab_def(inst.prefab)
+    if source == nil then
+        return nil
+    end
+
+    local def = Editor.copy_def_table(source)
+
+    for key, section in pairs(inst[SceneKey.CPP_OVERRIDES] or {}) do
+        merge_section(get_or_create(def, key), section)
+    end
+
+    for class_name, fields in pairs(inst[SceneKey.LUA_OVERRIDES] or {}) do
+        merge_section(get_or_create(get_or_create(def, PrefabKey.LUA_FIELDS), class_name), fields)
+    end
+
+    return def
+end
+
 function Editor.rebind_prefab_defs()
     local rebound = false
 

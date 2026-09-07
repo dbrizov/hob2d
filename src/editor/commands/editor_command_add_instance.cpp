@@ -3,9 +3,10 @@
 #include <utility>
 
 namespace hob::editor {
-    EditorCommandAddInstance::EditorCommandAddInstance(std::string label, sol::table instance)
+    EditorCommandAddInstance::EditorCommandAddInstance(std::string label, sol::table instance, int32_t index)
         : EditorCommand(std::move(label))
-        , m_instance(std::move(instance)) {}
+        , m_instance(std::move(instance))
+        , m_index(index) {}
 
     void EditorCommandAddInstance::undo(Editor& editor) {
         m_index = remove_instance(editor, m_instance_id);

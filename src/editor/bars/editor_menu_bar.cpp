@@ -10,6 +10,7 @@
 namespace hob::editor {
     void EditorMenuBar::draw(Editor& editor) {
         if (begin_menu("File")) {
+            action_menu_item(editor, EditorActionId::NewPrefab);
             action_menu_item(editor, EditorActionId::NewScene);
 
             const std::vector<std::string> scene_names = editor.get_scene_names();
@@ -34,6 +35,7 @@ namespace hob::editor {
             action_menu_item(editor, EditorActionId::Redo);
             action_menu_item(editor, EditorActionId::DuplicateSelection);
             action_menu_item(editor, EditorActionId::DeleteSelection);
+            action_menu_item(editor, EditorActionId::CreatePrefabFromSelection);
             end_menu();
         }
 

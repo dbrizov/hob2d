@@ -80,6 +80,21 @@ namespace hob::editor {
                     },
             },
             {
+                .id = EditorActionId::CreatePrefabFromSelection,
+                .label = "Create Prefab from Selection...",
+                .chord = ImGuiKey_None,
+                .context = EditorActionContext::Global,
+                .is_enabled =
+                    [](const Editor& editor) {
+                        return can_create_prefab_from_selection(editor);
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        show_create_prefab_from_selection_dialog(editor);
+                    },
+            },
+            {
                 .id = EditorActionId::Play,
                 .label = "Play",
                 .chord = ImGuiKey_F5,
@@ -267,6 +282,21 @@ namespace hob::editor {
                 .run =
                     [](Editor& editor) {
                         editor.get_assets().request_rebuild();
+                    },
+            },
+            {
+                .id = EditorActionId::NewPrefab,
+                .label = "New Prefab...",
+                .chord = ImGuiKey_None,
+                .context = EditorActionContext::Global,
+                .is_enabled =
+                    [](const Editor& editor) {
+                        return can_new_prefab(editor);
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        show_new_prefab_dialog(editor);
                     },
             },
             {

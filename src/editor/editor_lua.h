@@ -82,6 +82,12 @@ namespace hob::editor {
         constexpr const char* ADD_PREFAB_SECTION = "add_prefab_section";
         constexpr const char* REMOVE_PREFAB_SECTION = "remove_prefab_section";
         constexpr const char* RESPAWN_PREFAB_INSTANCES = "respawn_prefab_instances";
+        constexpr const char* GET_PREFAB_NAME_FOR_FILE = "get_prefab_name_for_file";
+        constexpr const char* GET_PREFAB_CREATE_ERROR = "get_prefab_create_error";
+        constexpr const char* CREATE_PREFAB_DEF_FROM_ENTITY = "create_prefab_def_from_entity";
+        constexpr const char* SERIALIZE_PREFAB_DEF = "serialize_prefab_def";
+        constexpr const char* REPOINT_INSTANCE_DEF = "repoint_instance_def";
+        constexpr const char* GET_INSTANCE_INDEX = "get_instance_index";
     } // namespace editor_func
 
     sol::protected_function get_editor_func(Engine& engine, const char* name);

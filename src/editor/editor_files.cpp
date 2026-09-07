@@ -3,12 +3,18 @@
 #include <filesystem>
 #include <format>
 #include <fstream>
+#include <functional>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <system_error>
 #include <utility>
+#include <vector>
 
+#include "commands/editor_command_add_instance.h"
+#include "commands/editor_command_composite.h"
+#include "commands/editor_command_remove_instance.h"
 #include "editor.h"
 #include "editor_file_dialog.h"
 #include "editor_lua.h"
@@ -22,13 +28,38 @@
 
 namespace hob::editor {
     namespace {
-        constexpr const char* SCENES_FOLDER = "scenes";
+        struct EditorDefinitionFileKind {
+            const char* noun;
+            const char* filter_name;
+            const char* extension;
+            const char* create_error_title;
+            const char* name_for_file_func;
+            const char* create_error_func;
+        };
 
-        constexpr const char* SCENE_FILE_FILTER_NAME = "Scene";
+        constexpr EditorDefinitionFileKind SCENE_FILE_KIND{
+            .noun = "scene",
+            .filter_name = "Scene",
+            .extension = file_extension::SCENE,
+            .create_error_title = "Cannot Create Scene",
+            .name_for_file_func = editor_func::GET_SCENE_NAME_FOR_FILE,
+            .create_error_func = editor_func::GET_SCENE_CREATE_ERROR,
+        };
 
-        constexpr const char* SCENE_CREATE_ERROR_TITLE = "Cannot Create Scene";
+        constexpr EditorDefinitionFileKind PREFAB_FILE_KIND{
+            .noun = "prefab",
+            .filter_name = "Prefab",
+            .extension = file_extension::PREFAB,
+            .create_error_title = "Cannot Create Prefab",
+            .name_for_file_func = editor_func::GET_PREFAB_NAME_FOR_FILE,
+            .create_error_func = editor_func::GET_PREFAB_CREATE_ERROR,
+        };
+
         constexpr const char* NEW_SCENE_DIALOG_TITLE = "New Scene";
         constexpr const char* SAVE_SCENE_AS_DIALOG_TITLE = "Save Scene As";
+        constexpr const char* NEW_PREFAB_DIALOG_TITLE = "New Prefab";
+        constexpr const char* CREATE_PREFAB_DIALOG_TITLE = "Create Prefab from Selection";
+        constexpr const char* CREATE_PREFAB_COMMAND_LABEL = "Create Prefab";
 
         bool write_file(const std::filesystem::path& path, const std::string& text) {
             std::ofstream out(path, std::ios::binary | std::ios::trunc);
@@ -90,52 +121,105 @@ namespace hob::editor {
         }
 
         // The dialog filter spells extensions without the leading dot.
-        std::string get_scene_file_filter_pattern() {
-            return std::string(std::string_view(file_extension::SCENE).substr(1));
+        std::string get_file_filter_pattern(const EditorDefinitionFileKind& kind) {
+            return std::string(std::string_view(kind.extension).substr(1));
         }
 
-        std::filesystem::path get_default_scene_folder(Editor& editor) {
+        std::filesystem::path get_default_folder() {
+            const std::filesystem::path& assets_root = PathUtils::get_project_assets_root();
+            return std::filesystem::exists(assets_root) ? assets_root : PathUtils::get_project_scripts_root();
+        }
+
+        std::filesystem::path get_open_scene_folder(Editor& editor) {
             const sol::object file =
                 editor_call(editor.get_engine(), editor_func::GET_SCENE_FILE, editor.get_current_scene());
             if (file.is<std::string>()) {
                 return std::filesystem::path(file.as<std::string>()).parent_path();
             }
 
-            const std::filesystem::path assets_root = PathUtils::get_project_assets_root();
-            const std::filesystem::path scenes_folder = assets_root / SCENES_FOLDER;
-            if (std::filesystem::exists(scenes_folder)) {
-                return scenes_folder;
-            }
-
-            return std::filesystem::exists(assets_root) ? assets_root : PathUtils::get_project_scripts_root();
+            return get_default_folder();
         }
 
-        EditorFileDialogConfig make_scene_file_dialog_config(Editor& editor, const char* title) {
+        EditorFileDialogConfig make_file_dialog_config(Editor& editor,
+                                                       const EditorDefinitionFileKind& kind,
+                                                       const char* title,
+                                                       std::filesystem::path default_location) {
             return {
                 .type = EditorFileDialogType::SaveFile,
                 .title = title,
-                .filters = {{.name = SCENE_FILE_FILTER_NAME, .pattern = get_scene_file_filter_pattern()}},
-                .default_location = get_default_scene_folder(editor),
-                .required_suffix = file_extension::SCENE,
+                .filters = {{.name = kind.filter_name, .pattern = get_file_filter_pattern(kind)}},
+                .default_location = std::move(default_location),
+                .required_suffix = kind.extension,
                 .parent_window = editor.get_engine().get_main_window().get_window(),
             };
         }
 
-        void report_scene_create_error(Editor& editor, const std::filesystem::path& path, const std::string& reason) {
-            log::editor.error("Cannot create a scene at '{}' because {}", path.string(), reason);
+        void report_create_error(Editor& editor,
+                                 const EditorDefinitionFileKind& kind,
+                                 const std::filesystem::path& path,
+                                 const std::string& reason) {
+            log::editor.error("Cannot create a {} at '{}' because {}", kind.noun, path.string(), reason);
 
             editor.get_modal().open({
-                .title = SCENE_CREATE_ERROR_TITLE,
-                .message = std::format("Cannot create a scene at '{}'.", path.string()),
+                .title = kind.create_error_title,
+                .message = std::format("Cannot create a {} at '{}'.", kind.noun, path.string()),
                 .reason = reason,
                 .buttons = {.confirm = "OK"},
             });
         }
 
-        std::string get_scene_name_for_file(Engine& engine, const std::filesystem::path& path) {
-            const sol::object name = editor_call(engine, editor_func::GET_SCENE_NAME_FOR_FILE, path.string());
+        std::string get_definition_name_for_file(Engine& engine,
+                                                 const EditorDefinitionFileKind& kind,
+                                                 const std::filesystem::path& path) {
+            const sol::object name = editor_call(engine, kind.name_for_file_func, path.string());
 
             return name.is<std::string>() ? name.as<std::string>() : std::string();
+        }
+
+        std::optional<std::string> get_definition_create_error(const Editor& editor,
+                                                               const EditorDefinitionFileKind& kind,
+                                                               const std::filesystem::path& path) {
+            if (!is_under_a_scanned_definition_root(path)) {
+                return std::format("a {} must live under {}", kind.noun, describe_scanned_definition_roots());
+            }
+
+            Engine& engine = editor.get_engine();
+            if (!get_editor_func(engine, kind.create_error_func).valid()) {
+                return std::format("{} is unavailable", kind.create_error_func);
+            }
+
+            const sol::object result = editor_call(engine, kind.create_error_func, path.string());
+            if (result.is<std::string>()) {
+                return result.as<std::string>();
+            }
+
+            return std::nullopt;
+        }
+
+        std::string create_definition_file(Editor& editor,
+                                           const EditorDefinitionFileKind& kind,
+                                           const std::filesystem::path& path,
+                                           const std::function<sol::object(const std::string& name)>& serialize) {
+            const std::optional<std::string> reason = get_definition_create_error(editor, kind, path);
+            if (reason.has_value()) {
+                report_create_error(editor, kind, path, *reason);
+                return std::string();
+            }
+
+            const std::string name = get_definition_name_for_file(editor.get_engine(), kind, path);
+            if (name.empty()) {
+                log::editor.error("'{}' does not name a {}", path.string(), kind.noun);
+                return std::string();
+            }
+
+            const sol::object source = serialize(name);
+            if (!source.is<std::string>() || !write_file(path, source.as<std::string>())) {
+                return std::string();
+            }
+
+            log::editor.info("Created {} '{}' in '{}'", kind.noun, name, path.string());
+
+            return name;
         }
 
         void reload_after_write(Engine& engine) {
@@ -354,7 +438,8 @@ namespace hob::editor {
     }
 
     void show_new_scene_dialog(Editor& editor) {
-        EditorFileDialogConfig config = make_scene_file_dialog_config(editor, NEW_SCENE_DIALOG_TITLE);
+        EditorFileDialogConfig config =
+            make_file_dialog_config(editor, SCENE_FILE_KIND, NEW_SCENE_DIALOG_TITLE, get_default_folder());
         config.on_pick = [&editor](const std::filesystem::path& path) {
             new_scene(editor, path);
         };
@@ -363,7 +448,8 @@ namespace hob::editor {
     }
 
     void show_save_scene_as_dialog(Editor& editor) {
-        EditorFileDialogConfig config = make_scene_file_dialog_config(editor, SAVE_SCENE_AS_DIALOG_TITLE);
+        EditorFileDialogConfig config =
+            make_file_dialog_config(editor, SCENE_FILE_KIND, SAVE_SCENE_AS_DIALOG_TITLE, get_open_scene_folder(editor));
         config.on_pick = [&editor](const std::filesystem::path& path) {
             save_scene_as(editor, path);
         };
@@ -372,72 +458,32 @@ namespace hob::editor {
     }
 
     std::optional<std::string> get_scene_create_error(const Editor& editor, const std::filesystem::path& path) {
-        if (!is_under_a_scanned_definition_root(path)) {
-            return std::format("a scene must live under {}", describe_scanned_definition_roots());
-        }
-
-        Engine& engine = editor.get_engine();
-        if (!get_editor_func(engine, editor_func::GET_SCENE_CREATE_ERROR).valid()) {
-            return std::format("{} is unavailable", editor_func::GET_SCENE_CREATE_ERROR);
-        }
-
-        const sol::object result = editor_call(engine, editor_func::GET_SCENE_CREATE_ERROR, path.string());
-        if (result.is<std::string>()) {
-            return result.as<std::string>();
-        }
-
-        return std::nullopt;
+        return get_definition_create_error(editor, SCENE_FILE_KIND, path);
     }
 
     void new_scene(Editor& editor, const std::filesystem::path& path) {
-        const std::optional<std::string> reason = get_scene_create_error(editor, path);
-        if (reason.has_value()) {
-            report_scene_create_error(editor, path, *reason);
-            return;
-        }
-
         Engine& engine = editor.get_engine();
-        const std::string scene_name = get_scene_name_for_file(engine, path);
+
+        const std::string scene_name =
+            create_definition_file(editor, SCENE_FILE_KIND, path, [&engine](const std::string& name) {
+                return editor_call(engine, editor_func::SERIALIZE_NEW_SCENE, name);
+            });
         if (scene_name.empty()) {
-            log::editor.error("'{}' does not name a scene", path.string());
             return;
         }
-
-        const sol::object source = editor_call(engine, editor_func::SERIALIZE_NEW_SCENE, scene_name);
-        if (!source.is<std::string>()) {
-            return;
-        }
-
-        if (!write_file(path, source.as<std::string>())) {
-            return;
-        }
-
-        log::editor.info("Created scene '{}' in '{}'", scene_name, path.string());
 
         publish_new_scene(editor, scene_name);
     }
 
     void save_scene_as(Editor& editor, const std::filesystem::path& path) {
-        const std::optional<std::string> reason = get_scene_create_error(editor, path);
-        if (reason.has_value()) {
-            report_scene_create_error(editor, path, *reason);
-            return;
-        }
-
         Engine& engine = editor.get_engine();
         const std::string source_scene_name = editor.get_current_scene();
-        const std::string scene_name = get_scene_name_for_file(engine, path);
+
+        const std::string scene_name = create_definition_file(
+            editor, SCENE_FILE_KIND, path, [&engine, &source_scene_name](const std::string& name) {
+                return editor_call(engine, editor_func::SERIALIZE_SCENE, source_scene_name, name);
+            });
         if (scene_name.empty()) {
-            log::editor.error("'{}' does not name a scene", path.string());
-            return;
-        }
-
-        const sol::object source = editor_call(engine, editor_func::SERIALIZE_SCENE, source_scene_name, scene_name);
-        if (!source.is<std::string>()) {
-            return;
-        }
-
-        if (!write_file(path, source.as<std::string>())) {
             return;
         }
 
@@ -445,8 +491,103 @@ namespace hob::editor {
         // rather than the in-memory overrides, which now belong to the new file.
         editor_call(engine, editor_func::MARK_SCENE_SAVED);
 
-        log::editor.info("Saved scene '{}' as '{}' in '{}'", source_scene_name, scene_name, path.string());
+        log::editor.info("Saved scene '{}' as '{}'", source_scene_name, scene_name);
 
         publish_new_scene(editor, scene_name);
+    }
+
+    bool can_new_prefab(const Editor& editor) {
+        return editor.get_state() == WorldState::Stopped;
+    }
+
+    bool can_create_prefab_from_selection(const Editor& editor) {
+        const EditorSelection& selection = editor.get_selection();
+        if (editor.get_state() != WorldState::Stopped || selection.ids.size() != 1) {
+            return false;
+        }
+
+        return get_instance_id_of_entity(editor.get_engine(), selection.primary()) != INVALID_EDITOR_INSTANCE_ID;
+    }
+
+    void show_new_prefab_dialog(Editor& editor) {
+        EditorFileDialogConfig config =
+            make_file_dialog_config(editor, PREFAB_FILE_KIND, NEW_PREFAB_DIALOG_TITLE, get_default_folder());
+        config.on_pick = [&editor](const std::filesystem::path& path) {
+            new_prefab(editor, path);
+        };
+
+        editor.get_file_dialog().open(std::move(config));
+    }
+
+    void show_create_prefab_from_selection_dialog(Editor& editor) {
+        EditorFileDialogConfig config =
+            make_file_dialog_config(editor, PREFAB_FILE_KIND, CREATE_PREFAB_DIALOG_TITLE, get_default_folder());
+        config.on_pick = [&editor](const std::filesystem::path& path) {
+            create_prefab_from_selection(editor, path);
+        };
+
+        editor.get_file_dialog().open(std::move(config));
+    }
+
+    std::optional<std::string> get_prefab_create_error(const Editor& editor, const std::filesystem::path& path) {
+        return get_definition_create_error(editor, PREFAB_FILE_KIND, path);
+    }
+
+    void new_prefab(Editor& editor, const std::filesystem::path& path) {
+        Engine& engine = editor.get_engine();
+
+        const std::string prefab_name =
+            create_definition_file(editor, PREFAB_FILE_KIND, path, [&engine](const std::string& name) {
+                return editor_call(engine, editor_func::SERIALIZE_NEW_PREFAB, name);
+            });
+        if (prefab_name.empty()) {
+            return;
+        }
+
+        reload_after_write(engine);
+        editor.get_selection().select_definition({.registry = def_registry::ENTITIES, .name = prefab_name});
+    }
+
+    void create_prefab_from_selection(Editor& editor, const std::filesystem::path& path) {
+        if (!can_create_prefab_from_selection(editor)) {
+            return;
+        }
+
+        Engine& engine = editor.get_engine();
+        const EntityId entity_id = editor.get_selection().primary();
+        const EditorInstanceId instance_id = get_instance_id_of_entity(engine, entity_id);
+
+        const sol::object def = editor_call(engine, editor_func::CREATE_PREFAB_DEF_FROM_ENTITY, entity_id);
+        if (!def.is<sol::table>()) {
+            return;
+        }
+
+        const std::string prefab_name =
+            create_definition_file(editor, PREFAB_FILE_KIND, path, [&engine, &def](const std::string& name) {
+                return editor_call(engine, editor_func::SERIALIZE_PREFAB_DEF, def, name);
+            });
+        if (prefab_name.empty()) {
+            return;
+        }
+
+        // The reload is what registers the new prefab, so the instance can only be re-pointed after it.
+        reload_after_write(engine);
+
+        const sol::object old_instance = editor_call(engine, editor_func::GET_INSTANCE_DEF, instance_id);
+        const sol::object new_instance =
+            editor_call(engine, editor_func::REPOINT_INSTANCE_DEF, instance_id, prefab_name);
+        const sol::object index = editor_call(engine, editor_func::GET_INSTANCE_INDEX, instance_id);
+        if (!old_instance.is<sol::table>() || !new_instance.is<sol::table>() || !index.is<int32_t>()) {
+            return;
+        }
+
+        std::vector<std::unique_ptr<EditorCommand>> commands;
+        commands.push_back(std::make_unique<EditorCommandRemoveInstance>(
+            CREATE_PREFAB_COMMAND_LABEL, old_instance.as<sol::table>(), instance_id));
+        commands.push_back(std::make_unique<EditorCommandAddInstance>(
+            CREATE_PREFAB_COMMAND_LABEL, new_instance.as<sol::table>(), index.as<int32_t>()));
+
+        editor.get_commands().push(
+            editor, std::make_unique<EditorCommandComposite>(CREATE_PREFAB_COMMAND_LABEL, std::move(commands)));
     }
 } // namespace hob::editor

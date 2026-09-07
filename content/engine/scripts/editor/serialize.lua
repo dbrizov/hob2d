@@ -596,3 +596,10 @@ end
 function Editor.serialize_new_prefab(name)
     return serialize_prefab_def(EMPTY_PREFAB, name)
 end
+
+---@param def table
+---@param name string
+---@return string
+function Editor.serialize_prefab_def(def, name)
+    return serialize_prefab_def(def, name)
+end

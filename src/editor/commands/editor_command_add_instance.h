@@ -16,7 +16,7 @@ namespace hob::editor {
         int32_t m_index = APPEND_INSTANCE_INDEX;
 
     public:
-        EditorCommandAddInstance(std::string label, sol::table instance);
+        EditorCommandAddInstance(std::string label, sol::table instance, int32_t index = APPEND_INSTANCE_INDEX);
 
         void undo(Editor& editor) override;
         void redo(Editor& editor) override;

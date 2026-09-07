@@ -71,25 +71,9 @@ end
 ---@return string|nil reason, nil when a scene may be created at this path
 function Editor.get_scene_create_error(path)
     local name = __scene_name_from_file(path)
-    if name == nil then
-        return "'" .. path .. "' is not a '" .. FileExtension.SCENE .. "' file"
-    end
+    local is_registered = name ~= nil and _G.__scene_registry[name] ~= nil
 
-    -- The name is written straight into "DefineScene.<name>", so it has to parse as an identifier.
-    if not name:match("^[%a_][%w_]*$") then
-        return "'" .. path .. "' derives the scene name '" .. name .. "', which is not a valid Lua name"
-    end
-
-    local owner = Editor.get_scene_file(name)
-    if owner ~= nil then
-        return "scene '" .. name .. "' is already declared in '" .. owner .. "'"
-    end
-
-    if _G.__scene_registry[name] ~= nil then
-        return "scene '" .. name .. "' is already registered"
-    end
-
-    return nil
+    return Editor.get_definition_create_error(DefRegistry.SCENES, path, FileExtension.SCENE, is_registered)
 end
 
 local function get_or_create(owner, key)
@@ -267,22 +251,14 @@ local function reindex_instances(scene_def)
     scene_state.instance_count = #scene_def.entities
 end
 
--- Shares userdata leaves and asset refs rather than cloning them: an override is written by assigning
--- a fresh value into the table, never by mutating the one already there, and cloning an asset ref
--- would drop the metatable that names its registry.
-local function copy_instance_table(source)
-    local copy = {}
-    for key, value in pairs(source) do
-        if type(key) ~= "string" or key:sub(1, 2) ~= "__" then
-            if type(value) == "table" and getmetatable(value) == nil then
-                copy[key] = copy_instance_table(value)
-            else
-                copy[key] = value
-            end
+local function find_instance_index(scene_def, inst)
+    for index, candidate in ipairs(scene_def.entities) do
+        if candidate == inst then
+            return index
         end
     end
 
-    return copy
+    return nil
 end
 
 ---@param prefab_name string
@@ -303,7 +279,35 @@ function Editor.copy_instance_def(instance_id)
         return nil
     end
 
-    return copy_instance_table(inst)
+    return Editor.copy_def_table(inst)
+end
+
+---@param instance_id integer
+---@param prefab_name string
+---@return table|nil a copy of the instance def pointing at the prefab, with its overrides dropped
+function Editor.repoint_instance_def(instance_id, prefab_name)
+    local copy = Editor.copy_instance_def(instance_id)
+    if copy == nil then
+        return nil
+    end
+
+    copy.prefab = prefab_name
+    copy[SceneKey.CPP_OVERRIDES] = nil
+    copy[SceneKey.LUA_OVERRIDES] = nil
+
+    return copy
+end
+
+---@param instance_id integer
+---@return integer|nil
+function Editor.get_instance_index(instance_id)
+    local scene_def = get_open_scene_def()
+    local inst = scene_state.entity_def_by_instance_id[instance_id]
+    if scene_def == nil or inst == nil then
+        return nil
+    end
+
+    return find_instance_index(scene_def, inst)
 end
 
 ---@param inst table
@@ -363,14 +367,7 @@ function Editor.remove_instance(instance_id)
         return nil
     end
 
-    local index = nil
-    for candidate_index, candidate in ipairs(scene_def.entities) do
-        if candidate == inst then
-            index = candidate_index
-            break
-        end
-    end
-
+    local index = find_instance_index(scene_def, inst)
     if index == nil then
         return nil
     end
