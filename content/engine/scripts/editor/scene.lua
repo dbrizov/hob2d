@@ -153,6 +153,100 @@ function Editor.set_lua_instance_field(entity_id, class_name, field, value)
     end
 end
 
+local function get_instance_of_entity(entity_id)
+    local instance_id = scene_state.instance_id_by_entity_id[entity_id]
+    return instance_id and scene_state.entity_def_by_instance_id[instance_id] or nil
+end
+
+---@param entity_id integer
+---@param component_key string
+---@param field string
+---@param is_lua boolean
+---@return any the override in the setter's domain (radians for rotation); nil when not overridden
+function Editor.get_instance_override(entity_id, component_key, field, is_lua)
+    local inst = get_instance_of_entity(entity_id)
+    if not Editor.is_instance_field_overridden(inst, component_key, field, is_lua) then
+        return nil
+    end
+
+    if is_lua then
+        return inst[SceneKey.LUA_OVERRIDES][component_key][field]
+    end
+
+    if component_key == TransformKey.SECTION then
+        local pose = inst[SceneKey.POSE_OVERRIDES]
+        if field == TransformKey.ROTATION and pose ~= nil and pose[TransformKey.ROTATION_DEG] ~= nil then
+            return pose[TransformKey.ROTATION_DEG] * Math.DEG_TO_RAD
+        end
+
+        if pose ~= nil and pose[field] ~= nil then
+            return pose[field]
+        end
+    end
+
+    return inst[SceneKey.CPP_OVERRIDES][component_key][field]
+end
+
+local function remove_section_field(inst, overrides_key, component_key, field)
+    local overrides = inst[overrides_key]
+    local section = overrides ~= nil and overrides[component_key] or nil
+    if section == nil or section[field] == nil then
+        return false
+    end
+
+    section[field] = nil
+    if next(section) == nil then
+        overrides[component_key] = nil
+    end
+    if next(overrides) == nil then
+        inst[overrides_key] = nil
+    end
+
+    return true
+end
+
+---@param entity_id integer
+---@param component_key string
+---@param field string
+---@param is_lua boolean
+---@return boolean whether an override was removed; the live entity then takes the prefab's value
+function Editor.clear_instance_field(entity_id, component_key, field, is_lua)
+    local inst = get_instance_of_entity(entity_id)
+    if inst == nil then
+        return false
+    end
+
+    local removed = false
+    if is_lua then
+        removed = remove_section_field(inst, SceneKey.LUA_OVERRIDES, component_key, field)
+    else
+        if component_key == TransformKey.SECTION then
+            local pose = inst[SceneKey.POSE_OVERRIDES]
+            local pose_field = field == TransformKey.ROTATION and TransformKey.ROTATION_DEG or field
+            if pose ~= nil and pose[pose_field] ~= nil then
+                pose[pose_field] = nil
+                if next(pose) == nil then
+                    inst[SceneKey.POSE_OVERRIDES] = nil
+                end
+                removed = true
+            end
+        end
+
+        if not removed then
+            removed = remove_section_field(inst, SceneKey.CPP_OVERRIDES, component_key, field)
+        end
+    end
+
+    if not removed then
+        return false
+    end
+
+    Editor.mark_scene_dirty()
+    Editor.apply_prefab_field_to_entity(entity_id, component_key, field, is_lua)
+
+    return true
+end
+
 function Editor.clear_world()
     scene_state.instance_count = 0
     scene_state.instance_id_by_index = {}

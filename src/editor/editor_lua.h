@@ -29,6 +29,7 @@ namespace hob::editor {
         constexpr const char* FILE = "file";
         constexpr const char* READ_ONLY = "read_only";
         constexpr const char* REMOVABLE = "removable";
+        constexpr const char* OVERRIDDEN = "overridden";
         constexpr const char* SCENE = "scene";
         constexpr const char* COUNT = "count";
     } // namespace query_key
@@ -91,6 +92,10 @@ namespace hob::editor {
         constexpr const char* REPOINT_INSTANCE_DEF = "repoint_instance_def";
         constexpr const char* GET_INSTANCE_INDEX = "get_instance_index";
         constexpr const char* GET_PREFAB_REFERRERS = "get_prefab_referrers";
+        constexpr const char* GET_PREFAB_FIELD = "get_prefab_field";
+        constexpr const char* REMOVE_PREFAB_FIELD = "remove_prefab_field";
+        constexpr const char* GET_INSTANCE_OVERRIDE = "get_instance_override";
+        constexpr const char* CLEAR_INSTANCE_FIELD = "clear_instance_field";
         constexpr const char* GET_UNIQUE_PREFAB_NAME = "get_unique_prefab_name";
     } // namespace editor_func
 

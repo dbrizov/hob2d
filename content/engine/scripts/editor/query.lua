@@ -694,7 +694,18 @@ function Editor.get_components(entity_id)
     end
 
     local schemas = _G.__component_schemas
+    local inst = _G.__scene_instance_by_entity_id[entity_id]
     local out = {}
+
+    local function mark_overridden(section)
+        for _, row in ipairs(section.fields) do
+            if Editor.is_instance_field_overridden(inst, section.name, row.name, section.is_lua) then
+                row.overridden = true
+            end
+        end
+
+        return section
+    end
 
     for _, key in ipairs(schemas.__order) do
         local schema = schemas[key]
@@ -703,21 +714,21 @@ function Editor.get_components(entity_id)
             if component ~= nil then
                 local fields = {}
                 append_schema_fields(fields, component, schema)
-                out[#out + 1] = {
+                out[#out + 1] = mark_overridden({
                     name = key,
                     is_lua = false,
                     fields = fields
-                }
+                })
             end
         end
     end
 
     for _, instance in ipairs(entity:get_lua_components()) do
-        out[#out + 1] = {
+        out[#out + 1] = mark_overridden({
             name = instance.class_name or "?",
             is_lua = true,
             fields = get_lua_component_fields(instance),
-        }
+        })
     end
 
     return out

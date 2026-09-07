@@ -186,6 +186,9 @@ namespace hob::editor {
     constexpr const char* INSPECTOR_FLOAT_FORMAT = "%.3f";
     constexpr ImGuiColorEditFlags INSPECTOR_COLOR_EDIT_FLAGS = ImGuiColorEditFlags_Float;
 
+    constexpr float INSPECTOR_OVERRIDE_BAR_WIDTH = 2.0f;
+    constexpr ImVec4 COLOR_INSPECTOR_OVERRIDE = COLOR_ACCENT;
+
     constexpr float INSPECTOR_HEADER_MENU_DOT_RADIUS = 1.5f;
     constexpr float INSPECTOR_HEADER_MENU_DOT_SPACING = 4.5f;
     constexpr ImVec2 INSPECTOR_HEADER_MENU_INSET{3.0f, 3.0f};

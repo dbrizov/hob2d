@@ -6,6 +6,7 @@
 #include <sol/sol.hpp>
 
 #include "editor_definition.h"
+#include "editor_field_target.h"
 
 namespace hob {
     class Engine;
@@ -41,4 +42,8 @@ namespace hob::editor {
                                        const std::string& prefab_name,
                                        const std::string& key,
                                        bool is_lua);
+
+    bool can_apply_to_prefab(const Editor& editor, const EditorFieldTarget& target);
+    void request_apply_to_prefab(Editor& editor, const EditorFieldTarget& target);
+    void request_revert_override(Editor& editor, const EditorFieldTarget& target);
 } // namespace hob::editor

@@ -82,63 +82,83 @@ local function for_each_instance_of_prefab(name, fn)
     end)
 end
 
-local function is_cpp_field_overridden(inst, component_key, field)
-    if inst == nil then
-        return false
+local function apply_cpp_field_to_entity(entity, def, component_key, field)
+    local schema = _G.__component_schemas[component_key]
+    local component = entity[schema.get](entity)
+    if component == nil then
+        return
     end
 
-    if component_key == TransformKey.SECTION then
-        local pose = inst[SceneKey.POSE_OVERRIDES]
-        local pose_field = field == TransformKey.ROTATION and TransformKey.ROTATION_DEG or field
-        if pose ~= nil and pose[pose_field] ~= nil then
-            return true
+    local value = __resolve_prefab_field_value(def[component_key], field, __get_component_defaults(component_key))
+    __call_component_setter(component, schema.setters[field], value)
+end
+
+local function get_probe_lua_value(name, class_name, field)
+    for _, section in ipairs(Editor.get_definition_sections(DefRegistry.ENTITIES, name) or {}) do
+        if section.is_lua and section.name == class_name then
+            for _, row in ipairs(section.fields) do
+                if row.name == field then
+                    return row.value
+                end
+            end
         end
     end
 
-    local cpp_overrides = inst[SceneKey.CPP_OVERRIDES]
-    local section = cpp_overrides ~= nil and cpp_overrides[component_key] or nil
-
-    return section ~= nil and section[field] ~= nil
+    return nil
 end
 
-local function is_lua_field_overridden(inst, class_name, field)
-    if inst == nil then
-        return false
+local function apply_lua_field_to_entity(entity, name, def, class_name, field)
+    local instance = entity:get_lua_component(class_name)
+    if instance == nil then
+        return
     end
 
-    local lua_overrides = inst[SceneKey.LUA_OVERRIDES]
-    local fields = lua_overrides ~= nil and lua_overrides[class_name] or nil
-
-    return fields ~= nil and fields[field] ~= nil
+    local lua_fields = def[PrefabKey.LUA_FIELDS]
+    local fields = lua_fields ~= nil and lua_fields[class_name] or nil
+    if fields ~= nil and fields[field] ~= nil then
+        instance[field] = unwrap_def(fields[field])
+    else
+        instance[field] = get_probe_lua_value(name, class_name, field)
+    end
 end
 
 local function push_cpp_field(name, def, component_key, field)
-    local schema = _G.__component_schemas[component_key]
-    local setter = schema.setters[field]
-    local defaults = __get_component_defaults(component_key)
-
     for_each_instance_of_prefab(name, function(entity, inst)
-        if not is_cpp_field_overridden(inst, component_key, field) then
-            local component = entity[schema.get](entity)
-            if component ~= nil then
-                __call_component_setter(component, setter,
-                    __resolve_prefab_field_value(def[component_key], field, defaults))
-            end
+        if not Editor.is_instance_field_overridden(inst, component_key, field, false) then
+            apply_cpp_field_to_entity(entity, def, component_key, field)
         end
     end)
 end
 
 local function push_lua_field(name, def, class_name, field)
-    local fields = def[PrefabKey.LUA_FIELDS][class_name]
-
     for_each_instance_of_prefab(name, function(entity, inst)
-        if not is_lua_field_overridden(inst, class_name, field) then
-            local instance = entity:get_lua_component(class_name)
-            if instance ~= nil then
-                instance[field] = unwrap_def(fields[field])
-            end
+        if not Editor.is_instance_field_overridden(inst, class_name, field, true) then
+            apply_lua_field_to_entity(entity, name, def, class_name, field)
         end
     end)
+end
+
+---@param entity_id integer
+---@param component_key string
+---@param field string
+---@param is_lua boolean
+function Editor.apply_prefab_field_to_entity(entity_id, component_key, field, is_lua)
+    local entity = EntitySpawner.get_entity(entity_id)
+    if not entity:is_valid() then
+        return
+    end
+
+    local name = _G.__entity_prefab_name_by_id[entity_id]
+    local def = name ~= nil and _G.__entity_prefab_registry[name] or nil
+    if def == nil then
+        return
+    end
+
+    if is_lua then
+        apply_lua_field_to_entity(entity, name, def, component_key, field)
+    else
+        apply_cpp_field_to_entity(entity, def, component_key, field)
+    end
 end
 
 local ROOT_FIELD_PUSHERS = {
@@ -204,6 +224,52 @@ function Editor.set_prefab_field(name, component_key, field, value)
     get_or_create(def, component_key)[field] = to_stored(value)
     mark_prefab_dirty(name, def)
     push_cpp_field(name, def, component_key, field)
+
+    return true
+end
+
+---@param name string
+---@param component_key string
+---@param field string
+---@param is_lua boolean
+---@return any the stored value; nil when the prefab does not declare the field
+function Editor.get_prefab_field(name, component_key, field, is_lua)
+    local def = get_prefab_def(name)
+    if def == nil then
+        return nil
+    end
+
+    local sections = is_lua and def[PrefabKey.LUA_FIELDS] or def
+    local section = sections ~= nil and sections[component_key] or nil
+
+    return section ~= nil and section[field] or nil
+end
+
+---@param name string
+---@param component_key string
+---@param field string
+---@param is_lua boolean
+---@return boolean
+function Editor.remove_prefab_field(name, component_key, field, is_lua)
+    local def = get_prefab_def(name)
+    if def == nil then
+        return false
+    end
+
+    local sections = is_lua and def[PrefabKey.LUA_FIELDS] or def
+    local section = sections ~= nil and sections[component_key] or nil
+    if section == nil or section[field] == nil then
+        return false
+    end
+
+    section[field] = nil
+    mark_prefab_dirty(name, def)
+
+    if is_lua then
+        push_lua_field(name, def, component_key, field)
+    else
+        push_cpp_field(name, def, component_key, field)
+    end
 
     return true
 end

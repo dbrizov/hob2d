@@ -21,6 +21,37 @@ function Editor.copy_def_table(source)
     return copy
 end
 
+---@param inst table|nil a scene instance def
+---@param component_key string schema key, or the class name when is_lua
+---@param field string
+---@param is_lua boolean
+---@return boolean
+function Editor.is_instance_field_overridden(inst, component_key, field, is_lua)
+    if inst == nil then
+        return false
+    end
+
+    if is_lua then
+        local lua_overrides = inst[SceneKey.LUA_OVERRIDES]
+        local fields = lua_overrides ~= nil and lua_overrides[component_key] or nil
+
+        return fields ~= nil and fields[field] ~= nil
+    end
+
+    if component_key == TransformKey.SECTION then
+        local pose = inst[SceneKey.POSE_OVERRIDES]
+        local pose_field = field == TransformKey.ROTATION and TransformKey.ROTATION_DEG or field
+        if pose ~= nil and pose[pose_field] ~= nil then
+            return true
+        end
+    end
+
+    local cpp_overrides = inst[SceneKey.CPP_OVERRIDES]
+    local section = cpp_overrides ~= nil and cpp_overrides[component_key] or nil
+
+    return section ~= nil and section[field] ~= nil
+end
+
 ---@param registry string
 ---@param path string
 ---@param extension string

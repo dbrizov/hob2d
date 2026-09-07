@@ -1,11 +1,7 @@
 DefineScene.arena = {
     entities = {
         { prefab = Entities.camera, pose_overrides = { position = Vector2(0.0, 0.0) } },
-        {
-            prefab = Entities.player,
-            pose_overrides = { position = Vector2(0.0, 0.0) },
-            cpp_overrides = { sprite = { material = Materials.psychedelic } },
-        },
+        { prefab = Entities.player, cpp_overrides = { sprite = { material = Materials.psychedelic } } },
         {
             prefab = Entities.enemy,
             pose_overrides = { position = Vector2(0.0, 4.0), rotation_deg = -90.0 },

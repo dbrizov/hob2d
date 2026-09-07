@@ -43,6 +43,9 @@ namespace hob::editor {
         constexpr const char* ADD_COMPONENT_PREVIEW = "Select...";
         constexpr const char* REMOVE_COMPONENT_LABEL = "Remove Component";
         constexpr const char* COMPONENT_MENU_POPUP_ID = "ComponentMenu";
+        constexpr const char* FIELD_MENU_POPUP_ID = "FieldMenu";
+        constexpr const char* APPLY_TO_PREFAB_LABEL = "Apply to Prefab";
+        constexpr const char* REVERT_TO_PREFAB_LABEL = "Revert to Prefab";
 
         template<typename T>
         T value_or(const sol::object& value, const T& fallback) {
@@ -104,11 +107,11 @@ namespace hob::editor {
             }
         }
 
-        void draw_field(Editor& editor,
-                        EditorDockInspectorPendingEdit& pending,
-                        const EditorFieldTarget& component_target,
-                        const std::string& component_label,
-                        const sol::table& field) {
+        void draw_field_widget(Editor& editor,
+                               EditorDockInspectorPendingEdit& pending,
+                               const EditorFieldTarget& component_target,
+                               const std::string& component_label,
+                               const sol::table& field) {
             const std::string name = field.get_or<std::string>(query_key::NAME, "?");
             const std::string label = to_display_label(name);
             const std::string type = field.get_or<std::string>(query_key::TYPE, "");
@@ -284,6 +287,64 @@ namespace hob::editor {
             }
 
             end_field();
+        }
+
+        void draw_override_bar(float row_top, float row_bottom) {
+            const float left = ImGui::GetWindowPos().x;
+            ImGui::GetWindowDrawList()->AddRectFilled(ImVec2(left, row_top),
+                                                      ImVec2(left + INSPECTOR_OVERRIDE_BAR_WIDTH, row_bottom),
+                                                      ImGui::GetColorU32(COLOR_INSPECTOR_OVERRIDE));
+        }
+
+        void draw_field_menu(
+            Editor& editor, const EditorFieldTarget& target, bool overridden, float row_top, float row_bottom) {
+            const ImVec2 row_min(ImGui::GetWindowPos().x, row_top);
+            const ImVec2 row_max(ImGui::GetWindowPos().x + ImGui::GetWindowWidth(), row_bottom);
+            if (ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(row_min, row_max) &&
+                ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
+                ImGui::OpenPopup(FIELD_MENU_POPUP_ID);
+            }
+
+            if (!begin_context_menu(FIELD_MENU_POPUP_ID)) {
+                return;
+            }
+
+            if (menu_item(APPLY_TO_PREFAB_LABEL, nullptr, overridden && can_apply_to_prefab(editor, target))) {
+                request_apply_to_prefab(editor, target);
+            }
+
+            if (menu_item(REVERT_TO_PREFAB_LABEL, nullptr, overridden)) {
+                request_revert_override(editor, target);
+            }
+
+            end_context_menu();
+        }
+
+        void draw_field(Editor& editor,
+                        EditorDockInspectorPendingEdit& pending,
+                        const EditorFieldTarget& component_target,
+                        const std::string& component_label,
+                        const sol::table& field) {
+            const std::string name = field.get_or<std::string>(query_key::NAME, "?");
+            const bool overridden = field.get_or(query_key::OVERRIDDEN, false);
+
+            ImGui::PushID(name.c_str());
+
+            const float row_top = ImGui::GetCursorScreenPos().y;
+            draw_field_widget(editor, pending, component_target, component_label, field);
+            const float row_bottom = ImGui::GetCursorScreenPos().y - ImGui::GetStyle().ItemSpacing.y;
+
+            if (overridden) {
+                draw_override_bar(row_top, row_bottom);
+            }
+
+            if (component_target.instance_id != INVALID_EDITOR_INSTANCE_ID) {
+                EditorFieldTarget target = component_target;
+                target.field = name;
+                draw_field_menu(editor, target, overridden, row_top, row_bottom);
+            }
+
+            ImGui::PopID();
         }
 
         void draw_remove_component_menu(Editor& editor, const EditorFieldTarget& target, const sol::table& component) {
