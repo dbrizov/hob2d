@@ -33,6 +33,11 @@ namespace hob {
             .constant("CPP_OVERRIDES", scene_key::CPP_OVERRIDES)
             .constant("LUA_OVERRIDES", scene_key::LUA_OVERRIDES);
 
+        bind_table(lua, meta, "PrefabKey")
+            .constant("TICKING", prefab_key::TICKING)
+            .constant("LUA_COMPONENTS", prefab_key::LUA_COMPONENTS)
+            .constant("LUA_FIELDS", prefab_key::LUA_FIELDS);
+
         bind_table(lua, meta, "TransformKey")
             .constant("SECTION", transform_key::SECTION)
             .constant("POSITION", transform_key::POSITION)

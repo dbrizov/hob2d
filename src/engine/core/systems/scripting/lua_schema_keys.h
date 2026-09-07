@@ -50,6 +50,12 @@ namespace hob {
         constexpr const char* LUA_OVERRIDES = "lua_overrides";
     } // namespace scene_key
 
+    namespace prefab_key {
+        constexpr const char* TICKING = "ticking";
+        constexpr const char* LUA_COMPONENTS = "lua_components";
+        constexpr const char* LUA_FIELDS = "lua_fields";
+    } // namespace prefab_key
+
     namespace transform_key {
         constexpr const char* SECTION = "transform";
         constexpr const char* POSITION = "position";

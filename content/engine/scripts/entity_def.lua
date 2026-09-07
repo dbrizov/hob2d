@@ -66,10 +66,34 @@ local function should_reapply_field(schema, field)
 end
 
 local function resolve_ticking(prefab)
-    if prefab.ticking == nil then
+    local ticking = prefab[PrefabKey.TICKING]
+    if ticking == nil then
         return false
     end
-    return prefab.ticking
+    return ticking
+end
+
+---@param entity Entity
+---@param fields_by_class table
+---@param context string
+function _G.__apply_lua_fields(entity, fields_by_class, context)
+    for class_name, fields in pairs(fields_by_class) do
+        local instance = entity:get_lua_component(class_name)
+        if instance == nil then
+            Log.error(context .. ": entity has no '" .. tostring(class_name) .. "' lua component")
+        else
+            for field, value in pairs(fields) do
+                instance[field] = unwrap_def(value)
+            end
+        end
+    end
+end
+
+local function apply_lua_fields(entity, prefab)
+    local lua_fields = prefab[PrefabKey.LUA_FIELDS]
+    if lua_fields then
+        __apply_lua_fields(entity, lua_fields, "Prefab lua_fields")
+    end
 end
 
 local function for_each_section(entity, prefab, accessor, fn)
@@ -112,11 +136,14 @@ local function apply_prefab(entity, prefab)
         end
     end)
 
-    if prefab.lua_components then
-        for _, entry in ipairs(prefab.lua_components) do
+    local lua_components = prefab[PrefabKey.LUA_COMPONENTS]
+    if lua_components then
+        for _, entry in ipairs(lua_components) do
             entity:add_lua_component(entry)
         end
     end
+
+    apply_lua_fields(entity, prefab)
 end
 
 local function resolve_field_value(section, field, defaults)
@@ -178,6 +205,8 @@ local function reapply_prefab(entity, prefab)
             end
         end
     end)
+
+    apply_lua_fields(entity, prefab)
 end
 
 function _G.__reapply_prefabs_to_spawned_entities()

@@ -601,7 +601,7 @@ local function build_prefab_sections(name, def)
     local root_fields = {}
 
     for _, key in ipairs(sorted_string_keys(def)) do
-        if key ~= "lua_components" and schemas[key] == nil then
+        if key ~= PrefabKey.LUA_COMPONENTS and key ~= PrefabKey.LUA_FIELDS and schemas[key] == nil then
             root_fields[#root_fields + 1] = to_definition_field(key, def[key], nil)
         end
     end

@@ -78,16 +78,7 @@ end
 ---@param entity Entity
 ---@param lua_overrides table
 function Scene.apply_lua_overrides(entity, lua_overrides)
-    for class_name, overrides in pairs(lua_overrides) do
-        local instance = entity:get_lua_component(class_name)
-        if instance == nil then
-            Log.error("Scene override: entity has no '" .. tostring(class_name) .. "' lua component")
-        else
-            for field, value in pairs(overrides) do
-                instance[field] = unwrap_def(value)
-            end
-        end
-    end
+    __apply_lua_fields(entity, lua_overrides, "Scene override")
 end
 
 local function apply_overrides(entity, inst)

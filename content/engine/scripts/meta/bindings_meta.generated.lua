@@ -32,6 +32,13 @@ DefRegistry = {}
 ---@field LUA_OVERRIDES string
 SceneKey = {}
 
+-- PrefabKey
+---@class PrefabKey
+---@field TICKING string
+---@field LUA_COMPONENTS string
+---@field LUA_FIELDS string
+PrefabKey = {}
+
 -- TransformKey
 ---@class TransformKey
 ---@field SECTION string
