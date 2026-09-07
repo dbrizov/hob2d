@@ -21,12 +21,20 @@ namespace hob {
         String
     };
 
-    enum ConsoleVariableFlags : uint32_t {
+    enum class ConsoleVariableFlags : uint32_t {
         None = 0,
         Archive = 1 << 0,
         ReadOnly = 1 << 1,
         Cheat = 1 << 2,
     };
+
+    constexpr ConsoleVariableFlags operator|(ConsoleVariableFlags a, ConsoleVariableFlags b) {
+        return static_cast<ConsoleVariableFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+    }
+
+    constexpr bool has_flag(ConsoleVariableFlags flags, ConsoleVariableFlags flag) {
+        return (static_cast<uint32_t>(flags) & static_cast<uint32_t>(flag)) != 0;
+    }
 
     template<typename T>
     std::string to_cvar_string(const T& value) {
@@ -64,7 +72,7 @@ namespace hob {
         std::string name;
         std::string help;
         ConsoleVariableType type = ConsoleVariableType::String;
-        uint32_t flags = None;
+        ConsoleVariableFlags flags = ConsoleVariableFlags::None;
 
         std::string value;
         std::string default_value;
@@ -95,7 +103,7 @@ namespace hob {
                            std::string_view help,
                            std::string_view default_value,
                            ConsoleVariableType type,
-                           ConsoleVariableFlags flags = None,
+                           ConsoleVariableFlags flags = ConsoleVariableFlags::None,
                            std::function<void(const ConsoleVariable&)> on_changed = {});
 
         const ConsoleCommand* find_command(std::string_view name) const;
@@ -169,7 +177,7 @@ namespace hob {
                            std::string_view help,
                            std::string_view default_value,
                            ConsoleVariableType type,
-                           ConsoleVariableFlags flags = None,
+                           ConsoleVariableFlags flags = ConsoleVariableFlags::None,
                            std::function<void(const ConsoleVariable&)> on_changed = {});
 
         const ConsoleCommand* find_command(std::string_view name) const;

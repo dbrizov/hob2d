@@ -275,7 +275,7 @@ namespace hob {
             return;
         }
 
-        if (cvar.flags & ReadOnly) {
+        if (has_flag(cvar.flags, ConsoleVariableFlags::ReadOnly)) {
             if (print_error) {
                 print_error(std::format("{} is read-only.", cvar.name));
             }
