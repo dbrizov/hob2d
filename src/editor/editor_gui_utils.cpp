@@ -23,6 +23,7 @@ namespace hob::editor {
         constexpr const char* COMBO_POPUP_ID = "##ComboPopup"; // The id ImGui hashes internally for a combo's popup.
         constexpr const char* BITMASK_POPUP_ID = "BitmaskPopup";
         constexpr const char* BITMASK_BUTTON_ID = "###BitmaskButton";
+        constexpr const char* HEADER_MENU_BUTTON_ID = "###HeaderMenuButton";
         constexpr const char* BITMASK_SEPARATOR = " | ";
         constexpr uint32_t FIELD_STRING_CAPACITY = 256;
 
@@ -282,6 +283,21 @@ namespace hob::editor {
         ImGui::EndMenu();
     }
 
+    bool begin_context_menu(const char* str_id) {
+        EditorStyleVarStack vars;
+        vars.push(ImGuiStyleVar_WindowPadding, BAR_POPUP_PADDING);
+
+        const bool open = ImGui::BeginPopup(str_id);
+
+        vars.pop();
+
+        return open;
+    }
+
+    void end_context_menu() {
+        ImGui::EndPopup();
+    }
+
     bool menu_item(const char* label, const char* shortcut, bool enabled, bool selected) {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         ImDrawListSplitter splitter;
@@ -511,15 +527,57 @@ namespace hob::editor {
         return open;
     }
 
-    bool component_header(const char* label) {
+    bool component_header(const char* label, bool* out_menu_requested) {
         EditorStyleColorStack colors;
         colors.push(ImGuiCol_Header, COLOR_INSPECTOR_HEADER);
         colors.push(ImGuiCol_HeaderHovered, COLOR_INSPECTOR_HEADER_HOVER);
         colors.push(ImGuiCol_HeaderActive, COLOR_INSPECTOR_HEADER_ACTIVE);
 
-        const bool open = ImGui::CollapsingHeader(label, ImGuiTreeNodeFlags_DefaultOpen);
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen;
+        if (out_menu_requested != nullptr) {
+            flags |= ImGuiTreeNodeFlags_AllowOverlap;
+        }
+
+        const bool open = ImGui::CollapsingHeader(label, flags);
 
         colors.pop();
+
+        if (out_menu_requested == nullptr) {
+            return open;
+        }
+
+        *out_menu_requested = ImGui::IsItemClicked(ImGuiMouseButton_Right);
+
+        const ImVec2 header_min = ImGui::GetItemRectMin();
+        const ImVec2 header_max = ImGui::GetItemRectMax();
+        const float size = header_max.y - header_min.y;
+
+        ImGui::SameLine();
+        ImGui::SetCursorScreenPos(ImVec2(header_max.x - size, header_min.y));
+
+        if (ImGui::InvisibleButton(HEADER_MENU_BUTTON_ID, ImVec2(size, size))) {
+            *out_menu_requested = true;
+        }
+
+        ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        const ImRect button_rect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+
+        if (ImGui::IsItemActive() || ImGui::IsItemHovered()) {
+            draw_highlight(draw_list,
+                           inset_rect(button_rect.Min, button_rect.Max, INSPECTOR_HEADER_MENU_INSET),
+                           ImGui::IsItemActive() ? COLOR_INSPECTOR_HEADER_MENU_ACTIVE
+                                                 : COLOR_INSPECTOR_HEADER_MENU_HOVER,
+                           ROUNDING);
+        }
+
+        const ImVec2 center = button_rect.GetCenter();
+        const ImU32 dot_color = ImGui::GetColorU32(ImGuiCol_Text);
+        for (int32_t i = -1; i <= 1; ++i) {
+            draw_list->AddCircleFilled(
+                ImVec2(center.x, center.y + static_cast<float>(i) * INSPECTOR_HEADER_MENU_DOT_SPACING),
+                INSPECTOR_HEADER_MENU_DOT_RADIUS,
+                dot_color);
+        }
 
         return open;
     }

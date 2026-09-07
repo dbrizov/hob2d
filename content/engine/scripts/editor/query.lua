@@ -588,6 +588,20 @@ local prefab_sections_cache = {}
 -- constructor can add siblings, and a Lua component only has fields once init() has run. Spawning
 -- one and reading it back is the only source for that, and it is what makes this panel agree with
 -- the Hierarchy field for field. The probe resolves synchronously and never enters play.
+local function is_removable_prefab_section(def, section)
+    if section.is_lua then
+        for _, class_name in ipairs(def[PrefabKey.LUA_COMPONENTS] or {}) do
+            if class_name == section.name then
+                return true
+            end
+        end
+
+        return false
+    end
+
+    return section.name ~= TransformKey.SECTION and def[section.name] ~= nil
+end
+
 local function build_prefab_sections(name, def)
     local probe = EntitySpawner.spawn_entity(name)
     if probe == nil then
@@ -596,6 +610,10 @@ local function build_prefab_sections(name, def)
 
     local sections = Editor.get_components(probe:get_id()) or {}
     EntitySpawner.destroy_entity(probe)
+
+    for _, section in ipairs(sections) do
+        section.removable = is_removable_prefab_section(def, section)
+    end
 
     local schemas = _G.__component_schemas
     local root_fields = {}

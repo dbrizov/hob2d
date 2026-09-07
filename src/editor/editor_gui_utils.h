@@ -68,6 +68,8 @@ namespace hob::editor {
     bool begin_submenu(const char* label, bool enabled = true);
     void end_submenu();
     bool menu_item(const char* label, const char* shortcut = nullptr, bool enabled = true, bool selected = false);
+    bool begin_context_menu(const char* str_id);
+    void end_context_menu();
 
     bool begin_combo(const char* preview);
     void end_combo();
@@ -91,7 +93,7 @@ namespace hob::editor {
     bool tree_item(const void* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
     bool tree_item(const char* id, ImGuiTreeNodeFlags flags, bool selected, const char* fmt, ...) IM_FMTARGS(4);
 
-    bool component_header(const char* label);
+    bool component_header(const char* label, bool* out_menu_requested = nullptr);
 
     void begin_field(const char* label);
     void end_field();

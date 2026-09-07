@@ -186,9 +186,15 @@ namespace hob::editor {
     constexpr const char* INSPECTOR_FLOAT_FORMAT = "%.3f";
     constexpr ImGuiColorEditFlags INSPECTOR_COLOR_EDIT_FLAGS = ImGuiColorEditFlags_Float;
 
+    constexpr float INSPECTOR_HEADER_MENU_DOT_RADIUS = 1.5f;
+    constexpr float INSPECTOR_HEADER_MENU_DOT_SPACING = 4.5f;
+    constexpr ImVec2 INSPECTOR_HEADER_MENU_INSET{3.0f, 3.0f};
+
     constexpr ImVec4 COLOR_INSPECTOR_HEADER = COLOR_MAIN_LIGHT;
     constexpr ImVec4 COLOR_INSPECTOR_HEADER_HOVER = COLOR_MAIN_LIGHTER;
     constexpr ImVec4 COLOR_INSPECTOR_HEADER_ACTIVE = COLOR_MAIN_LIGHTEST;
+    constexpr ImVec4 COLOR_INSPECTOR_HEADER_MENU_HOVER = COLOR_MAIN_LIGHTEST;
+    constexpr ImVec4 COLOR_INSPECTOR_HEADER_MENU_ACTIVE = COLOR_MAIN_BRIGHT;
 
     // Scene View
     constexpr float SCENE_VIEW_SELECTION_OUTLINE_THICKNESS = 2.0f;

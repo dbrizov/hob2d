@@ -322,19 +322,36 @@ function Editor.add_instance(inst, index)
     end
 
     local instance_id = inst.__instance_id or alloc_instance_id()
-    local entity_id = entity:get_id()
 
     inst.__instance_id = instance_id
     table.insert(scene_def.entities, index or (#scene_def.entities + 1), inst)
 
-    scene_state.instance_id_by_entity_id[entity_id] = instance_id
-    scene_state.entity_id_by_instance_id[instance_id] = entity_id
+    bind_instance_entity(instance_id, entity:get_id())
     scene_state.entity_def_by_instance_id[instance_id] = inst
 
     reindex_instances(scene_def)
     Editor.mark_scene_dirty()
 
     return instance_id
+end
+
+-- Destroying a spawn request that has not resolved yet fires no destroyed handler, so the
+-- scene instance map cannot be left to the callback that normally clears it.
+local function destroy_instance_entity(instance_id)
+    local entity_id = scene_state.entity_id_by_instance_id[instance_id]
+    if entity_id == nil then
+        return
+    end
+
+    _G.__scene_instance_by_entity_id[entity_id] = nil
+    EntitySpawner.destroy_entity(EntitySpawner.get_entity(entity_id))
+    scene_state.instance_id_by_entity_id[entity_id] = nil
+    scene_state.entity_id_by_instance_id[instance_id] = nil
+end
+
+local function bind_instance_entity(instance_id, entity_id)
+    scene_state.instance_id_by_entity_id[entity_id] = instance_id
+    scene_state.entity_id_by_instance_id[instance_id] = entity_id
 end
 
 ---@param instance_id integer
@@ -360,22 +377,27 @@ function Editor.remove_instance(instance_id)
 
     table.remove(scene_def.entities, index)
 
-    local entity_id = scene_state.entity_id_by_instance_id[instance_id]
-    if entity_id ~= nil then
-        -- Destroying a spawn request that has not resolved yet fires no destroyed handler, so the
-        -- scene instance map cannot be left to the callback that normally clears it.
-        _G.__scene_instance_by_entity_id[entity_id] = nil
-        EntitySpawner.destroy_entity(EntitySpawner.get_entity(entity_id))
-        scene_state.instance_id_by_entity_id[entity_id] = nil
-    end
-
-    scene_state.entity_id_by_instance_id[instance_id] = nil
+    destroy_instance_entity(instance_id)
     scene_state.entity_def_by_instance_id[instance_id] = nil
 
     reindex_instances(scene_def)
     Editor.mark_scene_dirty()
 
     return index
+end
+
+---@param prefab_name string
+function Editor.respawn_prefab_instances(prefab_name)
+    for instance_id, inst in pairs(scene_state.entity_def_by_instance_id) do
+        if inst.prefab == prefab_name then
+            destroy_instance_entity(instance_id)
+
+            local entity = Scene.spawn_instance(inst)
+            if entity ~= nil then
+                bind_instance_entity(instance_id, entity:get_id())
+            end
+        end
+    end
 end
 
 -- Re-points the orphaned defs at the reloaded document and pushes them to the live entities;

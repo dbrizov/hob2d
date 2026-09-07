@@ -8,7 +8,7 @@
 namespace hob::editor {
     struct EditorFieldTarget {
         EntityId entity_id = INVALID_ENTITY_ID;
-        EditorInstanceId instance_id = INVALID_EDITOR_INSTANCE_ID; // Resolves to the live entity when set
+        EditorInstanceId instance_id = INVALID_EDITOR_INSTANCE_ID;
         bool is_lua = false;
         std::string component_key; // Schema key, e.g. "sprite", or the Lua class name when is_lua
         std::string field;

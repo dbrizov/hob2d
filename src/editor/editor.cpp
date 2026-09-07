@@ -240,6 +240,20 @@ namespace hob::editor {
         return is_scene_dirty() || !get_dirty_prefab_names().empty();
     }
 
+    void Editor::respawn_prefab_instances(const std::string& prefab_name) {
+        const EditorSelectionInstanceIds captured = capture_selection_instance_ids();
+
+        editor_call(m_engine, editor_func::RESPAWN_PREFAB_INSTANCES, prefab_name);
+
+        m_selection.ids.clear();
+        m_selection.range_anchor = INVALID_ENTITY_ID;
+        restore_selection(captured);
+
+        m_scene_view.reset_pick_cycle();
+        m_scene_view.reset_gizmo();
+        m_inspector.reset_edit_state();
+    }
+
     EditorSelection& Editor::get_selection() {
         return m_selection;
     }

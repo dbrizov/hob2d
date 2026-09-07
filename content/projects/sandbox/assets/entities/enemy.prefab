@@ -11,6 +11,6 @@ DefineEntity.enemy = {
         clips = { idle = AnimationClips.player_idle, run = AnimationClips.player_run },
         default_clip = "idle",
     },
-    lua_components = { Components.ContactComponent, Components.EnemyHealthComponent },
+    lua_components = { Components.EnemyHealthComponent },
     lua_fields = { EnemyHealthComponent = { max_health = 100.0 } },
 }

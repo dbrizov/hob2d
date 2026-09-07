@@ -17,6 +17,7 @@
 #include "editor/editor_files.h"
 #include "editor/editor_gui_utils.h"
 #include "editor/editor_lua.h"
+#include "editor/editor_prefabs.h"
 #include "engine/core/engine.h"
 #include "engine/core/path_utils.h"
 #include "engine/core/systems/entity_spawner.h"
@@ -38,6 +39,11 @@ namespace hob::editor {
     };
 
     namespace {
+        constexpr const char* ADD_COMPONENT_LABEL = "Add Component";
+        constexpr const char* ADD_COMPONENT_PREVIEW = "Select...";
+        constexpr const char* REMOVE_COMPONENT_LABEL = "Remove Component";
+        constexpr const char* COMPONENT_MENU_POPUP_ID = "ComponentMenu";
+
         template<typename T>
         T value_or(const sol::object& value, const T& fallback) {
             return value.is<T>() ? value.as<T>() : fallback;
@@ -253,9 +259,50 @@ namespace hob::editor {
                 editor, pending, target, "Set " + component_label + " " + label, value, new_value, changed);
         }
 
+        void draw_add_component(Editor& editor, const std::string& prefab_name) {
+            const std::vector<EditorPrefabSectionEntry> entries =
+                get_addable_prefab_sections(editor.get_engine(), prefab_name);
+
+            ImGui::Spacing();
+            ImGui::Separator();
+            ImGui::Spacing();
+            begin_field(ADD_COMPONENT_LABEL);
+
+            if (begin_combo(ADD_COMPONENT_PREVIEW)) {
+                for (size_t i = 0; i < entries.size(); ++i) {
+                    const EditorPrefabSectionEntry& entry = entries[i];
+                    const std::string label = to_display_label(entry.name) + (entry.is_lua ? " (Lua)" : "");
+
+                    ImGui::PushID(static_cast<int32_t>(i));
+                    if (combo_item(label.c_str(), false)) {
+                        request_add_prefab_section(editor, prefab_name, entry.name, entry.is_lua);
+                    }
+                    ImGui::PopID();
+                }
+
+                end_combo();
+            }
+
+            end_field();
+        }
+
+        void draw_remove_component_menu(Editor& editor, const EditorFieldTarget& target, const sol::table& component) {
+            if (!begin_context_menu(COMPONENT_MENU_POPUP_ID)) {
+                return;
+            }
+
+            const bool removable = component.get_or(query_key::REMOVABLE, false);
+            if (menu_item(REMOVE_COMPONENT_LABEL, nullptr, removable)) {
+                request_remove_prefab_section(editor, target.prefab_name, target.component_key, target.is_lua);
+            }
+
+            end_context_menu();
+        }
+
         void draw_component(Editor& editor,
                             EditorDockInspectorPendingEdit& pending,
                             const EditorFieldTarget& owner,
+                            bool can_remove_components,
                             int32_t index,
                             const sol::table& component) {
             const std::string name = component.get_or<std::string>(query_key::NAME, "?");
@@ -269,7 +316,17 @@ namespace hob::editor {
 
             ImGui::PushID(index);
 
-            if (component_header(header.c_str())) {
+            bool menu_requested = false;
+            const bool open = component_header(header.c_str(), can_remove_components ? &menu_requested : nullptr);
+            if (menu_requested) {
+                ImGui::OpenPopup(COMPONENT_MENU_POPUP_ID);
+            }
+
+            if (can_remove_components) {
+                draw_remove_component_menu(editor, target, component);
+            }
+
+            if (open) {
                 const sol::object fields = component[query_key::FIELDS];
                 if (fields.is<sol::table>()) {
                     const sol::table rows = fields.as<sol::table>();
@@ -295,11 +352,12 @@ namespace hob::editor {
         void draw_sections(Editor& editor,
                            EditorDockInspectorPendingEdit& pending,
                            const EditorFieldTarget& owner,
+                           bool can_remove_components,
                            const sol::table& sections) {
             for (int32_t i = 1; i <= sections.size(); ++i) {
                 const sol::object section = sections[i];
                 if (section.is<sol::table>()) {
-                    draw_component(editor, pending, owner, i, section.as<sol::table>());
+                    draw_component(editor, pending, owner, can_remove_components, i, section.as<sol::table>());
                 }
             }
         }
@@ -340,21 +398,12 @@ namespace hob::editor {
                 return;
             }
 
-            draw_sections(editor, pending, owner, components.as<sol::table>());
+            draw_sections(editor, pending, owner, false, components.as<sol::table>());
         }
 
         bool is_prefab_dirty(Editor& editor, const std::string& prefab_name) {
             const sol::object result = editor_call(editor.get_engine(), editor_func::IS_PREFAB_DIRTY, prefab_name);
             return result.is<bool>() && result.as<bool>();
-        }
-
-        bool can_edit_prefab_document(Editor& editor, const EditorDefinitionRef& ref) {
-            if (ref.registry != def_registry::ENTITIES || editor.get_state() != WorldState::Stopped) {
-                return false;
-            }
-
-            const EditorDefinition* definition = find_definition(editor.get_engine(), ref);
-            return definition != nullptr && !definition->read_only;
         }
 
         void draw_definition(Editor& editor, EditorDockInspectorPendingEdit& pending, const EditorDefinitionRef& ref) {
@@ -393,10 +442,13 @@ namespace hob::editor {
                 ImGui::BeginDisabled();
             }
 
-            draw_sections(editor, pending, owner, result.as<sol::table>());
+            draw_sections(editor, pending, owner, editable, result.as<sol::table>());
 
             if (!editable) {
                 ImGui::EndDisabled();
+            }
+            else {
+                draw_add_component(editor, ref.name);
             }
         }
     } // namespace

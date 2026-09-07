@@ -87,6 +87,7 @@ namespace hob::editor {
         bool is_scene_dirty() const;
         std::vector<std::string> get_dirty_prefab_names() const;
         bool has_unsaved_changes() const;
+        void respawn_prefab_instances(const std::string& prefab_name);
 
         EditorSelection& get_selection();
         const EditorSelection& get_selection() const;

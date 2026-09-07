@@ -247,6 +247,158 @@ function Editor.set_prefab_lua_field(name, class_name, field, value)
     return true
 end
 
+local function find_lua_component_index(def, class_name)
+    for index, entry in ipairs(def[PrefabKey.LUA_COMPONENTS] or {}) do
+        if entry == class_name then
+            return index
+        end
+    end
+
+    return nil
+end
+
+local function sorted_string_keys(source)
+    local keys = {}
+    for key in pairs(source) do
+        if type(key) == "string" then
+            keys[#keys + 1] = key
+        end
+    end
+    table.sort(keys)
+
+    return keys
+end
+
+---@param name string
+---@return table rows of { name, is_lua }
+function Editor.get_addable_prefab_sections(name)
+    local def = get_prefab_def(name)
+    if def == nil then
+        return {}
+    end
+
+    local present = {}
+    for _, section in ipairs(Editor.get_definition_sections(DefRegistry.ENTITIES, name) or {}) do
+        present[section.name] = true
+    end
+
+    local rows = {}
+    local schemas = _G.__component_schemas
+    for _, key in ipairs(schemas.__order) do
+        if schemas[key].map_setter == nil and def[key] == nil and not present[key] then
+            rows[#rows + 1] = { name = key, is_lua = false }
+        end
+    end
+
+    for _, class_name in ipairs(sorted_string_keys(_G.__component_registry)) do
+        if find_lua_component_index(def, class_name) == nil then
+            rows[#rows + 1] = { name = class_name, is_lua = true }
+        end
+    end
+
+    return rows
+end
+
+---@param name string
+---@param key string schema key, or the class name when is_lua
+---@param is_lua boolean
+---@param removed table|nil what remove_prefab_section returned, to restore it in place
+---@return boolean
+function Editor.add_prefab_section(name, key, is_lua, removed)
+    local def = get_prefab_def(name)
+    if def == nil then
+        return false
+    end
+
+    removed = removed or {}
+
+    if is_lua then
+        if _G.__component_registry[key] == nil then
+            Log.error("Editor.add_prefab_section: '" .. tostring(key) .. "' is not a component class")
+            return false
+        end
+
+        if find_lua_component_index(def, key) ~= nil then
+            Log.error("Editor.add_prefab_section: prefab '" .. name .. "' already has '" .. key .. "'")
+            return false
+        end
+
+        local class_names = get_or_create(def, PrefabKey.LUA_COMPONENTS)
+        table.insert(class_names, math.min(removed.index or #class_names + 1, #class_names + 1), key)
+
+        if removed.lua_fields ~= nil then
+            get_or_create(def, PrefabKey.LUA_FIELDS)[key] = removed.lua_fields
+        end
+    else
+        local schema = _G.__component_schemas[key]
+        if schema == nil or schema.map_setter then
+            Log.error("Editor.add_prefab_section: '" .. tostring(key) .. "' is not an addable component")
+            return false
+        end
+
+        if def[key] ~= nil then
+            Log.error("Editor.add_prefab_section: prefab '" .. name .. "' already declares '" .. key .. "'")
+            return false
+        end
+
+        def[key] = removed.section or {}
+    end
+
+    mark_prefab_dirty(name, def)
+
+    return true
+end
+
+---@param name string
+---@param key string
+---@param is_lua boolean
+---@return table|nil what add_prefab_section needs to restore it: { section } or { index, lua_fields }
+function Editor.remove_prefab_section(name, key, is_lua)
+    local def = get_prefab_def(name)
+    if def == nil then
+        return nil
+    end
+
+    local removed
+
+    if is_lua then
+        local index = find_lua_component_index(def, key)
+        if index == nil then
+            Log.error("Editor.remove_prefab_section: prefab '" .. name .. "' has no '" .. tostring(key) .. "'")
+            return nil
+        end
+
+        local class_names = def[PrefabKey.LUA_COMPONENTS]
+        table.remove(class_names, index)
+        if #class_names == 0 then
+            def[PrefabKey.LUA_COMPONENTS] = nil
+        end
+
+        local lua_fields = def[PrefabKey.LUA_FIELDS]
+        local fields = lua_fields ~= nil and lua_fields[key] or nil
+        if lua_fields ~= nil then
+            lua_fields[key] = nil
+            if next(lua_fields) == nil then
+                def[PrefabKey.LUA_FIELDS] = nil
+            end
+        end
+
+        removed = { index = index, lua_fields = fields }
+    else
+        if key == TransformKey.SECTION or def[key] == nil or _G.__component_schemas[key] == nil then
+            Log.error("Editor.remove_prefab_section: '" .. tostring(key) .. "' is not removable from '" .. name .. "'")
+            return nil
+        end
+
+        removed = { section = def[key] }
+        def[key] = nil
+    end
+
+    mark_prefab_dirty(name, def)
+
+    return removed
+end
+
 function Editor.rebind_prefab_defs()
     local rebound = false
 
