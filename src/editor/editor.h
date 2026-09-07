@@ -83,8 +83,10 @@ namespace hob::editor {
 
         std::vector<std::string> get_scene_names() const;
         const std::string& get_current_scene() const;
-        bool is_scene_dirty() const;
         void open_pending_scene();
+        bool is_scene_dirty() const;
+        std::vector<std::string> get_dirty_prefab_names() const;
+        bool has_unsaved_changes() const;
 
         EditorSelection& get_selection();
         const EditorSelection& get_selection() const;

@@ -14,6 +14,7 @@
 #include "editor/editor_asset_value.h"
 #include "editor/editor_definition.h"
 #include "editor/editor_field_target.h"
+#include "editor/editor_files.h"
 #include "editor/editor_gui_utils.h"
 #include "editor/editor_lua.h"
 #include "engine/core/engine.h"
@@ -254,7 +255,7 @@ namespace hob::editor {
 
         void draw_component(Editor& editor,
                             EditorDockInspectorPendingEdit& pending,
-                            EntityId entity_id,
+                            const EditorFieldTarget& owner,
                             int32_t index,
                             const sol::table& component) {
             const std::string name = component.get_or<std::string>(query_key::NAME, "?");
@@ -262,8 +263,7 @@ namespace hob::editor {
             const bool is_lua = component.get_or(query_key::IS_LUA, false);
             const std::string header = is_lua ? label + " (Lua)" : label;
 
-            EditorFieldTarget target;
-            target.entity_id = entity_id;
+            EditorFieldTarget target = owner;
             target.is_lua = is_lua;
             target.component_key = name;
 
@@ -285,36 +285,94 @@ namespace hob::editor {
             ImGui::PopID();
         }
 
-        void draw_components(Editor& editor, EditorDockInspectorPendingEdit& pending, EntityId entity_id) {
-            if (pending.active && pending.target.entity_id != entity_id) {
+        void clear_pending_edit_of_other_owner(EditorDockInspectorPendingEdit& pending,
+                                               const EditorFieldTarget& owner) {
+            if (pending.active && !pending.target.has_same_owner(owner)) {
                 clear_pending_edit(pending);
+            }
+        }
+
+        void draw_sections(Editor& editor,
+                           EditorDockInspectorPendingEdit& pending,
+                           const EditorFieldTarget& owner,
+                           const sol::table& sections) {
+            for (int32_t i = 1; i <= sections.size(); ++i) {
+                const sol::object section = sections[i];
+                if (section.is<sol::table>()) {
+                    draw_component(editor, pending, owner, i, section.as<sol::table>());
+                }
+            }
+        }
+
+        void draw_prefab_link(Editor& editor, const std::string& prefab_name) {
+            ImGui::TextDisabled("Prefab:");
+            ImGui::SameLine();
+            if (ImGui::TextLink(prefab_name.c_str())) {
+                editor.get_selection().select_definition({.registry = def_registry::ENTITIES, .name = prefab_name});
+            }
+        }
+
+        void draw_entity(Editor& editor, EditorDockInspectorPendingEdit& pending, const Entity& entity) {
+            EditorFieldTarget owner;
+            owner.entity_id = entity.get_id();
+
+            clear_pending_edit_of_other_owner(pending, owner);
+
+            ImGui::Text("%s", entity.get_display_name().c_str());
+            ImGui::SameLine();
+            ImGui::TextDisabled("#%lld", static_cast<long long>(entity.get_id()));
+
+            if (!entity.get_prefab_name().empty()) {
+                draw_prefab_link(editor, entity.get_prefab_name());
+            }
+
+            const size_t selected_count = editor.get_selection().ids.size();
+            if (selected_count > 1) {
+                ImGui::TextDisabled("(%zu selected)", selected_count);
             }
 
             Engine& engine = editor.get_engine();
 
-            const sol::object components = editor_call(engine, editor_func::GET_COMPONENTS, entity_id);
+            const sol::object components = editor_call(engine, editor_func::GET_COMPONENTS, entity.get_id());
             if (!components.is<sol::table>()) {
                 ImGui::TextDisabled("Editor.get_components is unavailable");
                 return;
             }
 
-            const sol::table sections = components.as<sol::table>();
-            for (int32_t i = 1; i <= sections.size(); ++i) {
-                const sol::object section = sections[i];
-                if (section.is<sol::table>()) {
-                    draw_component(editor, pending, entity_id, i, section.as<sol::table>());
-                }
+            draw_sections(editor, pending, owner, components.as<sol::table>());
+        }
+
+        bool is_prefab_dirty(Editor& editor, const std::string& prefab_name) {
+            const sol::object result = editor_call(editor.get_engine(), editor_func::IS_PREFAB_DIRTY, prefab_name);
+            return result.is<bool>() && result.as<bool>();
+        }
+
+        bool can_edit_prefab_document(Editor& editor, const EditorDefinitionRef& ref) {
+            if (ref.registry != def_registry::ENTITIES || editor.get_state() != WorldState::Stopped) {
+                return false;
             }
+
+            const EditorDefinition* definition = find_definition(editor.get_engine(), ref);
+            return definition != nullptr && !definition->read_only;
         }
 
         void draw_definition(Editor& editor, EditorDockInspectorPendingEdit& pending, const EditorDefinitionRef& ref) {
-            clear_pending_edit(pending);
+            EditorFieldTarget owner;
+            if (ref.registry == def_registry::ENTITIES) {
+                owner.prefab_name = ref.name;
+            }
+
+            clear_pending_edit_of_other_owner(pending, owner);
 
             Engine& engine = editor.get_engine();
 
             ImGui::Text("%s", ref.name.c_str());
             ImGui::SameLine();
             ImGui::TextDisabled("%s", ref.registry.c_str());
+            if (owner.is_prefab_document() && is_prefab_dirty(editor, ref.name)) {
+                ImGui::SameLine();
+                ImGui::TextUnformatted(DIRTY_MARKER);
+            }
 
             const EditorDefinition* definition = find_definition(engine, ref);
             if (definition != nullptr && !definition->file.empty()) {
@@ -329,19 +387,16 @@ namespace hob::editor {
                 return;
             }
 
-            // A definition document has no write path until M10, and disabling the rows is what keeps
-            // the field widgets from needing one -- an inert widget never reports a change.
-            ImGui::BeginDisabled();
-
-            const sol::table sections = result.as<sol::table>();
-            for (int32_t i = 1; i <= sections.size(); ++i) {
-                const sol::object section = sections[i];
-                if (section.is<sol::table>()) {
-                    draw_component(editor, pending, INVALID_ENTITY_ID, i, section.as<sol::table>());
-                }
+            const bool editable = can_edit_prefab_document(editor, ref);
+            if (!editable) {
+                ImGui::BeginDisabled();
             }
 
-            ImGui::EndDisabled();
+            draw_sections(editor, pending, owner, result.as<sol::table>());
+
+            if (!editable) {
+                ImGui::EndDisabled();
+            }
         }
     } // namespace
 
@@ -364,19 +419,7 @@ namespace hob::editor {
                 ImGui::TextDisabled("Select an entity or an asset");
             }
             else {
-                ImGui::Text("%s", entity->get_display_name().c_str());
-                ImGui::SameLine();
-                ImGui::TextDisabled("#%lld", static_cast<long long>(entity->get_id()));
-
-                if (!entity->get_prefab_name().empty()) {
-                    ImGui::TextDisabled("Prefab: %s", entity->get_prefab_name().c_str());
-                }
-
-                if (selection.ids.size() > 1) {
-                    ImGui::TextDisabled("(%zu selected)", selection.ids.size());
-                }
-
-                draw_components(editor, *m_pending, entity->get_id());
+                draw_entity(editor, *m_pending, *entity);
             }
         }
         end();

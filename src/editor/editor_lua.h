@@ -63,6 +63,12 @@ namespace hob::editor {
 
         constexpr const char* SET_COMPONENT_FIELD = "set_component_field";
         constexpr const char* SET_LUA_COMPONENT_FIELD = "set_lua_component_field";
+
+        constexpr const char* SET_PREFAB_FIELD = "set_prefab_field";
+        constexpr const char* SET_PREFAB_LUA_FIELD = "set_prefab_lua_field";
+        constexpr const char* IS_PREFAB_DIRTY = "is_prefab_dirty";
+        constexpr const char* GET_DIRTY_PREFAB_NAMES = "get_dirty_prefab_names";
+        constexpr const char* REBIND_PREFAB_DEFS = "rebind_prefab_defs";
     } // namespace editor_func
 
     sol::protected_function get_editor_func(Engine& engine, const char* name);

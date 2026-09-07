@@ -50,6 +50,18 @@ namespace hob::editor {
     void EditorCommandSetField::apply(Editor& editor, const EditorFieldTarget& target, const sol::object& value) {
         Engine& engine = editor.get_engine();
 
+        if (target.is_prefab_document()) {
+            if (editor.get_state() != WorldState::Stopped) {
+                return;
+            }
+
+            const char* set_prefab_field =
+                target.is_lua ? editor_func::SET_PREFAB_LUA_FIELD : editor_func::SET_PREFAB_FIELD;
+
+            editor_call(engine, set_prefab_field, target.prefab_name, target.component_key, target.field, value);
+            return;
+        }
+
         const char* set_component_field =
             target.is_lua ? editor_func::SET_LUA_COMPONENT_FIELD : editor_func::SET_COMPONENT_FIELD;
 

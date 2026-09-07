@@ -7,6 +7,8 @@
 namespace hob::editor {
     class Editor;
 
+    constexpr const char* DIRTY_MARKER = "(*)";
+
     std::optional<std::string> get_scene_save_error(const Editor& editor);
     bool can_save_scene(const Editor& editor);
     void save_scene(Editor& editor);

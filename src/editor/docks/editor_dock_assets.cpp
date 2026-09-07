@@ -13,6 +13,7 @@
 
 #include "editor/editor.h"
 #include "editor/editor_definition.h"
+#include "editor/editor_files.h"
 #include "editor/editor_gui_utils.h"
 #include "editor/editor_lua.h"
 #include "editor/editor_style.h"
@@ -169,7 +170,13 @@ namespace hob::editor {
                 texture->get_gpu_texture(), min, ImVec2(min.x + size.x, min.y + size.y));
         }
 
-        void draw_file(Editor& editor, const EditorFileNode& node) {
+        using DirtyPrefabNames = std::unordered_set<std::string>;
+
+        bool is_dirty_prefab(const EditorFileNode& node, const DirtyPrefabNames& dirty_prefabs) {
+            return node.definition.registry == def_registry::ENTITIES && dirty_prefabs.contains(node.definition.name);
+        }
+
+        void draw_file(Editor& editor, const EditorFileNode& node, const DirtyPrefabNames& dirty_prefabs) {
             constexpr ImGuiTreeNodeFlags flags =
                 ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanAvailWidth;
 
@@ -200,6 +207,11 @@ namespace hob::editor {
                 ImGui::EndDragDropSource();
             }
 
+            if (is_dirty_prefab(node, dirty_prefabs)) {
+                ImGui::SameLine(0.0f, ASSETS_BADGE_SPACING_PX);
+                ImGui::TextUnformatted(DIRTY_MARKER);
+            }
+
             if (node.read_only) {
                 ImGui::SameLine(0.0f, ASSETS_BADGE_SPACING_PX);
                 ImGui::TextColored(COLOR_ASSETS_READ_ONLY, "%s", ASSETS_READ_ONLY_LABEL);
@@ -212,9 +224,12 @@ namespace hob::editor {
             }
         }
 
-        void draw_node(Editor& editor, const EditorFileNode& node, int32_t depth) {
+        void draw_node(Editor& editor,
+                       const EditorFileNode& node,
+                       int32_t depth,
+                       const DirtyPrefabNames& dirty_prefabs) {
             if (!node.is_folder) {
-                draw_file(editor, node);
+                draw_file(editor, node, dirty_prefabs);
                 return;
             }
 
@@ -230,7 +245,7 @@ namespace hob::editor {
             }
 
             for (const EditorFileNode& child : node.children) {
-                draw_node(editor, child, depth + 1);
+                draw_node(editor, child, depth + 1, dirty_prefabs);
             }
 
             ImGui::TreePop();
@@ -256,10 +271,13 @@ namespace hob::editor {
                 m_tree->is_built = true;
             }
 
+            const std::vector<std::string> dirty_prefab_names = editor.get_dirty_prefab_names();
+            const DirtyPrefabNames dirty_prefabs(dirty_prefab_names.begin(), dirty_prefab_names.end());
+
             EditorStyleVarStack vars;
             vars.push(ImGuiStyleVar_ItemSpacing, TREE_ITEM_SPACING);
 
-            draw_node(editor, m_tree->root, 0);
+            draw_node(editor, m_tree->root, 0, dirty_prefabs);
 
             vars.pop();
         }

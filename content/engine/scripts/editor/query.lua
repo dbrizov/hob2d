@@ -613,6 +613,11 @@ local function build_prefab_sections(name, def)
     return sections
 end
 
+---@param name string
+function Editor.invalidate_prefab_sections(name)
+    prefab_sections_cache[name] = nil
+end
+
 local function get_prefab_sections(name, def)
     local cached = prefab_sections_cache[name]
     if cached == nil then

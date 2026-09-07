@@ -174,11 +174,6 @@ namespace hob::editor {
         return m_current_scene;
     }
 
-    bool Editor::is_scene_dirty() const {
-        const sol::object result = editor_call(m_engine, editor_func::IS_SCENE_DIRTY);
-        return result.is<bool>() && result.as<bool>();
-    }
-
     void Editor::open_pending_scene() {
         if (m_pending_scene_open.empty()) {
             return;
@@ -197,6 +192,30 @@ namespace hob::editor {
 
         m_current_scene = name;
         reset_edit_session();
+    }
+
+    bool Editor::is_scene_dirty() const {
+        const sol::object result = editor_call(m_engine, editor_func::IS_SCENE_DIRTY);
+        return result.is<bool>() && result.as<bool>();
+    }
+
+    std::vector<std::string> Editor::get_dirty_prefab_names() const {
+        std::vector<std::string> names;
+
+        const sol::object result = editor_call(m_engine, editor_func::GET_DIRTY_PREFAB_NAMES);
+        if (result.is<sol::table>()) {
+            const sol::table table = result.as<sol::table>();
+            names.reserve(table.size());
+            for (int32_t i = 1; i <= table.size(); ++i) {
+                names.push_back(table.get<std::string>(i));
+            }
+        }
+
+        return names;
+    }
+
+    bool Editor::has_unsaved_changes() const {
+        return is_scene_dirty() || !get_dirty_prefab_names().empty();
     }
 
     EditorSelection& Editor::get_selection() {
@@ -346,6 +365,8 @@ namespace hob::editor {
         clear_lua_query_caches();
         m_assets.request_rebuild();
 
+        editor_call(m_engine, editor_func::REBIND_PREFAB_DEFS);
+
         const sol::object rebound = editor_call(m_engine, editor_func::REBIND_INSTANCE_DEFS);
         if (rebound.is<bool>() && !rebound.as<bool>()) {
             open_scene_without_prompt(m_current_scene);
@@ -405,8 +426,11 @@ namespace hob::editor {
         const std::string project = PathUtils::get_project_root().filename().string();
 
         std::string title;
+        if (has_unsaved_changes()) {
+            title = std::string(DIRTY_MARKER) + " ";
+        }
+
         if (!m_current_scene.empty()) {
-            title = is_scene_dirty() ? "(*) " : "";
             title += m_current_scene;
             title += " - ";
         }

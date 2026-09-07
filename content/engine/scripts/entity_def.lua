@@ -146,14 +146,20 @@ local function apply_prefab(entity, prefab)
     apply_lua_fields(entity, prefab)
 end
 
-local function resolve_field_value(section, field, defaults)
-    local value = section[field]
+---@param section table|nil
+---@param field string
+---@param defaults table
+---@return any
+function _G.__resolve_prefab_field_value(section, field, defaults)
+    local value = section ~= nil and section[field] or nil
     if value ~= nil then
         return unwrap_def(value)
     end
 
     return unwrap_def(defaults[field])
 end
+
+local resolve_field_value = _G.__resolve_prefab_field_value
 
 -- The probe never enters play, so its spawn and destroy both resolve synchronously
 -- and leave the live entity list untouched, which is what makes this callable from inside for_each_entity.
