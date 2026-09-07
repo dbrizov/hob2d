@@ -27,6 +27,16 @@ namespace hob::editor {
         return editor_table.as<sol::table>()[name];
     }
 
+    EditorInstanceId get_instance_id_of_entity(Engine& engine, EntityId entity_id) {
+        const sol::object result = editor_call(engine, editor_func::GET_INSTANCE_ID, entity_id);
+        return result.is<EditorInstanceId>() ? result.as<EditorInstanceId>() : INVALID_EDITOR_INSTANCE_ID;
+    }
+
+    EntityId get_entity_id_of_instance(Engine& engine, EditorInstanceId instance_id) {
+        const sol::object result = editor_call(engine, editor_func::GET_ENTITY_ID, instance_id);
+        return result.is<EntityId>() ? result.as<EntityId>() : INVALID_ENTITY_ID;
+    }
+
     bool is_asset_set(const sol::object& value) {
         if (!value.valid()) {
             return false;

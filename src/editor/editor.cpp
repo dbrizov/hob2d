@@ -547,17 +547,14 @@ namespace hob::editor {
         captured.ids.reserve(m_selection.ids.size());
 
         for (EntityId entity_id : m_selection.ids) {
-            const sol::object instance_id = editor_call(m_engine, editor_func::GET_INSTANCE_ID, entity_id);
-            if (instance_id.is<EditorInstanceId>()) {
-                captured.ids.push_back(instance_id.as<EditorInstanceId>());
+            const EditorInstanceId instance_id = get_instance_id_of_entity(m_engine, entity_id);
+            if (instance_id != INVALID_EDITOR_INSTANCE_ID) {
+                captured.ids.push_back(instance_id);
             }
         }
 
         if (m_selection.range_anchor != INVALID_ENTITY_ID) {
-            const sol::object anchor = editor_call(m_engine, editor_func::GET_INSTANCE_ID, m_selection.range_anchor);
-            if (anchor.is<EditorInstanceId>()) {
-                captured.range_anchor = anchor.as<EditorInstanceId>();
-            }
+            captured.range_anchor = get_instance_id_of_entity(m_engine, m_selection.range_anchor);
         }
 
         return captured;
@@ -565,16 +562,16 @@ namespace hob::editor {
 
     void Editor::restore_selection(const EditorSelectionInstanceIds& captured) {
         for (EditorInstanceId instance_id : captured.ids) {
-            const sol::object entity_id = editor_call(m_engine, editor_func::GET_ENTITY_ID, instance_id);
-            if (entity_id.is<EntityId>()) {
-                m_selection.add(entity_id.as<EntityId>());
+            const EntityId entity_id = get_entity_id_of_instance(m_engine, instance_id);
+            if (entity_id != INVALID_ENTITY_ID) {
+                m_selection.add(entity_id);
             }
         }
 
         if (captured.range_anchor != INVALID_EDITOR_INSTANCE_ID) {
-            const sol::object anchor = editor_call(m_engine, editor_func::GET_ENTITY_ID, captured.range_anchor);
-            if (anchor.is<EntityId>()) {
-                m_selection.range_anchor = anchor.as<EntityId>();
+            const EntityId anchor = get_entity_id_of_instance(m_engine, captured.range_anchor);
+            if (anchor != INVALID_ENTITY_ID) {
+                m_selection.range_anchor = anchor;
             }
         }
     }

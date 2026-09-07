@@ -5,12 +5,10 @@
 #include <vector>
 
 #include "editor_definition.h"
+#include "editor_instance_id.h"
 #include "engine/entity/entity.h"
 
 namespace hob::editor {
-    using EditorInstanceId = int64_t;
-    constexpr EditorInstanceId INVALID_EDITOR_INSTANCE_ID = -1;
-
     struct EditorSelectionClick {
         EntityId entity_id = INVALID_ENTITY_ID;
         bool additive = false; // Ctrl

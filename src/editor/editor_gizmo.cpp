@@ -12,6 +12,7 @@
 #include "editor/editor.h"
 #include "editor/editor_field_target.h"
 #include "editor/editor_gui_utils.h"
+#include "editor/editor_lua.h"
 #include "editor/editor_style.h"
 #include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
@@ -84,9 +85,10 @@ namespace hob::editor {
             return parent->get_world_matrix().inverse().transform_point(world_position);
         }
 
-        EditorFieldTarget make_target(EntityId entity_id, const char* field) {
+        EditorFieldTarget make_target(EntityId entity_id, EditorInstanceId instance_id, const char* field) {
             return EditorFieldTarget{
                 .entity_id = entity_id,
+                .instance_id = instance_id,
                 .is_lua = false,
                 .component_key = transform_key::SECTION,
                 .field = field,
@@ -105,6 +107,7 @@ namespace hob::editor {
         bool try_set_field(Editor& editor,
                            sol::state& lua,
                            EntityId entity_id,
+                           EditorInstanceId instance_id,
                            const char* field,
                            const T& current_value,
                            const T& value) {
@@ -112,7 +115,8 @@ namespace hob::editor {
                 return false;
             }
 
-            EditorCommandSetField::apply(editor, make_target(entity_id, field), sol::make_object(lua, value));
+            EditorCommandSetField::apply(
+                editor, make_target(entity_id, instance_id, field), sol::make_object(lua, value));
             return true;
         }
 
@@ -121,6 +125,7 @@ namespace hob::editor {
                              sol::state& lua,
                              const char* label,
                              EntityId entity_id,
+                             EditorInstanceId instance_id,
                              const char* field,
                              const T& old_value,
                              const T& new_value) {
@@ -129,7 +134,7 @@ namespace hob::editor {
             }
 
             commands.push_back(std::make_unique<EditorCommandSetField>(label,
-                                                                       make_target(entity_id, field),
+                                                                       make_target(entity_id, instance_id, field),
                                                                        sol::make_object(lua, old_value),
                                                                        sol::make_object(lua, new_value)));
         }
@@ -499,6 +504,7 @@ namespace hob::editor {
 
             DragEntity& drag = m_drag_entities.emplace_back();
             drag.entity_id = entity_id;
+            drag.instance_id = get_instance_id_of_entity(editor.get_engine(), entity_id);
             drag.start_local_position = transform->get_local_position();
             drag.start_local_rotation = transform->get_local_rotation();
             drag.start_local_scale = transform->get_local_scale();
@@ -593,6 +599,7 @@ namespace hob::editor {
                     try_set_field(editor,
                                   lua,
                                   drag.entity_id,
+                                  drag.instance_id,
                                   transform_key::POSITION,
                                   transform->get_local_position(),
                                   world_to_local_position(*transform, world_position));
@@ -602,6 +609,7 @@ namespace hob::editor {
                     try_set_field(editor,
                                   lua,
                                   drag.entity_id,
+                                  drag.instance_id,
                                   transform_key::ROTATION,
                                   transform->get_local_rotation(),
                                   drag.start_local_rotation + m_drag_total_rotation);
@@ -612,6 +620,7 @@ namespace hob::editor {
                         try_set_field(editor,
                                       lua,
                                       drag.entity_id,
+                                      drag.instance_id,
                                       transform_key::POSITION,
                                       transform->get_local_position(),
                                       world_to_local_position(*transform, world_position));
@@ -623,6 +632,7 @@ namespace hob::editor {
                         editor,
                         lua,
                         drag.entity_id,
+                        drag.instance_id,
                         transform_key::SCALE,
                         transform->get_local_scale(),
                         Vector2(drag.start_local_scale.x * scale_factor.x, drag.start_local_scale.y * scale_factor.y));
@@ -635,6 +645,7 @@ namespace hob::editor {
                         try_set_field(editor,
                                       lua,
                                       drag.entity_id,
+                                      drag.instance_id,
                                       transform_key::POSITION,
                                       transform->get_local_position(),
                                       world_to_local_position(*transform, world_position));
@@ -664,6 +675,7 @@ namespace hob::editor {
                             lua,
                             label,
                             drag.entity_id,
+                            drag.instance_id,
                             transform_key::POSITION,
                             drag.start_local_position,
                             transform->get_local_position());
@@ -671,6 +683,7 @@ namespace hob::editor {
                             lua,
                             label,
                             drag.entity_id,
+                            drag.instance_id,
                             transform_key::ROTATION,
                             drag.start_local_rotation,
                             transform->get_local_rotation());
@@ -678,6 +691,7 @@ namespace hob::editor {
                             lua,
                             label,
                             drag.entity_id,
+                            drag.instance_id,
                             transform_key::SCALE,
                             drag.start_local_scale,
                             transform->get_local_scale());

@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "editor/editor_camera.h"
+#include "editor/editor_instance_id.h"
 #include "engine/entity/entity.h"
 #include "engine/math/vector2.h"
 
@@ -45,6 +46,7 @@ namespace hob::editor {
 
         struct DragEntity {
             EntityId entity_id = INVALID_ENTITY_ID;
+            EditorInstanceId instance_id = INVALID_EDITOR_INSTANCE_ID;
             Vector2 start_local_position;
             float start_local_rotation = 0.0f;
             Vector2 start_local_scale;

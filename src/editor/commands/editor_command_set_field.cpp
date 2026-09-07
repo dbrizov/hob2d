@@ -28,6 +28,14 @@ namespace hob::editor {
             rigidbody->set_position(transform->get_position());
             rigidbody->set_rotation(transform->get_rotation());
         }
+
+        EntityId resolve_entity_id(Engine& engine, const EditorFieldTarget& target) {
+            if (target.instance_id == INVALID_EDITOR_INSTANCE_ID) {
+                return target.entity_id;
+            }
+
+            return get_entity_id_of_instance(engine, target.instance_id);
+        }
     } // namespace
 
     EditorCommandSetField::EditorCommandSetField(std::string label,
@@ -62,11 +70,16 @@ namespace hob::editor {
             return;
         }
 
+        const EntityId entity_id = resolve_entity_id(engine, target);
+        if (entity_id == INVALID_ENTITY_ID) {
+            return;
+        }
+
         const char* set_component_field =
             target.is_lua ? editor_func::SET_LUA_COMPONENT_FIELD : editor_func::SET_COMPONENT_FIELD;
 
         const sol::object set_successful =
-            editor_call(engine, set_component_field, target.entity_id, target.component_key, target.field, value);
+            editor_call(engine, set_component_field, entity_id, target.component_key, target.field, value);
         if (!set_successful.is<bool>() || !set_successful.as<bool>()) {
             return;
         }
@@ -75,11 +88,11 @@ namespace hob::editor {
             const char* set_instance_field =
                 target.is_lua ? editor_func::SET_LUA_INSTANCE_FIELD : editor_func::SET_INSTANCE_FIELD;
 
-            editor_call(engine, set_instance_field, target.entity_id, target.component_key, target.field, value);
+            editor_call(engine, set_instance_field, entity_id, target.component_key, target.field, value);
         }
 
         if (!target.is_lua && target.component_key == transform_key::SECTION) {
-            sync_transform_to_physics(engine, target.entity_id);
+            sync_transform_to_physics(engine, entity_id);
         }
     }
 } // namespace hob::editor

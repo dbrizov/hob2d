@@ -9,8 +9,10 @@
 
 #include "editor_definition.h"
 #include "editor_inspector_entries.h"
+#include "editor_instance_id.h"
 #include "engine/core/logging.h"
 #include "engine/core/systems/renderer/texture.h"
+#include "engine/entity/entity.h"
 
 namespace hob {
     class Engine;
@@ -96,6 +98,9 @@ namespace hob::editor {
 
         return result;
     }
+
+    EditorInstanceId get_instance_id_of_entity(Engine& engine, EntityId entity_id);
+    EntityId get_entity_id_of_instance(Engine& engine, EditorInstanceId instance_id);
 
     bool is_asset_set(const sol::object& value);
 

@@ -26,20 +26,13 @@ namespace hob::editor {
             return std::make_unique<EditorCommandComposite>(label, std::move(commands));
         }
 
-        EntityId get_entity_id(const Editor& editor, EditorInstanceId instance_id) {
-            const sol::object entity_id = editor_call(editor.get_engine(), editor_func::GET_ENTITY_ID, instance_id);
-
-            return entity_id.is<EntityId>() ? entity_id.as<EntityId>() : INVALID_ENTITY_ID;
-        }
-
         std::vector<EditorInstanceId> get_selected_instance_ids(const Editor& editor) {
             std::vector<EditorInstanceId> instance_ids;
 
             for (EntityId entity_id : editor.get_selection().ids) {
-                const sol::object instance_id =
-                    editor_call(editor.get_engine(), editor_func::GET_INSTANCE_ID, entity_id);
-                if (instance_id.is<EditorInstanceId>()) {
-                    instance_ids.push_back(instance_id.as<EditorInstanceId>());
+                const EditorInstanceId instance_id = get_instance_id_of_entity(editor.get_engine(), entity_id);
+                if (instance_id != INVALID_EDITOR_INSTANCE_ID) {
+                    instance_ids.push_back(instance_id);
                 }
             }
 
@@ -59,7 +52,7 @@ namespace hob::editor {
 
         const EditorInstanceId instance_id = result.as<EditorInstanceId>();
 
-        const EntityId entity_id = get_entity_id(editor, instance_id);
+        const EntityId entity_id = get_entity_id_of_instance(engine, instance_id);
         if (entity_id != INVALID_ENTITY_ID) {
             editor.get_selection().add(entity_id);
         }
@@ -68,7 +61,7 @@ namespace hob::editor {
     }
 
     int32_t remove_instance(Editor& editor, EditorInstanceId instance_id) {
-        const EntityId entity_id = get_entity_id(editor, instance_id);
+        const EntityId entity_id = get_entity_id_of_instance(editor.get_engine(), instance_id);
 
         const sol::object result = editor_call(editor.get_engine(), editor_func::REMOVE_INSTANCE, instance_id);
 

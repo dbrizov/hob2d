@@ -315,6 +315,7 @@ namespace hob::editor {
         void draw_entity(Editor& editor, EditorDockInspectorPendingEdit& pending, const Entity& entity) {
             EditorFieldTarget owner;
             owner.entity_id = entity.get_id();
+            owner.instance_id = get_instance_id_of_entity(editor.get_engine(), entity.get_id());
 
             clear_pending_edit_of_other_owner(pending, owner);
 
