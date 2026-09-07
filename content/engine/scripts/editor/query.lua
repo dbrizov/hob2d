@@ -130,14 +130,58 @@ local HIDDEN_LUA_FIELDS = {
     new = true,
 }
 
-function Editor.is_public_lua_field(key, value)
-    return type(key) == "string"
-        and key:sub(1, 1) ~= "_"
-        and not HIDDEN_LUA_FIELDS[key]
-        and type(value) ~= "function"
+local EMPTY_ANNOTATIONS = { entries = {}, by_name = {} }
+
+local annotations_cache = setmetatable({}, { __mode = "k" })
+
+local function get_editor_annotations(class)
+    if class == nil then
+        return EMPTY_ANNOTATIONS
+    end
+
+    local cached = annotations_cache[class]
+    if cached ~= nil then
+        return cached
+    end
+
+    local entries = rawget(class, "__editor")
+    if type(entries) ~= "table" then
+        cached = EMPTY_ANNOTATIONS
+    else
+        local by_name = {}
+        for _, entry in ipairs(entries) do
+            by_name[entry.name] = entry
+        end
+        cached = { entries = entries, by_name = by_name }
+    end
+
+    annotations_cache[class] = cached
+
+    return cached
 end
 
-local is_lua_component_field = Editor.is_public_lua_field
+---@param class table|nil
+---@param key any
+---@param value any
+---@return boolean
+function Editor.is_editable_lua_field(class, key, value)
+    if type(key) ~= "string" or key:sub(1, 1) == "_" or HIDDEN_LUA_FIELDS[key] or type(value) == "function" then
+        return false
+    end
+
+    local annotation = get_editor_annotations(class).by_name[key]
+
+    return annotation == nil or annotation.hidden ~= true
+end
+
+---@param class_name string
+---@param field string
+---@return table|nil
+function Editor.get_lua_field_annotation(class_name, field)
+    return get_editor_annotations(_G.__component_registry[class_name]).by_name[field]
+end
+
+local is_lua_component_field = Editor.is_editable_lua_field
 
 -- A Lua table cannot report the order its keys were assigned in, so recover it from the source:
 -- debug.getinfo gives init()'s file and line span, and the fields are whatever it assigns to self.
@@ -192,13 +236,38 @@ local function get_declared_field_order(class)
     return cached
 end
 
+local function to_lua_field_row(name, value, annotation)
+    local row = {}
+
+    if annotation ~= nil then
+        for key, meta_value in pairs(annotation) do
+            row[key] = meta_value
+        end
+
+        if row.min ~= nil and row.max == nil then
+            row.max = Math.MAX_FLOAT
+        elseif row.max ~= nil and row.min == nil then
+            row.min = -Math.MAX_FLOAT
+        end
+    end
+
+    row.name = name
+    row.value = value
+    row.type = (annotation ~= nil and annotation.type) or get_field_type_from_value(value)
+
+    return row
+end
+
 local function get_lua_component_fields(comp_instance)
+    local class = getmetatable(comp_instance)
+    local annotations = get_editor_annotations(class)
+
     local names = {}
     local present = {}
 
     local function gather(source)
         for key, value in pairs(source) do
-            if not present[key] and is_lua_component_field(key, value) then
+            if not present[key] and is_lua_component_field(class, key, value) then
                 present[key] = true
                 names[#names + 1] = key
             end
@@ -207,17 +276,22 @@ local function get_lua_component_fields(comp_instance)
 
     gather(comp_instance)
 
-    local class = getmetatable(comp_instance)
     if class ~= nil then
         gather(class)
     end
 
     table.sort(names)
 
-    -- Declared order first; then whatever the scan could not place -- class-table defaults,
-    -- fields born outside init(), computed names -- alphabetically behind it.
     local ordered = {}
     local taken = {}
+
+    for _, entry in ipairs(annotations.entries) do
+        local name = entry.name
+        if not taken[name] and is_lua_component_field(class, name, comp_instance[name]) then
+            taken[name] = true
+            ordered[#ordered + 1] = name
+        end
+    end
 
     if class ~= nil then
         for _, name in ipairs(get_declared_field_order(class)) do
@@ -236,8 +310,7 @@ local function get_lua_component_fields(comp_instance)
 
     local fields = {}
     for _, name in ipairs(ordered) do
-        local value = comp_instance[name]
-        fields[#fields + 1] = { name = name, value = value, type = get_field_type_from_value(value) }
+        fields[#fields + 1] = to_lua_field_row(name, comp_instance[name], annotations.by_name[name])
     end
 
     return fields

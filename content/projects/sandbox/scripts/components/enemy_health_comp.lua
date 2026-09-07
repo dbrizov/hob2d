@@ -1,9 +1,15 @@
-DefineComponent.EnemyHealthComponent = {}
+DefineComponent.EnemyHealthComponent = {
+    __editor = {
+        { name = "max_health",  type = "float", min = 1 },
+        { name = "health",      type = "float", min = 0 },
+        { name = "head_offset", type = "vector2" },
+    },
+}
 ---@class EnemyHealthComponent : LuaComponent
 local EnemyHealthComponent = EnemyHealthComponent
 
 function EnemyHealthComponent:init()
-    self.max_health = 100
+    self.max_health = 100.0
     self.health = self.max_health
     self.head_offset = Vector2(0.0, 1.6)
 

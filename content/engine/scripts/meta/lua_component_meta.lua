@@ -1,8 +1,18 @@
 ---@meta
+
+---@class EditorFieldAnnotation
+---@field name string
+---@field type string?  # A FieldType value, e.g. "float" or "enum". Inferred from the value when omitted.
+---@field enum string?  # Global table holding the entries, for "enum" and "bitmask".
+---@field min number?   # Lower bound. Either bound may be given alone.
+---@field max number?   # Upper bound.
+---@field hidden boolean?  # Keeps the field out of the Inspector, like a `_` prefix does.
+
 ---@class LuaComponent
 ---@field entity Entity
 ---@field class_name string  # Name of the DefineComponent class (set automatically on instantiation).
 ---@field priority integer?  # Priority execution order for this component type. Defaults to 0 (CP_DEFAULT). Set on the class table (e.g. `Player.priority = -50`), NOT per-instance.
+---@field __editor EditorFieldAnnotation[]?  # Set on the class table, in the DefineComponent literal.
 local LuaComponent = {}
 
 function LuaComponent:init() end

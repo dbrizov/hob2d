@@ -1,5 +1,13 @@
 DefineComponent.PlayerComponent = {
     __parent = Components.CharacterComponent,
+    __editor = {
+        { name = "speed",               type = "float", min = 0 },
+        { name = "camera_follow_speed", type = "float", min = 0 },
+        { name = "max_health",          type = "float", min = 1 },
+        { name = "health",              type = "float", min = 0 },
+        { name = "health_regen",        type = "float", min = 0 },
+        { name = "fire_damage",         type = "float", min = 0 },
+    },
 }
 ---@class PlayerComponent : CharacterComponent
 local PlayerComponent = PlayerComponent
@@ -7,7 +15,7 @@ local PlayerComponent = PlayerComponent
 function PlayerComponent:init()
     self.speed = 7.0
     self.camera_follow_speed = 10.0
-    self.max_health = 100
+    self.max_health = 100.0
     self.health = self.max_health
     self.health_regen = 12.0 -- per second
     self.fire_damage = 15.0

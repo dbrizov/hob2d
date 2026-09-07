@@ -61,7 +61,7 @@ function Editor.set_lua_component_field(entity_id, class_name, field, value)
         return false
     end
 
-    if not Editor.is_public_lua_field(field, instance[field]) then
+    if not Editor.is_editable_lua_field(getmetatable(instance), field, instance[field]) then
         Log.error("Editor.set_lua_component_field: '" .. tostring(field) .. "' is not an editable field")
         return false
     end

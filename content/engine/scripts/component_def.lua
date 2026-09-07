@@ -10,6 +10,23 @@ function _G.__clear_component_defs()
     _G.__component_pending = {}
 end
 
+local function is_valid_editor_annotation(name, annotations)
+    if type(annotations) ~= "table" then
+        Log.error("DefineComponent." .. name .. ": __editor must be an array of { name = ... } entries")
+        return false
+    end
+
+    for key, entry in pairs(annotations) do
+        if math.type(key) ~= "integer" or type(entry) ~= "table" or type(entry.name) ~= "string" then
+            Log.error("DefineComponent." .. name .. ": __editor[" .. tostring(key) ..
+                "] must be a table with a string 'name'")
+            return false
+        end
+    end
+
+    return true
+end
+
 ---@class DefineComponent
 _G.DefineComponent = setmetatable({}, {
     __newindex = function(_, name, def)
@@ -27,6 +44,10 @@ _G.DefineComponent = setmetatable({}, {
             if k ~= "__parent" then
                 class[k] = v
             end
+        end
+
+        if class.__editor ~= nil and not is_valid_editor_annotation(name, class.__editor) then
+            class.__editor = nil
         end
 
         _G.__component_pending[name] = { class = class, def = def }

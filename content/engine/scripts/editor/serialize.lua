@@ -384,8 +384,9 @@ local function serialize_lua_overrides(lua_overrides, path, depth, prefix)
 
         local fields = {}
         for _, field in ipairs(sorted_keys(overrides)) do
+            local field_meta = Editor.get_lua_field_annotation(class_name, field)
             fields[#fields + 1] = field .. " = " ..
-                serialize_value(overrides[field], nil, section_path .. "." .. field, depth + 2, field_prefix(field))
+                serialize_value(overrides[field], field_meta, section_path .. "." .. field, depth + 2, field_prefix(field))
         end
 
         local section = wrap_fields(fields, depth + 1, field_prefix(class_name))
