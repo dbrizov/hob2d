@@ -4,15 +4,27 @@
 _G.Editor = _G.Editor or {}
 
 local INDENT = "    "
-local LINE_BUDGET = 140
+local LINE_BUDGET = 120
 local FLOAT_FORMAT = "%.7g"
 
 local SHAPES = {
     [FieldType.VECTOR2] = { ctor = "Vector2", fields = { "x", "y" } },
     [FieldType.COLOR] = { ctor = "Color", fields = { "r", "g", "b", "a" } },
-    [FieldType.AABB] = { ctor = "AABB", fields = { "center", "extents" } },
-    [FieldType.CAPSULE] = { ctor = "Capsule", fields = { "center_a", "center_b", "radius" } },
-    [FieldType.CIRCLE] = { ctor = "Circle", fields = { "center", "radius" } },
+    [FieldType.AABB] = {
+        ctor = "AABB",
+        fields = { "center", "extents" },
+        types = { center = { type = FieldType.VECTOR2 }, extents = { type = FieldType.VECTOR2 } },
+    },
+    [FieldType.CAPSULE] = {
+        ctor = "Capsule",
+        fields = { "center_a", "center_b", "radius" },
+        types = { center_a = { type = FieldType.VECTOR2 }, center_b = { type = FieldType.VECTOR2 } },
+    },
+    [FieldType.CIRCLE] = {
+        ctor = "Circle",
+        fields = { "center", "radius" },
+        types = { center = { type = FieldType.VECTOR2 } },
+    },
 }
 
 local POSE_ORDER = { TransformKey.POSITION, TransformKey.ROTATION_DEG, TransformKey.SCALE }
@@ -35,7 +47,7 @@ local function ensure_shape_metatables()
 end
 
 local function fail(path, message)
-    error("Editor.serialize_scene: " .. path .. " " .. message, 0)
+    error("Editor.serialize: " .. path .. " " .. message, 0)
 end
 
 -- Lua dispatches __eq off the left operand whenever both sides are userdata, and sol2's __eq raises
@@ -58,7 +70,8 @@ local function is_baseline(value, baseline)
     return false
 end
 
-local function get_prefab_section(prefab, key)
+local function get_prefab_section(prefab_name, key)
+    local prefab = _G.__entity_prefab_registry[prefab_name]
     if prefab == nil then
         return nil
     end
@@ -69,6 +82,21 @@ local function get_prefab_section(prefab, key)
     end
 
     return section
+end
+
+local function get_lua_baseline(prefab_name, class_name, field)
+    local sections = Editor.get_definition_sections(DefRegistry.ENTITIES, prefab_name)
+    for _, section in ipairs(sections or {}) do
+        if section.is_lua and section.name == class_name then
+            for _, row in ipairs(section.fields) do
+                if row.name == field then
+                    return row.value
+                end
+            end
+        end
+    end
+
+    return nil
 end
 
 local function resolve_baseline(prefab_section, defaults, field)
@@ -231,9 +259,11 @@ end
 local serialize_value
 
 local function serialize_shape(shape, value, path, depth)
+    local types = shape.types or {}
+
     local args = {}
     for index, field in ipairs(shape.fields) do
-        args[index] = serialize_value(value[field], nil, path .. "." .. field, depth, 0)
+        args[index] = serialize_value(value[field], types[field], path .. "." .. field, depth, 0)
     end
 
     return shape.ctor .. "(" .. table.concat(args, ", ") .. ")"
@@ -303,8 +333,8 @@ serialize_value = function(value, field_meta, path, depth, prefix)
     fail(path, "holds a " .. value_type .. " value, which cannot be written to a scene file")
 end
 
-local function get_pose_baseline(prefab, field)
-    local transform = get_prefab_section(prefab, TransformKey.SECTION)
+local function get_pose_baseline(prefab_name, field)
+    local transform = get_prefab_section(prefab_name, TransformKey.SECTION)
     local defaults = __get_component_defaults(TransformKey.SECTION)
 
     if field == TransformKey.ROTATION_DEG then
@@ -319,10 +349,10 @@ local function get_pose_baseline(prefab, field)
     return nil
 end
 
-local function serialize_pose_overrides(pose, path, depth, prefix, prefab)
+local function serialize_pose(pose, path, depth, prefix, prefab_name)
     local parts = {}
     for _, field in ipairs(ordered_keys(pose, POSE_ORDER)) do
-        local baseline = get_pose_baseline(prefab, field)
+        local baseline = get_pose_baseline(prefab_name, field)
         if baseline == nil or not is_baseline(pose[field], baseline) then
             parts[#parts + 1] = field .. " = " ..
                 serialize_value(pose[field], POSE_TYPES[field], path .. "." .. field, depth + 1, field_prefix(field))
@@ -352,18 +382,18 @@ local function serialize_cpp_section(section, schema, path, depth, prefix, prefa
     return wrap_fields(parts, depth, prefix)
 end
 
-local function serialize_cpp_overrides(cpp_overrides, path, depth, prefix, prefab)
+local function serialize_cpp_sections(sections_by_key, path, depth, prefix, prefab_name)
     local schemas = _G.__component_schemas
 
     local parts = {}
-    for _, key in ipairs(ordered_keys(cpp_overrides, schemas.__order)) do
+    for _, key in ipairs(ordered_keys(sections_by_key, schemas.__order)) do
         local schema = schemas[key]
 
         local has_elidable_fields = schema ~= nil and schema.map_setter == nil
-        local prefab_section = has_elidable_fields and get_prefab_section(prefab, key) or nil
+        local prefab_section = has_elidable_fields and get_prefab_section(prefab_name, key) or nil
         local defaults = has_elidable_fields and __get_component_defaults(key) or nil
 
-        local section = serialize_cpp_section(cpp_overrides[key], schema, path .. "." .. key,
+        local section = serialize_cpp_section(sections_by_key[key], schema, path .. "." .. key,
             depth + 1, field_prefix(key), prefab_section, defaults)
         if section ~= nil then
             parts[#parts + 1] = key .. " = " .. section
@@ -373,20 +403,24 @@ local function serialize_cpp_overrides(cpp_overrides, path, depth, prefix, prefa
     return wrap_fields(parts, depth, prefix)
 end
 
-local function serialize_lua_overrides(lua_overrides, path, depth, prefix)
+local function serialize_lua_sections(sections_by_class, path, depth, prefix, prefab_name)
     local parts = {}
-    for _, class_name in ipairs(sorted_keys(lua_overrides)) do
+    for _, class_name in ipairs(sorted_keys(sections_by_class)) do
         local section_path = path .. "." .. class_name
-        local section = lua_overrides[class_name]
+        local section = sections_by_class[class_name]
         if type(section) ~= "table" then
             fail(section_path, "is not a table")
         end
 
         local fields = {}
         for _, field in ipairs(sorted_keys(section)) do
-            local field_meta = Editor.get_lua_field_annotation(class_name, field)
-            fields[#fields + 1] = field .. " = " ..
-                serialize_value(section[field], field_meta, section_path .. "." .. field, depth + 2, field_prefix(field))
+            local baseline = prefab_name ~= nil and get_lua_baseline(prefab_name, class_name, field) or nil
+            if baseline == nil or not is_baseline(section[field], baseline) then
+                local field_meta = Editor.get_lua_field_annotation(class_name, field)
+                fields[#fields + 1] = field .. " = " ..
+                    serialize_value(section[field], field_meta, section_path .. "." .. field, depth + 2,
+                        field_prefix(field))
+            end
         end
 
         local text = wrap_fields(fields, depth + 1, field_prefix(class_name))
@@ -398,13 +432,13 @@ local function serialize_lua_overrides(lua_overrides, path, depth, prefix)
     return wrap_fields(parts, depth, prefix)
 end
 
-local function append_overrides(parts, inst, key, serialize_section, path, depth, prefab)
+local function append_overrides(parts, inst, key, serialize_section, path, depth, prefab_name)
     local overrides = inst[key]
     if type(overrides) ~= "table" then
         return
     end
 
-    local section = serialize_section(overrides, path .. "." .. key, depth, field_prefix(key), prefab)
+    local section = serialize_section(overrides, path .. "." .. key, depth, field_prefix(key), prefab_name)
     if section ~= nil then
         parts[#parts + 1] = key .. " = " .. section
     end
@@ -415,12 +449,12 @@ local function serialize_instance(inst, path, depth, prefix)
         fail(path, "does not name a prefab")
     end
 
-    local prefab = _G.__entity_prefab_registry[inst.prefab]
-    local parts = { "prefab = " .. DefRegistry.ENTITIES .. "." .. inst.prefab }
+    local prefab_name = inst.prefab
+    local parts = { "prefab = " .. DefRegistry.ENTITIES .. "." .. prefab_name }
 
-    append_overrides(parts, inst, SceneKey.POSE_OVERRIDES, serialize_pose_overrides, path, depth + 1, prefab)
-    append_overrides(parts, inst, SceneKey.CPP_OVERRIDES, serialize_cpp_overrides, path, depth + 1, prefab)
-    append_overrides(parts, inst, SceneKey.LUA_OVERRIDES, serialize_lua_overrides, path, depth + 1, prefab)
+    append_overrides(parts, inst, SceneKey.POSE_OVERRIDES, serialize_pose, path, depth + 1, prefab_name)
+    append_overrides(parts, inst, SceneKey.CPP_OVERRIDES, serialize_cpp_sections, path, depth + 1, prefab_name)
+    append_overrides(parts, inst, SceneKey.LUA_OVERRIDES, serialize_lua_sections, path, depth + 1, prefab_name)
 
     return wrap_fields(parts, depth, prefix)
 end
@@ -428,7 +462,8 @@ end
 local EMPTY_SCENE = { entities = {} }
 
 local function serialize_scene_def(def, name)
-    local lines = { "DefineScene." .. name .. " = {" }
+    local path = "DefineScene." .. name
+    local lines = { path .. " = {" }
 
     if #def.entities == 0 then
         lines[#lines + 1] = INDENT .. "entities = {},"
@@ -436,10 +471,89 @@ local function serialize_scene_def(def, name)
         lines[#lines + 1] = INDENT .. "entities = {"
 
         for index, inst in ipairs(def.entities) do
-            lines[#lines + 1] = indent_of(2) .. serialize_instance(inst, "entities[" .. index .. "]", 2, 0) .. ","
+            lines[#lines + 1] = indent_of(2) ..
+                serialize_instance(inst, path .. ".entities[" .. index .. "]", 2, 0) .. ","
         end
 
         lines[#lines + 1] = INDENT .. "},"
+    end
+
+    lines[#lines + 1] = "}"
+
+    return table.concat(lines, "\n") .. "\n"
+end
+
+local PREFAB_ROOT_ORDER = { PrefabKey.TICKING, "name" }
+
+local function serialize_lua_component_list(class_names, path, depth, prefix)
+    local parts = {}
+    for index, class_name in ipairs(class_names) do
+        if type(class_name) ~= "string" then
+            fail(path .. "[" .. index .. "]", "does not name a component class")
+        end
+
+        parts[#parts + 1] = DefRegistry.COMPONENTS .. "." .. class_name
+    end
+
+    return wrap_fields(parts, depth, prefix) or "{}"
+end
+
+local function serialize_prefab_section(section, key, path, depth, prefix)
+    local schema = _G.__component_schemas[key]
+    if schema == nil or schema.map_setter then
+        return serialize_value(section, nil, path, depth, prefix)
+    end
+
+    return serialize_cpp_section(section, schema, path, depth, prefix, nil, __get_component_defaults(key)) or "{}"
+end
+
+local EMPTY_PREFAB = {}
+
+local function serialize_prefab_def(def, name)
+    local path = "DefineEntity." .. name
+    local lines = { path .. " = {" }
+    local emitted = {}
+
+    local function append(key, text)
+        lines[#lines + 1] = INDENT .. key .. " = " .. text .. ","
+        emitted[key] = true
+    end
+
+    local function serialize_verbatim(key)
+        return serialize_value(def[key], nil, path .. "." .. key, 1, field_prefix(key))
+    end
+
+    for _, key in ipairs(PREFAB_ROOT_ORDER) do
+        if def[key] ~= nil then
+            append(key, serialize_verbatim(key))
+        end
+    end
+
+    for _, key in ipairs(_G.__component_schemas.__order) do
+        local section = def[key]
+        if section ~= nil then
+            append(key, serialize_prefab_section(section, key, path .. "." .. key, 1, field_prefix(key)))
+        end
+    end
+
+    local lua_components = def[PrefabKey.LUA_COMPONENTS]
+    if lua_components ~= nil then
+        local key = PrefabKey.LUA_COMPONENTS
+        append(key, serialize_lua_component_list(lua_components, path .. "." .. key, 1, field_prefix(key)))
+    end
+
+    local lua_fields = def[PrefabKey.LUA_FIELDS]
+    if lua_fields ~= nil then
+        local key = PrefabKey.LUA_FIELDS
+        append(key, serialize_lua_sections(lua_fields, path .. "." .. key, 1, field_prefix(key), nil) or "{}")
+    end
+
+    for _, key in ipairs(sorted_keys(def, emitted)) do
+        append(key, serialize_verbatim(key))
+    end
+
+    if #lines == 1 then
+        return path .. " = {}\n"
     end
 
     lines[#lines + 1] = "}"
@@ -463,4 +577,22 @@ end
 ---@return string
 function Editor.serialize_new_scene(name)
     return serialize_scene_def(EMPTY_SCENE, name)
+end
+
+---@param name string
+---@param as_name string|nil the name to declare it under; defaults to `name`
+---@return string
+function Editor.serialize_prefab(name, as_name)
+    local def = _G.__entity_prefab_registry[name]
+    if def == nil then
+        error("Editor.serialize_prefab: prefab '" .. tostring(name) .. "' is not registered", 0)
+    end
+
+    return serialize_prefab_def(def, as_name or name)
+end
+
+---@param name string
+---@return string
+function Editor.serialize_new_prefab(name)
+    return serialize_prefab_def(EMPTY_PREFAB, name)
 end

@@ -9,10 +9,10 @@ namespace hob::editor {
 
     constexpr const char* DIRTY_MARKER = "(*)";
 
-    std::optional<std::string> get_scene_save_error(const Editor& editor);
-    bool can_save_scene(const Editor& editor);
-    void save_scene(Editor& editor);
-    void revert_scene(Editor& editor);
+    std::optional<std::string> get_save_error(const Editor& editor);
+    bool can_save(const Editor& editor);
+    void save_all(Editor& editor);
+    void revert_all(Editor& editor);
 
     bool can_new_scene(const Editor& editor);
     bool can_save_scene_as(const Editor& editor);

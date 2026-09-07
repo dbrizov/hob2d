@@ -297,18 +297,18 @@ namespace hob::editor {
                     },
             },
             {
-                .id = EditorActionId::SaveScene,
-                .label = "Save Scene",
+                .id = EditorActionId::Save,
+                .label = "Save",
                 .chord = ImGuiMod_Ctrl | ImGuiKey_S,
                 .context = EditorActionContext::Global,
                 .is_enabled =
                     [](const Editor& editor) {
-                        return can_save_scene(editor);
+                        return can_save(editor);
                     },
                 .format_label = nullptr,
                 .run =
                     [](Editor& editor) {
-                        save_scene(editor);
+                        save_all(editor);
                     },
             },
             {

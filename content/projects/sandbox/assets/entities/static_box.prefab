@@ -9,8 +9,6 @@ DefineEntity.static_box = {
     },
     sprite = {
         texture = Textures.white_rect,
-        material = Material {
-            tint = Color.orange(),
-        },
+        material = Materials.tint_orange,
     },
 }

@@ -33,13 +33,16 @@
 ---@field psychedelic Shader
 
 ---@class Materials
----@field blue_outline Material
----@field cyan_outline Material
 ---@field distort Material
----@field green_outline Material
+---@field outline_blue Material
+---@field outline_cyan Material
+---@field outline_green Material
+---@field outline_red Material
+---@field outline_white Material
 ---@field psychedelic Material
----@field red_outline Material
----@field white_outline Material
+---@field tint_cyan Material
+---@field tint_green Material
+---@field tint_orange Material
 
 ---@class AudioClips
 ---@field whoosh_single AudioClip

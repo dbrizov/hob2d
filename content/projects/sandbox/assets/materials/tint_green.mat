@@ -1,0 +1,4 @@
+---@type MaterialParams.sprite
+DefineMaterial.tint_green = {
+    tint = Color.green(),
+}

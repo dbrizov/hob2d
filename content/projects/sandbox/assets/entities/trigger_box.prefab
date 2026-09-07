@@ -7,8 +7,6 @@ DefineEntity.trigger_box = {
     },
     sprite = {
         texture = Textures.white_rect,
-        material = Material {
-            tint = Color.cyan(),
-        },
+        material = Materials.tint_cyan,
     },
 }

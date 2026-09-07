@@ -53,6 +53,26 @@ function Editor.mark_prefab_saved(name)
     prefab_state.dirty[name] = nil
 end
 
+---@param name string
+function Editor.mark_prefab_reverted(name)
+    prefab_state.dirty[name] = nil
+    Editor.invalidate_prefab_sections(name)
+    __reapply_prefabs_to_spawned_entities()
+    __reapply_scene_overrides_to_spawned_entities()
+end
+
+---@param name string
+---@return string|nil
+function Editor.get_prefab_file(name)
+    return __get_def_source(DefRegistry.ENTITIES, name)
+end
+
+---@param name string
+---@return string|nil reason, nil when the prefab can be written back to its file
+function Editor.get_prefab_save_error(name)
+    return Editor.get_definition_save_error(DefRegistry.ENTITIES, name, _G.__entity_prefab_registry[name] ~= nil)
+end
+
 local function for_each_instance_of_prefab(name, fn)
     EntitySpawner.for_each_entity(function(entity)
         local entity_id = entity:get_id()

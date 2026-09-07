@@ -34,6 +34,28 @@ namespace hob::editor {
         constexpr float LAYOUT_INSPECTOR_RATIO = 0.50f;
         constexpr float LAYOUT_ASSETS_RATIO = 0.50f;
         constexpr float LAYOUT_OUTPUT_RATIO = 0.30f;
+
+        std::string describe_unsaved_changes(const Editor& editor) {
+            std::vector<std::string> documents;
+            if (editor.is_scene_dirty()) {
+                documents.push_back(std::format("scene '{}'", editor.get_current_scene()));
+            }
+
+            for (const std::string& prefab_name : editor.get_dirty_prefab_names()) {
+                documents.push_back(std::format("prefab '{}'", prefab_name));
+            }
+
+            std::string described;
+            for (size_t i = 0; i < documents.size(); ++i) {
+                if (i > 0) {
+                    described += (i + 1 == documents.size()) ? " and " : ", ";
+                }
+
+                described += documents[i];
+            }
+
+            return std::format("{} {} unsaved changes.", described, documents.size() == 1 ? "has" : "have");
+        }
     } // namespace
 
     Editor::Editor(Engine& engine)
@@ -98,8 +120,8 @@ namespace hob::editor {
         const bool entering_play = (previous == WorldState::Stopped);
         const bool leaving_play = (state == WorldState::Stopped);
 
-        if (entering_play && is_scene_dirty() && can_save_scene(*this)) {
-            save_scene(*this);
+        if (entering_play && has_unsaved_changes()) {
+            save_all(*this);
         }
 
         if (entering_play || leaving_play) {
@@ -141,14 +163,14 @@ namespace hob::editor {
     }
 
     void Editor::request_open_scene(const std::string& name) {
-        if (!is_scene_dirty() || get_state() != WorldState::Stopped) {
+        if (!has_unsaved_changes() || get_state() != WorldState::Stopped) {
             open_scene_without_prompt(name);
             return;
         }
 
         prompt_unsaved_changes(
             [this] {
-                revert_scene(*this);
+                revert_all(*this);
             },
             [this, name] {
                 open_scene_without_prompt(name);
@@ -468,7 +490,7 @@ namespace hob::editor {
             return true;
         }
 
-        if (!is_scene_dirty() || get_state() != WorldState::Stopped) {
+        if (!has_unsaved_changes() || get_state() != WorldState::Stopped) {
             return false;
         }
 
@@ -479,11 +501,11 @@ namespace hob::editor {
     }
 
     void Editor::prompt_unsaved_changes(std::function<void()> revert_changes, std::function<void()> proceed) {
-        const std::optional<std::string> save_error = get_scene_save_error(*this);
+        const std::optional<std::string> save_error = get_save_error(*this);
 
         m_modal.open({
             .title = UNSAVED_CHANGES_TITLE,
-            .message = std::format("'{}' has unsaved changes.", m_current_scene),
+            .message = describe_unsaved_changes(*this),
             .reason = save_error,
             .buttons = {.confirm = "Save",
                         .discard = "Don't Save",
@@ -491,7 +513,7 @@ namespace hob::editor {
                         .is_confirm_enabled = !save_error.has_value()},
             .on_confirm =
                 [this, proceed] {
-                    save_scene(*this);
+                    save_all(*this);
                     proceed();
                 },
             .on_discard =

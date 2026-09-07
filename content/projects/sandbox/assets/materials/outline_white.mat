@@ -1,6 +1,6 @@
 ---@type MaterialParams.outline
-DefineMaterial.cyan_outline = {
+DefineMaterial.outline_white = {
     shader = Shaders.outline,
-    outline_color = Color.cyan(),
+    outline_color = Color.white(),
     outline_width = 2.0,
 }

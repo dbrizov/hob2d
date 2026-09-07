@@ -138,96 +138,209 @@ namespace hob::editor {
             return name.is<std::string>() ? name.as<std::string>() : std::string();
         }
 
+        void reload_after_write(Engine& engine) {
+            LuaScriptSystem& lua_script_system = engine.get_lua_script_system();
+            lua_script_system.hot_reload();
+            lua_script_system.rebaseline_script_watch();
+        }
+
         // The reload is what runs the file just written, which is what makes M8a's recorder stamp its
         // path before the scene is opened from it.
         void publish_new_scene(Editor& editor, const std::string& scene_name) {
-            LuaScriptSystem& lua_script_system = editor.get_engine().get_lua_script_system();
-            lua_script_system.hot_reload();
-            lua_script_system.rebaseline_script_watch();
-
+            reload_after_write(editor.get_engine());
             editor.request_open_scene(scene_name);
+        }
+
+        std::optional<std::string> get_lua_save_error(Engine& engine, const char* func, const std::string& name) {
+            if (!get_editor_func(engine, func).valid()) {
+                return std::format("{} is unavailable", func);
+            }
+
+            const sol::object result = editor_call(engine, func, name);
+            if (result.is<std::string>()) {
+                return result.as<std::string>();
+            }
+
+            return std::nullopt;
+        }
+
+        std::optional<std::string> get_scene_save_error(const Editor& editor) {
+            if (editor.get_current_scene().empty()) {
+                return "no scene is open";
+            }
+
+            return get_lua_save_error(
+                editor.get_engine(), editor_func::GET_SCENE_SAVE_ERROR, editor.get_current_scene());
+        }
+
+        std::optional<std::string> get_prefab_save_error(const Editor& editor, const std::string& prefab_name) {
+            return get_lua_save_error(editor.get_engine(), editor_func::GET_PREFAB_SAVE_ERROR, prefab_name);
+        }
+
+        std::optional<std::filesystem::path> get_recorded_file(Engine& engine,
+                                                               const char* get_file_func,
+                                                               const std::string& name) {
+            const sol::object file = editor_call(engine, get_file_func, name);
+            if (!file.is<std::string>()) {
+                log::editor.error("'{}' has no recorded source file", name);
+                return std::nullopt;
+            }
+
+            return std::filesystem::path(file.as<std::string>());
+        }
+
+        bool write_definition(Engine& engine,
+                              const char* get_file_func,
+                              const char* serialize_func,
+                              const std::string& name,
+                              const char* kind) {
+            const std::optional<std::filesystem::path> path = get_recorded_file(engine, get_file_func, name);
+            if (!path.has_value()) {
+                return false;
+            }
+
+            const sol::object source = editor_call(engine, serialize_func, name);
+            if (!source.is<std::string>()) {
+                return false;
+            }
+
+            if (!write_file(*path, source.as<std::string>())) {
+                return false;
+            }
+
+            log::editor.info("Saved {} '{}' to '{}'", kind, name, path->string());
+
+            return true;
+        }
+
+        bool write_scene(Editor& editor) {
+            const std::optional<std::string> reason = get_scene_save_error(editor);
+            if (reason.has_value()) {
+                log::editor.error("Cannot save the scene because {}", *reason);
+                return false;
+            }
+
+            Engine& engine = editor.get_engine();
+            if (!write_definition(engine,
+                                  editor_func::GET_SCENE_FILE,
+                                  editor_func::SERIALIZE_SCENE,
+                                  editor.get_current_scene(),
+                                  "scene")) {
+                return false;
+            }
+
+            editor_call(engine, editor_func::MARK_SCENE_SAVED);
+
+            return true;
+        }
+
+        bool write_prefab(Editor& editor, const std::string& prefab_name) {
+            const std::optional<std::string> reason = get_prefab_save_error(editor, prefab_name);
+            if (reason.has_value()) {
+                log::editor.error("Cannot save prefab '{}' because {}", prefab_name, *reason);
+                return false;
+            }
+
+            Engine& engine = editor.get_engine();
+            if (!write_definition(
+                    engine, editor_func::GET_PREFAB_FILE, editor_func::SERIALIZE_PREFAB, prefab_name, "prefab")) {
+                return false;
+            }
+
+            editor_call(engine, editor_func::MARK_PREFAB_SAVED, prefab_name);
+
+            return true;
+        }
+
+        void revert_scene(Editor& editor) {
+            Engine& engine = editor.get_engine();
+            const std::string& scene_name = editor.get_current_scene();
+
+            const std::optional<std::filesystem::path> path =
+                get_recorded_file(engine, editor_func::GET_SCENE_FILE, scene_name);
+            if (!path.has_value() || !engine.get_lua_script_system().run_file(*path)) {
+                return;
+            }
+
+            editor_call(engine, editor_func::MARK_SCENE_SAVED);
+
+            log::editor.info("Reverted scene '{}' from '{}'", scene_name, path->string());
+        }
+
+        void revert_prefab(Editor& editor, const std::string& prefab_name) {
+            Engine& engine = editor.get_engine();
+
+            const std::optional<std::filesystem::path> path =
+                get_recorded_file(engine, editor_func::GET_PREFAB_FILE, prefab_name);
+            if (!path.has_value() || !engine.get_lua_script_system().run_file(*path)) {
+                return;
+            }
+
+            editor_call(engine, editor_func::MARK_PREFAB_REVERTED, prefab_name);
+
+            log::editor.info("Reverted prefab '{}' from '{}'", prefab_name, path->string());
         }
     } // namespace
 
-    std::optional<std::string> get_scene_save_error(const Editor& editor) {
-        if (editor.get_current_scene().empty()) {
-            return "no scene is open";
-        }
-
+    std::optional<std::string> get_save_error(const Editor& editor) {
         if (editor.get_state() != WorldState::Stopped) {
-            return "the scene document is only editable while the world is stopped";
+            return "documents are only editable while the world is stopped";
         }
 
-        Engine& engine = editor.get_engine();
-        if (!get_editor_func(engine, editor_func::GET_SCENE_SAVE_ERROR).valid()) {
-            return std::format("{} is unavailable", editor_func::GET_SCENE_SAVE_ERROR);
+        if (editor.is_scene_dirty()) {
+            const std::optional<std::string> reason = get_scene_save_error(editor);
+            if (reason.has_value()) {
+                return reason;
+            }
         }
 
-        const sol::object result = editor_call(engine, editor_func::GET_SCENE_SAVE_ERROR, editor.get_current_scene());
-        if (result.is<std::string>()) {
-            return result.as<std::string>();
+        for (const std::string& prefab_name : editor.get_dirty_prefab_names()) {
+            const std::optional<std::string> reason = get_prefab_save_error(editor, prefab_name);
+            if (reason.has_value()) {
+                return reason;
+            }
         }
 
         return std::nullopt;
     }
 
-    bool can_save_scene(const Editor& editor) {
-        return !get_scene_save_error(editor).has_value();
+    bool can_save(const Editor& editor) {
+        if (editor.get_state() != WorldState::Stopped) {
+            return false;
+        }
+
+        return !get_scene_save_error(editor).has_value() || !editor.get_dirty_prefab_names().empty();
     }
 
-    void save_scene(Editor& editor) {
-        const std::optional<std::string> reason = get_scene_save_error(editor);
-        if (reason.has_value()) {
-            log::editor.error("Cannot save the scene because {}", *reason);
+    void save_all(Editor& editor) {
+        if (editor.get_state() != WorldState::Stopped) {
+            log::editor.error("Cannot save while the world is not stopped");
             return;
         }
 
-        Engine& engine = editor.get_engine();
-        const std::string& scene_name = editor.get_current_scene();
+        bool written = false;
 
-        const sol::object file = editor_call(engine, editor_func::GET_SCENE_FILE, scene_name);
-        if (!file.is<std::string>()) {
-            log::editor.error("Scene '{}' has no recorded source file", scene_name);
-            return;
+        if (!editor.get_current_scene().empty()) {
+            written = write_scene(editor) || written;
         }
 
-        const sol::object source = editor_call(engine, editor_func::SERIALIZE_SCENE, scene_name);
-        if (!source.is<std::string>()) {
-            return;
+        for (const std::string& prefab_name : editor.get_dirty_prefab_names()) {
+            written = write_prefab(editor, prefab_name) || written;
         }
 
-        const std::filesystem::path path = file.as<std::string>();
-        if (!write_file(path, source.as<std::string>())) {
-            return;
+        if (written) {
+            reload_after_write(editor.get_engine());
         }
-
-        editor_call(engine, editor_func::MARK_SCENE_SAVED);
-
-        LuaScriptSystem& lua_script_system = engine.get_lua_script_system();
-        lua_script_system.hot_reload();
-        lua_script_system.rebaseline_script_watch();
-
-        log::editor.info("Saved scene '{}' to '{}'", scene_name, path.string());
     }
 
-    void revert_scene(Editor& editor) {
-        Engine& engine = editor.get_engine();
-        const std::string& scene_name = editor.get_current_scene();
-
-        const sol::object file = editor_call(engine, editor_func::GET_SCENE_FILE, scene_name);
-        if (!file.is<std::string>()) {
-            log::editor.error("Cannot revert scene '{}' because it has no recorded source file", scene_name);
-            return;
+    void revert_all(Editor& editor) {
+        if (editor.is_scene_dirty()) {
+            revert_scene(editor);
         }
 
-        const std::filesystem::path path = file.as<std::string>();
-        if (!engine.get_lua_script_system().run_file(path)) {
-            return;
+        for (const std::string& prefab_name : editor.get_dirty_prefab_names()) {
+            revert_prefab(editor, prefab_name);
         }
-
-        editor_call(engine, editor_func::MARK_SCENE_SAVED);
-
-        log::editor.info("Reverted scene '{}' from '{}'", scene_name, path.string());
     }
 
     bool can_new_scene(const Editor& editor) {

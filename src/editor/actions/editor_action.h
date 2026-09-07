@@ -30,7 +30,7 @@ namespace hob::editor {
         RefreshAssets,
         NewScene,
         OpenScene,
-        SaveScene,
+        Save,
         SaveSceneAs,
         Quit,
         Count,

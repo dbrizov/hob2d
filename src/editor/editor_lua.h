@@ -69,6 +69,12 @@ namespace hob::editor {
         constexpr const char* IS_PREFAB_DIRTY = "is_prefab_dirty";
         constexpr const char* GET_DIRTY_PREFAB_NAMES = "get_dirty_prefab_names";
         constexpr const char* REBIND_PREFAB_DEFS = "rebind_prefab_defs";
+        constexpr const char* MARK_PREFAB_SAVED = "mark_prefab_saved";
+        constexpr const char* MARK_PREFAB_REVERTED = "mark_prefab_reverted";
+        constexpr const char* GET_PREFAB_FILE = "get_prefab_file";
+        constexpr const char* GET_PREFAB_SAVE_ERROR = "get_prefab_save_error";
+        constexpr const char* SERIALIZE_PREFAB = "serialize_prefab";
+        constexpr const char* SERIALIZE_NEW_PREFAB = "serialize_new_prefab";
     } // namespace editor_func
 
     sol::protected_function get_editor_func(Engine& engine, const char* name);

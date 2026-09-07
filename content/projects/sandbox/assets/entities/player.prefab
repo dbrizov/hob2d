@@ -1,25 +1,18 @@
 DefineEntity.player = {
     ticking = true,
-    input = {},
     character_body = {
         collision_layer = CollisionLayer.Kinematic,
         collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Trigger,
         solver_ignore_mask = CollisionLayer.Trigger,
-        capsule = Capsule(Vector2.zero(), Vector2.zero(), 1.2),
+        capsule = Capsule(Vector2(0.0, 0.0), Vector2(0.0, 0.0), 1.2),
     },
-    sprite = {
-        texture = Textures.HJ_idle01,
-        z_index = 1,
-    },
+    input = {},
+    sprite = { texture = Textures.HJ_idle01, z_index = 1 },
     sprite_animator = {
-        clips = {
-            idle = AnimationClips.player_idle,
-            run = AnimationClips.player_run,
-        },
+        clips = { idle = AnimationClips.player_idle, run = AnimationClips.player_run },
         default_clip = "idle",
     },
-    audio = {
-        clip = AudioClips.whoosh_single,
-    },
+    audio = { clip = AudioClips.whoosh_single },
     lua_components = { Components.PlayerComponent },
+    lua_fields = { PlayerComponent = { max_health = 100.0, speed = 7.0 } },
 }

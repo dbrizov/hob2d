@@ -1,15 +1,8 @@
 DefineEntity.dynamic_box = {
-    rigidbody = {
-        body_type = BodyType.Dynamic,
-    },
+    rigidbody = { body_type = BodyType.Dynamic },
     box_collider = {
         collision_layer = CollisionLayer.Dynamic,
         collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Kinematic | CollisionLayer.Trigger,
     },
-    sprite = {
-        texture = Textures.white_rect,
-        material = Material {
-            tint = Color.green(),
-        },
-    },
+    sprite = { texture = Textures.white_rect, material = Materials.tint_green },
 }

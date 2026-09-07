@@ -1,6 +1,6 @@
 ---@type MaterialParams.outline
-DefineMaterial.green_outline = {
+DefineMaterial.outline_blue = {
     shader = Shaders.outline,
-    outline_color = Color.green(),
+    outline_color = Color.blue(),
     outline_width = 2.0,
 }

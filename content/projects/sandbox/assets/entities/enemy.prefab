@@ -4,26 +4,13 @@ DefineEntity.enemy = {
         collision_layer = CollisionLayer.Kinematic,
         collision_mask = CollisionLayer.Static | CollisionLayer.Dynamic | CollisionLayer.Trigger,
         solver_ignore_mask = CollisionLayer.Trigger,
-        capsule = Capsule(Vector2.zero(), Vector2.zero(), 1.2),
+        capsule = Capsule(Vector2(0.0, 0.0), Vector2(0.0, 0.0), 1.2),
     },
-    sprite = {
-        texture = Textures.HJ_idle01,
-        material = Materials.red_outline,
-        z_index = 0,
-    },
+    sprite = { texture = Textures.HJ_idle01, material = Materials.outline_red },
     sprite_animator = {
-        clips = {
-            idle = AnimationClips.player_idle,
-            run = AnimationClips.player_run,
-        },
+        clips = { idle = AnimationClips.player_idle, run = AnimationClips.player_run },
         default_clip = "idle",
     },
-    -- audio = {
-    --     clip = AudioClips.whoosh_single,
-    --     spatial = true,
-    --     looping = true,
-    --     autoplay = true,
-    --     max_distance = 20.0,
-    -- },
     lua_components = { Components.ContactComponent, Components.EnemyHealthComponent },
+    lua_fields = { EnemyHealthComponent = { max_health = 100.0 } },
 }
