@@ -377,21 +377,21 @@ local function serialize_lua_overrides(lua_overrides, path, depth, prefix)
     local parts = {}
     for _, class_name in ipairs(sorted_keys(lua_overrides)) do
         local section_path = path .. "." .. class_name
-        local overrides = lua_overrides[class_name]
-        if type(overrides) ~= "table" then
+        local section = lua_overrides[class_name]
+        if type(section) ~= "table" then
             fail(section_path, "is not a table")
         end
 
         local fields = {}
-        for _, field in ipairs(sorted_keys(overrides)) do
+        for _, field in ipairs(sorted_keys(section)) do
             local field_meta = Editor.get_lua_field_annotation(class_name, field)
             fields[#fields + 1] = field .. " = " ..
-                serialize_value(overrides[field], field_meta, section_path .. "." .. field, depth + 2, field_prefix(field))
+                serialize_value(section[field], field_meta, section_path .. "." .. field, depth + 2, field_prefix(field))
         end
 
-        local section = wrap_fields(fields, depth + 1, field_prefix(class_name))
-        if section ~= nil then
-            parts[#parts + 1] = class_name .. " = " .. section
+        local text = wrap_fields(fields, depth + 1, field_prefix(class_name))
+        if text ~= nil then
+            parts[#parts + 1] = class_name .. " = " .. text
         end
     end
 

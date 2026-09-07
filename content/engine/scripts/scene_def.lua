@@ -53,16 +53,16 @@ function Scene.apply_cpp_overrides(entity, cpp_overrides)
     local call_setter = _G.__call_component_setter
 
     for _, key in ipairs(schemas.__order) do
-        local overrides = cpp_overrides[key]
-        if overrides ~= nil then
+        local section = cpp_overrides[key]
+        if section ~= nil then
             local schema = schemas[key]
             local component = entity[schema.get](entity)
             if component == nil then
                 Log.error("Scene override: entity has no '" .. key .. "' component")
             elseif schema.map_setter then
-                call_setter(component, schema.map_setter, unwrap_def(overrides))
+                call_setter(component, schema.map_setter, unwrap_def(section))
             else
-                for field, value in pairs(overrides) do
+                for field, value in pairs(section) do
                     local setter = schema.setters[field]
                     if setter == nil then
                         Log.error("Scene override: unknown field '" .. tostring(field) .. "' for '" .. key .. "'")

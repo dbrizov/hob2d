@@ -138,15 +138,15 @@ local function set_pose_field(inst, field, value)
 end
 
 local function set_override_field(inst, overrides_key, component_key, field, value)
-    local overrides = get_or_create(get_or_create(inst, overrides_key), component_key)
+    local section = get_or_create(get_or_create(inst, overrides_key), component_key)
 
     local stored = value
     if stored == nil then
         stored = None
     end
 
-    local changed = overrides[field] ~= stored
-    overrides[field] = stored
+    local changed = section[field] ~= stored
+    section[field] = stored
 
     return changed
 end
