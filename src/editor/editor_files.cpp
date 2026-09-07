@@ -58,8 +58,9 @@ namespace hob::editor {
         constexpr const char* NEW_SCENE_DIALOG_TITLE = "New Scene";
         constexpr const char* SAVE_SCENE_AS_DIALOG_TITLE = "Save Scene As";
         constexpr const char* NEW_PREFAB_DIALOG_TITLE = "New Prefab";
-        constexpr const char* CREATE_PREFAB_DIALOG_TITLE = "Create Prefab from Selection";
         constexpr const char* CREATE_PREFAB_COMMAND_LABEL = "Create Prefab";
+        constexpr const char* DELETE_PREFAB_TITLE = "Delete Prefab";
+        constexpr const char* DELETE_PREFAB_ERROR_TITLE = "Cannot Delete Prefab";
 
         bool write_file(const std::filesystem::path& path, const std::string& text) {
             std::ofstream out(path, std::ios::binary | std::ios::trunc);
@@ -351,6 +352,32 @@ namespace hob::editor {
             log::editor.info("Reverted scene '{}' from '{}'", scene_name, path->string());
         }
 
+        struct EditorPrefabReferrer {
+            std::string scene;
+            int32_t count = 0;
+        };
+
+        std::vector<EditorPrefabReferrer> get_prefab_referrers(Engine& engine, const std::string& prefab_name) {
+            std::vector<EditorPrefabReferrer> referrers;
+
+            const sol::object result = editor_call(engine, editor_func::GET_PREFAB_REFERRERS, prefab_name);
+            if (!result.is<sol::table>()) {
+                return referrers;
+            }
+
+            const sol::table rows = result.as<sol::table>();
+            for (int32_t i = 1; i <= static_cast<int32_t>(rows.size()); ++i) {
+                const sol::object row = rows[i];
+                if (row.is<sol::table>()) {
+                    const sol::table entry = row.as<sol::table>();
+                    referrers.push_back({.scene = entry.get_or<std::string>(query_key::SCENE, ""),
+                                         .count = entry.get_or(query_key::COUNT, 0)});
+                }
+            }
+
+            return referrers;
+        }
+
         void revert_prefab(Editor& editor, const std::string& prefab_name) {
             Engine& engine = editor.get_engine();
 
@@ -500,30 +527,11 @@ namespace hob::editor {
         return editor.get_state() == WorldState::Stopped;
     }
 
-    bool can_create_prefab_from_selection(const Editor& editor) {
-        const EditorSelection& selection = editor.get_selection();
-        if (editor.get_state() != WorldState::Stopped || selection.ids.size() != 1) {
-            return false;
-        }
-
-        return get_instance_id_of_entity(editor.get_engine(), selection.primary()) != INVALID_EDITOR_INSTANCE_ID;
-    }
-
     void show_new_prefab_dialog(Editor& editor) {
         EditorFileDialogConfig config =
             make_file_dialog_config(editor, PREFAB_FILE_KIND, NEW_PREFAB_DIALOG_TITLE, get_default_folder());
         config.on_pick = [&editor](const std::filesystem::path& path) {
             new_prefab(editor, path);
-        };
-
-        editor.get_file_dialog().open(std::move(config));
-    }
-
-    void show_create_prefab_from_selection_dialog(Editor& editor) {
-        EditorFileDialogConfig config =
-            make_file_dialog_config(editor, PREFAB_FILE_KIND, CREATE_PREFAB_DIALOG_TITLE, get_default_folder());
-        config.on_pick = [&editor](const std::filesystem::path& path) {
-            create_prefab_from_selection(editor, path);
         };
 
         editor.get_file_dialog().open(std::move(config));
@@ -548,14 +556,30 @@ namespace hob::editor {
         editor.get_selection().select_definition({.registry = def_registry::ENTITIES, .name = prefab_name});
     }
 
-    void create_prefab_from_selection(Editor& editor, const std::filesystem::path& path) {
-        if (!can_create_prefab_from_selection(editor)) {
+    void create_prefab_from_entity_in_folder(Editor& editor, EntityId entity_id, const std::filesystem::path& folder) {
+        Engine& engine = editor.get_engine();
+
+        const Entity* entity = engine.get_entity_spawner().get_entity(entity_id);
+        if (entity == nullptr) {
             return;
         }
 
+        const std::string& base_name = entity->get_name().empty() ? entity->get_prefab_name() : entity->get_name();
+        const sol::object name = editor_call(engine, editor_func::GET_UNIQUE_PREFAB_NAME, base_name);
+        if (!name.is<std::string>()) {
+            return;
+        }
+
+        create_prefab_from_entity(editor, entity_id, folder / (name.as<std::string>() + file_extension::PREFAB));
+    }
+
+    void create_prefab_from_entity(Editor& editor, EntityId entity_id, const std::filesystem::path& path) {
         Engine& engine = editor.get_engine();
-        const EntityId entity_id = editor.get_selection().primary();
+
         const EditorInstanceId instance_id = get_instance_id_of_entity(engine, entity_id);
+        if (editor.get_state() != WorldState::Stopped || instance_id == INVALID_EDITOR_INSTANCE_ID) {
+            return;
+        }
 
         const sol::object def = editor_call(engine, editor_func::CREATE_PREFAB_DEF_FROM_ENTITY, entity_id);
         if (!def.is<sol::table>()) {
@@ -589,5 +613,88 @@ namespace hob::editor {
 
         editor.get_commands().push(
             editor, std::make_unique<EditorCommandComposite>(CREATE_PREFAB_COMMAND_LABEL, std::move(commands)));
+    }
+
+    bool can_delete_selected_prefab(const Editor& editor) {
+        const EditorDefinitionRef& definition = editor.get_selection().definition;
+        return editor.get_state() == WorldState::Stopped && definition.registry == def_registry::ENTITIES;
+    }
+
+    void request_delete_selected_prefab(Editor& editor) {
+        if (can_delete_selected_prefab(editor)) {
+            request_delete_prefab(editor, editor.get_selection().definition.name);
+        }
+    }
+
+    void request_delete_prefab(Editor& editor, const std::string& prefab_name) {
+        Engine& engine = editor.get_engine();
+
+        std::optional<std::string> reason;
+        if (editor.get_state() != WorldState::Stopped) {
+            reason = "documents are only editable while the world is stopped";
+        }
+        else {
+            reason = get_prefab_save_error(editor, prefab_name);
+        }
+
+        const std::vector<EditorPrefabReferrer> referrers = get_prefab_referrers(engine, prefab_name);
+        if (!reason.has_value() && !referrers.empty()) {
+            std::string used_by;
+            for (const EditorPrefabReferrer& referrer : referrers) {
+                used_by += std::format(
+                    "{} instance{} in scene '{}'\n", referrer.count, referrer.count == 1 ? "" : "s", referrer.scene);
+            }
+
+            reason = std::format("it is still used by:\n{}Remove those instances first.", used_by);
+        }
+
+        if (reason.has_value()) {
+            log::editor.error("Cannot delete prefab '{}' because {}", prefab_name, *reason);
+            editor.get_modal().open({
+                .title = DELETE_PREFAB_ERROR_TITLE,
+                .message = std::format("Cannot delete prefab '{}'.", prefab_name),
+                .reason = reason,
+                .buttons = {.confirm = "OK"},
+            });
+            return;
+        }
+
+        editor.get_modal().open({
+            .title = DELETE_PREFAB_TITLE,
+            .message = std::format("Delete prefab '{}' and its file?", prefab_name),
+            .reason = "This cannot be undone.",
+            .buttons = {.confirm = "Delete", .cancel = "Cancel"},
+            .on_confirm =
+                [&editor, prefab_name] {
+                    editor.request_prefab_delete(prefab_name);
+                },
+        });
+    }
+
+    void delete_prefab(Editor& editor, const std::string& prefab_name) {
+        Engine& engine = editor.get_engine();
+
+        const std::optional<std::filesystem::path> path =
+            get_recorded_file(engine, editor_func::GET_PREFAB_FILE, prefab_name);
+        if (!path.has_value()) {
+            return;
+        }
+
+        std::error_code error;
+        if (!std::filesystem::remove(*path, error)) {
+            log::editor.error("Cannot delete '{}': {}", path->string(), error.message());
+            return;
+        }
+
+        editor_call(engine, editor_func::MARK_PREFAB_SAVED, prefab_name);
+
+        EditorSelection& selection = editor.get_selection();
+        if (selection.definition.registry == def_registry::ENTITIES && selection.definition.name == prefab_name) {
+            selection.clear();
+        }
+
+        log::editor.info("Deleted prefab '{}' and '{}'", prefab_name, path->string());
+
+        reload_after_write(engine);
     }
 } // namespace hob::editor

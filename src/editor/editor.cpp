@@ -177,6 +177,11 @@ namespace hob::editor {
             });
     }
 
+    void Editor::request_prefab_delete(const std::string& prefab_name) {
+        m_pending_prefab_delete = prefab_name;
+        request_action(EditorActionId::DeletePrefab);
+    }
+
     std::vector<std::string> Editor::get_scene_names() const {
         std::vector<std::string> names;
 
@@ -216,11 +221,6 @@ namespace hob::editor {
         reset_edit_session();
     }
 
-    bool Editor::is_scene_dirty() const {
-        const sol::object result = editor_call(m_engine, editor_func::IS_SCENE_DIRTY);
-        return result.is<bool>() && result.as<bool>();
-    }
-
     std::vector<std::string> Editor::get_dirty_prefab_names() const {
         std::vector<std::string> names;
 
@@ -236,10 +236,6 @@ namespace hob::editor {
         return names;
     }
 
-    bool Editor::has_unsaved_changes() const {
-        return is_scene_dirty() || !get_dirty_prefab_names().empty();
-    }
-
     void Editor::respawn_prefab_instances(const std::string& prefab_name) {
         const EditorSelectionInstanceIds captured = capture_selection_instance_ids();
 
@@ -252,6 +248,26 @@ namespace hob::editor {
         m_scene_view.reset_pick_cycle();
         m_scene_view.reset_gizmo();
         m_inspector.reset_edit_state();
+    }
+
+    void Editor::delete_pending_prefab() {
+        if (m_pending_prefab_delete.empty()) {
+            return;
+        }
+
+        const std::string prefab_name = std::move(m_pending_prefab_delete);
+        m_pending_prefab_delete.clear();
+
+        delete_prefab(*this, prefab_name);
+    }
+
+    bool Editor::is_scene_dirty() const {
+        const sol::object result = editor_call(m_engine, editor_func::IS_SCENE_DIRTY);
+        return result.is<bool>() && result.as<bool>();
+    }
+
+    bool Editor::has_unsaved_changes() const {
+        return is_scene_dirty() || !get_dirty_prefab_names().empty();
     }
 
     EditorSelection& Editor::get_selection() {
@@ -361,6 +377,7 @@ namespace hob::editor {
     }
 
     void Editor::end_frame() {
+        m_assets.poll(*this);
         m_file_dialog.poll();
         m_actions.flush(*this);
     }
@@ -527,7 +544,7 @@ namespace hob::editor {
                         .is_confirm_enabled = !save_error.has_value()},
             .on_confirm =
                 [this, proceed] {
-                    save_all(*this);
+                    request_action(EditorActionId::Save);
                     proceed();
                 },
             .on_discard =

@@ -451,6 +451,53 @@ function Editor.create_prefab_def_from_entity(entity_id)
     return def
 end
 
+local function count_prefab_instances(scene_def, prefab_name)
+    local count = 0
+    for _, inst in ipairs(scene_def.entities) do
+        if inst.prefab == prefab_name then
+            count = count + 1
+        end
+    end
+
+    return count
+end
+
+---@param name string
+---@return table rows of { scene, count }, sorted by scene
+function Editor.get_prefab_referrers(name)
+    local rows = {}
+    for scene_name, scene_def in pairs(_G.__scene_registry) do
+        local count = count_prefab_instances(scene_def, name)
+        if count > 0 then
+            rows[#rows + 1] = { scene = scene_name, count = count }
+        end
+    end
+
+    table.sort(rows, function(a, b)
+        return a.scene < b.scene
+    end)
+
+    return rows
+end
+
+---@param base string any text; sanitised to a Lua identifier and suffixed until no prefab claims it
+---@return string
+function Editor.get_unique_prefab_name(base)
+    local name = base:gsub("[^%w_]", "_")
+    if name == "" or name:match("^%d") then
+        name = "_" .. name
+    end
+
+    local candidate = name
+    local suffix = 2
+    while _G.__entity_prefab_registry[candidate] ~= nil or __get_def_source(DefRegistry.ENTITIES, candidate) ~= nil do
+        candidate = name .. "_" .. suffix
+        suffix = suffix + 1
+    end
+
+    return candidate
+end
+
 function Editor.rebind_prefab_defs()
     local rebound = false
 

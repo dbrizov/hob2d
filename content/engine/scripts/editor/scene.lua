@@ -261,6 +261,25 @@ local function find_instance_index(scene_def, inst)
     return nil
 end
 
+-- Destroying a spawn request that has not resolved yet fires no destroyed handler, so the
+-- scene instance map cannot be left to the callback that normally clears it.
+local function destroy_instance_entity(instance_id)
+    local entity_id = scene_state.entity_id_by_instance_id[instance_id]
+    if entity_id == nil then
+        return
+    end
+
+    _G.__scene_instance_by_entity_id[entity_id] = nil
+    EntitySpawner.destroy_entity(EntitySpawner.get_entity(entity_id))
+    scene_state.instance_id_by_entity_id[entity_id] = nil
+    scene_state.entity_id_by_instance_id[instance_id] = nil
+end
+
+local function bind_instance_entity(instance_id, entity_id)
+    scene_state.instance_id_by_entity_id[entity_id] = instance_id
+    scene_state.entity_id_by_instance_id[instance_id] = entity_id
+end
+
 ---@param prefab_name string
 ---@param position Vector2
 ---@return table
@@ -337,25 +356,6 @@ function Editor.add_instance(inst, index)
     Editor.mark_scene_dirty()
 
     return instance_id
-end
-
--- Destroying a spawn request that has not resolved yet fires no destroyed handler, so the
--- scene instance map cannot be left to the callback that normally clears it.
-local function destroy_instance_entity(instance_id)
-    local entity_id = scene_state.entity_id_by_instance_id[instance_id]
-    if entity_id == nil then
-        return
-    end
-
-    _G.__scene_instance_by_entity_id[entity_id] = nil
-    EntitySpawner.destroy_entity(EntitySpawner.get_entity(entity_id))
-    scene_state.instance_id_by_entity_id[entity_id] = nil
-    scene_state.entity_id_by_instance_id[instance_id] = nil
-end
-
-local function bind_instance_entity(instance_id, entity_id)
-    scene_state.instance_id_by_entity_id[entity_id] = instance_id
-    scene_state.entity_id_by_instance_id[instance_id] = entity_id
 end
 
 ---@param instance_id integer

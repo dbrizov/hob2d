@@ -1,5 +1,6 @@
 #include "editor_dock_hierarchy.h"
 
+#include <string>
 #include <vector>
 
 #include <imgui.h>
@@ -90,6 +91,12 @@ namespace hob::editor {
 
         if (ImGui::IsItemClicked() && !ImGui::IsItemToggledOpen()) {
             out_clicked_entity_id = entity_id;
+        }
+
+        if (ImGui::BeginDragDropSource()) {
+            set_drag_payload(DRAG_PAYLOAD_ENTITY, std::to_string(entity_id));
+            ImGui::TextUnformatted(entity.get_display_name().c_str());
+            ImGui::EndDragDropSource();
         }
 
         if (open) {

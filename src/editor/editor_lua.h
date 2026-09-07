@@ -29,6 +29,8 @@ namespace hob::editor {
         constexpr const char* FILE = "file";
         constexpr const char* READ_ONLY = "read_only";
         constexpr const char* REMOVABLE = "removable";
+        constexpr const char* SCENE = "scene";
+        constexpr const char* COUNT = "count";
     } // namespace query_key
 
     namespace editor_func {
@@ -88,6 +90,8 @@ namespace hob::editor {
         constexpr const char* SERIALIZE_PREFAB_DEF = "serialize_prefab_def";
         constexpr const char* REPOINT_INSTANCE_DEF = "repoint_instance_def";
         constexpr const char* GET_INSTANCE_INDEX = "get_instance_index";
+        constexpr const char* GET_PREFAB_REFERRERS = "get_prefab_referrers";
+        constexpr const char* GET_UNIQUE_PREFAB_NAME = "get_unique_prefab_name";
     } // namespace editor_func
 
     sol::protected_function get_editor_func(Engine& engine, const char* name);

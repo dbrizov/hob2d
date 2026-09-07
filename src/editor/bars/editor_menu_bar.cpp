@@ -35,7 +35,6 @@ namespace hob::editor {
             action_menu_item(editor, EditorActionId::Redo);
             action_menu_item(editor, EditorActionId::DuplicateSelection);
             action_menu_item(editor, EditorActionId::DeleteSelection);
-            action_menu_item(editor, EditorActionId::CreatePrefabFromSelection);
             end_menu();
         }
 

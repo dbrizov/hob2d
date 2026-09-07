@@ -4,9 +4,11 @@
 #include <cctype>
 #include <cstring>
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include <imgui.h>
@@ -24,6 +26,7 @@
 namespace hob::editor {
     namespace {
         struct EditorFileNode {
+            std::filesystem::path path;
             std::string label;
             std::string tooltip;
             std::string texture_name;
@@ -74,6 +77,7 @@ namespace hob::editor {
 
         EditorFileNode build_file(const std::filesystem::path& path, const DefinitionsByFile& by_file) {
             EditorFileNode node;
+            node.path = path;
             node.label = path.filename().string();
             node.tooltip = PathUtils::to_project_relative_path(path).generic_string();
 
@@ -112,6 +116,7 @@ namespace hob::editor {
 
         EditorFileNode build_folder(const std::filesystem::path& folder, const DefinitionsByFile& by_file) {
             EditorFileNode node;
+            node.path = folder;
             node.label = folder.filename().string();
             node.tooltip = PathUtils::to_project_relative_path(folder).generic_string();
             node.is_folder = true;
@@ -172,11 +177,51 @@ namespace hob::editor {
 
         using DirtyPrefabNames = std::unordered_set<std::string>;
 
+        constexpr const char* FILE_MENU_POPUP_ID = "FileMenu";
+        constexpr const char* DELETE_LABEL = "Delete";
+
+        void accept_entity_drop(std::optional<EditorEntityDrop>& pending_drop, const std::filesystem::path& folder) {
+            if (!ImGui::BeginDragDropTarget()) {
+                return;
+            }
+
+            const std::optional<std::string> entity_id = accept_drag_payload(DRAG_PAYLOAD_ENTITY);
+            if (entity_id.has_value()) {
+                pending_drop =
+                    EditorEntityDrop{.entity_id = static_cast<EntityId>(std::stoll(*entity_id)), .folder = folder};
+            }
+
+            ImGui::EndDragDropTarget();
+        }
+
+        void draw_file_menu(Editor& editor, const EditorFileNode& node) {
+            if (node.definition.registry != def_registry::ENTITIES) {
+                return;
+            }
+
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                ImGui::OpenPopup(FILE_MENU_POPUP_ID);
+            }
+
+            if (!begin_context_menu(FILE_MENU_POPUP_ID)) {
+                return;
+            }
+
+            if (menu_item(DELETE_LABEL, nullptr, editor.get_state() == WorldState::Stopped)) {
+                request_delete_prefab(editor, node.definition.name);
+            }
+
+            end_context_menu();
+        }
+
         bool is_dirty_prefab(const EditorFileNode& node, const DirtyPrefabNames& dirty_prefabs) {
             return node.definition.registry == def_registry::ENTITIES && dirty_prefabs.contains(node.definition.name);
         }
 
-        void draw_file(Editor& editor, const EditorFileNode& node, const DirtyPrefabNames& dirty_prefabs) {
+        void draw_file(Editor& editor,
+                       const EditorFileNode& node,
+                       const DirtyPrefabNames& dirty_prefabs,
+                       std::optional<EditorEntityDrop>& pending_drop) {
             constexpr ImGuiTreeNodeFlags flags =
                 ImGuiTreeNodeFlags_Leaf | ImGuiTreeNodeFlags_NoTreePushOnOpen | ImGuiTreeNodeFlags_SpanAvailWidth;
 
@@ -186,11 +231,15 @@ namespace hob::editor {
 
             const bool is_selected = node.definition.is_valid() && editor.get_selection().definition == node.definition;
 
+            ImGui::PushID(node.label.c_str());
             tree_item(node.label.c_str(), flags, is_selected, "%s", node.label.c_str());
 
             if (node.definition.is_valid() && ImGui::IsItemClicked()) {
                 editor.get_selection().select_definition(node.definition);
             }
+
+            draw_file_menu(editor, node);
+            accept_entity_drop(pending_drop, node.path.parent_path());
 
             const ImVec2 row_min = ImGui::GetItemRectMin();
             const ImVec2 row_max = ImGui::GetItemRectMax();
@@ -222,14 +271,17 @@ namespace hob::editor {
             if (!node.texture_name.empty() && is_row_visible) {
                 draw_thumbnail(editor, node, gutter_x, row_min, row_max);
             }
+
+            ImGui::PopID();
         }
 
         void draw_node(Editor& editor,
                        const EditorFileNode& node,
                        int32_t depth,
-                       const DirtyPrefabNames& dirty_prefabs) {
+                       const DirtyPrefabNames& dirty_prefabs,
+                       std::optional<EditorEntityDrop>& pending_drop) {
             if (!node.is_folder) {
-                draw_file(editor, node, dirty_prefabs);
+                draw_file(editor, node, dirty_prefabs, pending_drop);
                 return;
             }
 
@@ -239,13 +291,14 @@ namespace hob::editor {
             }
 
             const bool open = tree_item(node.label.c_str(), flags, false, "%s", node.label.c_str());
+            accept_entity_drop(pending_drop, node.path);
 
             if (!open) {
                 return;
             }
 
             for (const EditorFileNode& child : node.children) {
-                draw_node(editor, child, depth + 1, dirty_prefabs);
+                draw_node(editor, child, depth + 1, dirty_prefabs, pending_drop);
             }
 
             ImGui::TreePop();
@@ -277,11 +330,22 @@ namespace hob::editor {
             EditorStyleVarStack vars;
             vars.push(ImGuiStyleVar_ItemSpacing, TREE_ITEM_SPACING);
 
-            draw_node(editor, m_tree->root, 0, dirty_prefabs);
+            draw_node(editor, m_tree->root, 0, dirty_prefabs, m_pending_drop);
 
             vars.pop();
         }
         end();
+    }
+
+    void EditorDockAssets::poll(Editor& editor) {
+        if (!m_pending_drop.has_value()) {
+            return;
+        }
+
+        const EditorEntityDrop drop = std::move(*m_pending_drop);
+        m_pending_drop.reset();
+
+        create_prefab_from_entity_in_folder(editor, drop.entity_id, drop.folder);
     }
 
     void EditorDockAssets::request_rebuild() {

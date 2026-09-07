@@ -39,6 +39,7 @@ namespace hob::editor {
         std::string m_window_title;
         std::string m_current_scene;
         std::string m_pending_scene_open;
+        std::string m_pending_prefab_delete;
 
         EditorSelection m_selection;
 
@@ -80,14 +81,18 @@ namespace hob::editor {
         void request_quit();
         void request_action(EditorActionId id);
         void request_open_scene(const std::string& name);
+        void request_prefab_delete(const std::string& prefab_name);
 
         std::vector<std::string> get_scene_names() const;
         const std::string& get_current_scene() const;
         void open_pending_scene();
-        bool is_scene_dirty() const;
+
         std::vector<std::string> get_dirty_prefab_names() const;
-        bool has_unsaved_changes() const;
         void respawn_prefab_instances(const std::string& prefab_name);
+        void delete_pending_prefab();
+
+        bool is_scene_dirty() const;
+        bool has_unsaved_changes() const;
 
         EditorSelection& get_selection();
         const EditorSelection& get_selection() const;

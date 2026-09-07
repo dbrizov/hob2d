@@ -71,27 +71,17 @@ namespace hob::editor {
                 .context = EditorActionContext::Global,
                 .is_enabled =
                     [](const Editor& editor) {
-                        return can_edit_selected_instances(editor);
+                        return can_edit_selected_instances(editor) || can_delete_selected_prefab(editor);
                     },
                 .format_label = nullptr,
                 .run =
                     [](Editor& editor) {
-                        delete_selection(editor);
-                    },
-            },
-            {
-                .id = EditorActionId::CreatePrefabFromSelection,
-                .label = "Create Prefab from Selection...",
-                .chord = ImGuiKey_None,
-                .context = EditorActionContext::Global,
-                .is_enabled =
-                    [](const Editor& editor) {
-                        return can_create_prefab_from_selection(editor);
-                    },
-                .format_label = nullptr,
-                .run =
-                    [](Editor& editor) {
-                        show_create_prefab_from_selection_dialog(editor);
+                        if (can_delete_selected_prefab(editor)) {
+                            request_delete_selected_prefab(editor);
+                        }
+                        else {
+                            delete_selection(editor);
+                        }
                     },
             },
             {
@@ -285,21 +275,6 @@ namespace hob::editor {
                     },
             },
             {
-                .id = EditorActionId::NewPrefab,
-                .label = "New Prefab...",
-                .chord = ImGuiKey_None,
-                .context = EditorActionContext::Global,
-                .is_enabled =
-                    [](const Editor& editor) {
-                        return can_new_prefab(editor);
-                    },
-                .format_label = nullptr,
-                .run =
-                    [](Editor& editor) {
-                        show_new_prefab_dialog(editor);
-                    },
-            },
-            {
                 .id = EditorActionId::NewScene,
                 .label = "New Scene...",
                 .chord = ImGuiMod_Ctrl | ImGuiKey_N,
@@ -354,6 +329,33 @@ namespace hob::editor {
                 .run =
                     [](Editor& editor) {
                         show_save_scene_as_dialog(editor);
+                    },
+            },
+            {
+                .id = EditorActionId::NewPrefab,
+                .label = "New Prefab...",
+                .chord = ImGuiKey_None,
+                .context = EditorActionContext::Global,
+                .is_enabled =
+                    [](const Editor& editor) {
+                        return can_new_prefab(editor);
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        show_new_prefab_dialog(editor);
+                    },
+            },
+            {
+                .id = EditorActionId::DeletePrefab,
+                .label = "Delete Prefab",
+                .chord = ImGuiKey_None,
+                .context = EditorActionContext::Global,
+                .is_enabled = nullptr,
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        editor.delete_pending_prefab();
                     },
             },
             {
