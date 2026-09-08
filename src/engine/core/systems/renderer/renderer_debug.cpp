@@ -123,6 +123,186 @@ namespace hob {
                                   m_cvar_show_sprite_queue = cvar.bool_value();
                               });
 
+        console.register_cvar("r_log_mesh_queue",
+                              "Log mesh queue (shader, mesh) each frame",
+                              to_cvar_string(m_cvar_log_mesh_queue),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_log_mesh_queue = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_show_mesh_queue",
+                              "Show mesh queue window (shader, mesh, material)",
+                              to_cvar_string(m_cvar_show_mesh_queue),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_show_mesh_queue = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_msaa",
+                              "MSAA sample count for the 3D pass (1, 2, 4, 8); falls back to the nearest supported",
+                              to_cvar_string(m_cvar_msaa),
+                              ConsoleVariableType::Int,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_msaa = cvar.int_value();
+                                  if (!m_initialized) {
+                                      return;
+                                  }
+
+                                  m_msaa_sample_count = probe_msaa_sample_count(m_cvar_msaa);
+                                  rebuild_mesh_shader_pipelines();
+                                  if (!init_offscreen_targets()) {
+                                      log::renderer.error("r_msaa: failed to recreate offscreen targets");
+                                  }
+                              });
+
+        console.register_cvar("r_sky",
+                              "Draw the procedural sky behind the 3D pass",
+                              to_cvar_string(m_cvar_sky),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_sky = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_shadows",
+                              "Render the sun shadow map and apply it in PBR shaders",
+                              to_cvar_string(m_cvar_shadows),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_shadows = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_shadow_bias",
+                              "Depth bias subtracted before the shadow comparison (light clip depth units)",
+                              to_cvar_string(m_cvar_shadow_bias),
+                              ConsoleVariableType::Float,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_shadow_bias = cvar.float_value();
+                              });
+
+        console.register_cvar("r_show_shadow_map",
+                              "Show the sun shadow map",
+                              to_cvar_string(m_cvar_show_shadow_map),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_show_shadow_map = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_ssao",
+                              "Depth/normal prepass and screen-space ambient occlusion for the 3D pass",
+                              to_cvar_string(m_cvar_ssao),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_ssao = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_ssao_radius",
+                              "SSAO sampling radius in metres",
+                              to_cvar_string(m_cvar_ssao_radius),
+                              ConsoleVariableType::Float,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_ssao_radius = cvar.float_value();
+                              });
+
+        console.register_cvar("r_ssao_intensity",
+                              "SSAO occlusion strength",
+                              to_cvar_string(m_cvar_ssao_intensity),
+                              ConsoleVariableType::Float,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_ssao_intensity = cvar.float_value();
+                              });
+
+        console.register_cvar("r_show_ssao",
+                              "Show the blurred SSAO buffer of the game view",
+                              to_cvar_string(m_cvar_show_ssao),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_show_ssao = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_show_frame_stats",
+                              "Show frame time, draw counts and 3D target settings",
+                              to_cvar_string(m_cvar_show_frame_stats),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_show_frame_stats = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_fog",
+                              "Volumetric height fog lit by the sun (needs a directional light with fog density)",
+                              to_cvar_string(m_cvar_fog),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_fog = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_fog_steps",
+                              "Ray-march steps per pixel for the volumetric fog",
+                              to_cvar_string(m_cvar_fog_steps),
+                              ConsoleVariableType::Int,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_fog_steps = cvar.int_value();
+                              });
+
+        console.register_cvar("r_show_fog",
+                              "Show the half-resolution fog in-scatter buffer of the game view",
+                              to_cvar_string(m_cvar_show_fog),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_show_fog = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_bloom",
+                              "Bloom on the 3D pass",
+                              to_cvar_string(m_cvar_bloom),
+                              ConsoleVariableType::Bool,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_bloom = cvar.bool_value();
+                              });
+
+        console.register_cvar("r_bloom_threshold",
+                              "Linear brightness above which pixels bloom",
+                              to_cvar_string(m_cvar_bloom_threshold),
+                              ConsoleVariableType::Float,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_bloom_threshold = cvar.float_value();
+                              });
+
+        console.register_cvar("r_bloom_intensity",
+                              "Bloom contribution added before tonemapping",
+                              to_cvar_string(m_cvar_bloom_intensity),
+                              ConsoleVariableType::Float,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_bloom_intensity = cvar.float_value();
+                              });
+
+        console.register_cvar("r_exposure",
+                              "Exposure multiplier applied before tonemapping the 3D pass",
+                              to_cvar_string(m_cvar_exposure),
+                              ConsoleVariableType::Float,
+                              ConsoleVariableFlags::None,
+                              [this](const ConsoleVariable& cvar) {
+                                  m_cvar_exposure = cvar.float_value();
+                              });
+
         console.register_cvar("r_render_scale",
                               "Offscreen supersample factor (offscreen pixels = logical size * scale * pixel density)",
                               to_cvar_string(m_render_scale),
@@ -136,10 +316,82 @@ namespace hob {
                                   }
 
                                   m_render_scale = scale;
-                                  if (m_initialized && !init_offscreen_color_target()) {
-                                      log::renderer.error("r_render_scale: failed to recreate offscreen target");
+                                  if (m_initialized && !init_offscreen_targets()) {
+                                      log::renderer.error("r_render_scale: failed to recreate offscreen targets");
                                   }
                               });
+    }
+
+    void Renderer::debug_shadow_map() {
+        if (!m_cvar_show_shadow_map) {
+            return;
+        }
+
+        if (ImGui::Begin(" Shadow Map ###Shadow Map", nullptr, DEBUG_WINDOW_FLAGS)) {
+            ImGui::Text("%ux%u, %.0f m extent", SHADOW_MAP_SIZE, SHADOW_MAP_SIZE, SHADOW_EXTENT_METERS);
+            ImGui::Image(reinterpret_cast<ImTextureID>(m_shadow_map), ImVec2(512.0f, 512.0f));
+        }
+        ImGui::End();
+    }
+
+    void Renderer::debug_frame_stats() {
+        if (!m_cvar_show_frame_stats) {
+            return;
+        }
+
+        if (ImGui::Begin(" Frame Stats ###Frame Stats", nullptr, DEBUG_WINDOW_FLAGS)) {
+            const float frame_ms = m_stats_frame_seconds * 1000.0f;
+            ImGui::Text("Frame: %.2f ms (%.0f fps)", frame_ms, frame_ms > 0.0f ? 1000.0f / frame_ms : 0.0f);
+            ImGui::Text("Sprite draws: %u", m_stats_sprite_draws);
+            ImGui::Text("Mesh draws: %u (%u triangles)", m_stats_mesh_draws, m_stats_mesh_triangles);
+            ImGui::Text("3D target: %ux%u, MSAA %dx",
+                        m_offscreen_targets_3d.width,
+                        m_offscreen_targets_3d.height,
+                        1 << static_cast<int32_t>(m_msaa_sample_count));
+            ImGui::Text("Shadows %s | SSAO %s | Fog %s | Bloom %s | Sky %s",
+                        m_cvar_shadows ? "on" : "off",
+                        m_cvar_ssao ? "on" : "off",
+                        m_cvar_fog ? "on" : "off",
+                        m_cvar_bloom ? "on" : "off",
+                        m_cvar_sky ? "on" : "off");
+        }
+        ImGui::End();
+    }
+
+    void Renderer::debug_fog() {
+        if (!m_cvar_show_fog || m_offscreen_targets_3d.fog_half == nullptr) {
+            return;
+        }
+
+        if (ImGui::Begin(" Volumetric Fog ###Volumetric Fog", nullptr, DEBUG_WINDOW_FLAGS)) {
+            const float aspect = m_offscreen_targets_3d.height > 0
+                                     ? static_cast<float>(m_offscreen_targets_3d.width) /
+                                           static_cast<float>(m_offscreen_targets_3d.height)
+                                     : 1.0f;
+            ImGui::Image(reinterpret_cast<ImTextureID>(m_offscreen_targets_3d.fog_half),
+                         ImVec2(640.0f, 640.0f / aspect),
+                         ImVec2(0.0f, 1.0f),
+                         ImVec2(1.0f, 0.0f));
+        }
+        ImGui::End();
+    }
+
+    void Renderer::debug_ssao() {
+        if (!m_cvar_show_ssao || m_offscreen_targets_3d.ssao_blurred == nullptr) {
+            return;
+        }
+
+        if (ImGui::Begin(" SSAO ###SSAO", nullptr, DEBUG_WINDOW_FLAGS)) {
+            const float aspect = m_offscreen_targets_3d.height > 0
+                                     ? static_cast<float>(m_offscreen_targets_3d.width) /
+                                           static_cast<float>(m_offscreen_targets_3d.height)
+                                     : 1.0f;
+            ImGui::Image(reinterpret_cast<ImTextureID>(m_offscreen_targets_3d.ssao_blurred),
+                         ImVec2(640.0f, 640.0f / aspect),
+                         ImVec2(0.0f, 1.0f),
+                         ImVec2(1.0f, 0.0f));
+        }
+        ImGui::End();
     }
 
     void Renderer::debug_textures() {
@@ -355,5 +607,47 @@ namespace hob {
             }
             ImGui::End();
         }
+    }
+    void Renderer::debug_mesh_queue() {
+        if (m_cvar_log_mesh_queue) {
+            for (const uint32_t index : m_mesh_draw_order) {
+                const MeshDrawData& draw = m_mesh_draws[index];
+                log::renderer.info("[mesh queue] shader={} mesh={} material={}",
+                                   draw.get_shader() ? draw.get_shader()->get_path() : "<none>",
+                                   draw.mesh ? draw.mesh->get_source() : "<none>",
+                                   draw.material ? draw.material->get_name() : "<none>");
+            }
+        }
+
+        if (!m_cvar_show_mesh_queue) {
+            return;
+        }
+
+        if (ImGui::Begin("Mesh Queue", &m_cvar_show_mesh_queue)) {
+            ImGui::Text("Draws: %zu  Meshes: %zu", m_mesh_draws.size(), m_meshes.size());
+            if (ImGui::BeginTable("mesh_queue", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+                ImGui::TableSetupColumn("#");
+                ImGui::TableSetupColumn("Shader");
+                ImGui::TableSetupColumn("Mesh");
+                ImGui::TableSetupColumn("Material");
+                ImGui::TableHeadersRow();
+
+                for (size_t i = 0; i < m_mesh_draw_order.size(); ++i) {
+                    const MeshDrawData& draw = m_mesh_draws[m_mesh_draw_order[i]];
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%zu", i);
+                    ImGui::TableNextColumn();
+                    ImGui::TextUnformatted(draw.get_shader() ? draw.get_shader()->get_path().c_str() : "<none>");
+                    ImGui::TableNextColumn();
+                    ImGui::TextUnformatted(draw.mesh ? draw.mesh->get_source().c_str() : "<none>");
+                    ImGui::TableNextColumn();
+                    ImGui::TextUnformatted(draw.material ? draw.material->get_name().c_str() : "<none>");
+                }
+
+                ImGui::EndTable();
+            }
+        }
+        ImGui::End();
     }
 } // namespace hob

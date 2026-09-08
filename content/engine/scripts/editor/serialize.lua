@@ -9,11 +9,19 @@ local FLOAT_FORMAT = "%.7g"
 
 local SHAPES = {
     [FieldType.VECTOR2] = { ctor = "Vector2", fields = { "x", "y" } },
+    [FieldType.VECTOR3] = { ctor = "Vector3", fields = { "x", "y", "z" } },
+    [FieldType.EULER_DEG] = { ctor = "Vector3", fields = { "x", "y", "z" } },
+    [FieldType.QUATERNION] = { ctor = "Quaternion", fields = { "x", "y", "z", "w" } },
     [FieldType.COLOR] = { ctor = "Color", fields = { "r", "g", "b", "a" } },
     [FieldType.AABB] = {
         ctor = "AABB",
         fields = { "center", "extents" },
         types = { center = { type = FieldType.VECTOR2 }, extents = { type = FieldType.VECTOR2 } },
+    },
+    [FieldType.AABB3] = {
+        ctor = "AABB3",
+        fields = { "center", "extents" },
+        types = { center = { type = FieldType.VECTOR3 }, extents = { type = FieldType.VECTOR3 } },
     },
     [FieldType.CAPSULE] = {
         ctor = "Capsule",
@@ -29,6 +37,7 @@ local SHAPES = {
 
 local POSE_ORDER = { TransformKey.POSITION, TransformKey.ROTATION_DEG, TransformKey.SCALE }
 local POSE_TYPES = { [TransformKey.ROTATION_DEG] = { type = FieldType.FLOAT } }
+local POSE_TYPES_3D = { [TransformKey.ROTATION_DEG] = { type = FieldType.VECTOR3 } }
 
 local shape_by_metatable = nil
 
@@ -39,6 +48,9 @@ local function ensure_shape_metatables()
 
     shape_by_metatable = {
         [getmetatable(Vector2())] = SHAPES[FieldType.VECTOR2],
+        [getmetatable(Vector3())] = SHAPES[FieldType.VECTOR3],
+        [getmetatable(Quaternion())] = SHAPES[FieldType.QUATERNION],
+        [getmetatable(AABB3())] = SHAPES[FieldType.AABB3],
         [getmetatable(Color())] = SHAPES[FieldType.COLOR],
         [getmetatable(AABB())] = SHAPES[FieldType.AABB],
         [getmetatable(Capsule())] = SHAPES[FieldType.CAPSULE],
@@ -333,13 +345,22 @@ serialize_value = function(value, field_meta, path, depth, prefix)
     fail(path, "holds a " .. value_type .. " value, which cannot be written to a scene file")
 end
 
+local function is_prefab_3d(prefab_name)
+    return EntitySpawner.get_prefab_space(prefab_name) == SpaceKey.SPACE_3D
+end
+
 local function get_pose_baseline(prefab_name, field)
-    local transform = get_prefab_section(prefab_name, TransformKey.SECTION)
-    local defaults = __get_component_defaults(TransformKey.SECTION)
+    local section_key = is_prefab_3d(prefab_name) and TransformKey3D.SECTION or TransformKey.SECTION
+    local transform = get_prefab_section(prefab_name, section_key)
+    local defaults = __get_component_defaults(section_key)
 
     if field == TransformKey.ROTATION_DEG then
-        local radians = resolve_baseline(transform, defaults, TransformKey.ROTATION)
-        return type(radians) == "number" and radians * Math.RAD_TO_DEG or nil
+        local rotation = resolve_baseline(transform, defaults, TransformKey.ROTATION)
+        if section_key == TransformKey3D.SECTION then
+            return rotation
+        end
+
+        return type(rotation) == "number" and rotation * Math.RAD_TO_DEG or nil
     end
 
     if field == TransformKey.SCALE then
@@ -350,12 +371,13 @@ local function get_pose_baseline(prefab_name, field)
 end
 
 local function serialize_pose(pose, path, depth, prefix, prefab_name)
+    local pose_types = is_prefab_3d(prefab_name) and POSE_TYPES_3D or POSE_TYPES
     local parts = {}
     for _, field in ipairs(ordered_keys(pose, POSE_ORDER)) do
         local baseline = get_pose_baseline(prefab_name, field)
         if baseline == nil or not is_baseline(pose[field], baseline) then
             parts[#parts + 1] = field .. " = " ..
-                serialize_value(pose[field], POSE_TYPES[field], path .. "." .. field, depth + 1, field_prefix(field))
+                serialize_value(pose[field], pose_types[field], path .. "." .. field, depth + 1, field_prefix(field))
         end
     end
 
@@ -460,10 +482,16 @@ local function serialize_instance(inst, path, depth, prefix)
 end
 
 local EMPTY_SCENE = { entities = {} }
+local EMPTY_SCENE_3D = { [SpaceKey.KEY] = SpaceKey.SPACE_3D, entities = {} }
 
 local function serialize_scene_def(def, name)
     local path = "DefineScene." .. name
     local lines = { path .. " = {" }
+
+    if def[SpaceKey.KEY] ~= nil then
+        lines[#lines + 1] = INDENT .. SpaceKey.KEY .. " = " ..
+            serialize_value(def[SpaceKey.KEY], nil, path .. "." .. SpaceKey.KEY, 1, 0) .. ","
+    end
 
     if #def.entities == 0 then
         lines[#lines + 1] = INDENT .. "entities = {},"
@@ -483,7 +511,7 @@ local function serialize_scene_def(def, name)
     return table.concat(lines, "\n") .. "\n"
 end
 
-local PREFAB_ROOT_ORDER = { PrefabKey.TICKING, "name" }
+local PREFAB_ROOT_ORDER = { SpaceKey.KEY, PrefabKey.TICKING, "name" }
 
 local function serialize_lua_component_list(class_names, path, depth, prefix)
     local parts = {}
@@ -574,9 +602,10 @@ function Editor.serialize_scene(name, as_name)
 end
 
 ---@param name string
+---@param space string|nil "2d" (default) or "3d"
 ---@return string
-function Editor.serialize_new_scene(name)
-    return serialize_scene_def(EMPTY_SCENE, name)
+function Editor.serialize_new_scene(name, space)
+    return serialize_scene_def(space == SpaceKey.SPACE_3D and EMPTY_SCENE_3D or EMPTY_SCENE, name)
 end
 
 ---@param name string

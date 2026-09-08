@@ -33,9 +33,21 @@ namespace hob {
         m_fallback_texture = create_texture_from_rgba(&magenta, 1, 1);
         HOB_CHECK(m_fallback_texture, "Renderer: failed to create fallback texture");
 
+        const uint32_t white = 0xFFFFFFFFu;
+        m_fallback_white_texture = create_texture_from_rgba(&white, 1, 1);
+        HOB_CHECK(m_fallback_white_texture, "Renderer: failed to create white fallback texture");
+
+        const uint32_t flat_normal = 0xFFFF8080u;
+        m_fallback_flat_normal_texture = create_texture_from_rgba(&flat_normal, 1, 1);
+        HOB_CHECK(m_fallback_flat_normal_texture, "Renderer: failed to create flat normal fallback texture");
+
         const bool shadercross_initialized = SDL_ShaderCross_Init();
         HOB_CHECK(shadercross_initialized, "SDL_ShaderCross_Init failed: {}", SDL_GetError());
         m_shadercross_initialized = true;
+
+        m_depth_format = probe_depth_format();
+        m_hdr_format = probe_hdr_format();
+        m_msaa_sample_count = probe_msaa_sample_count(m_cvar_msaa);
 
         const bool samplers_initialized = init_samplers();
         HOB_CHECK(samplers_initialized, "Renderer::init_samplers failed: {}", SDL_GetError());
@@ -46,8 +58,32 @@ namespace hob {
         const bool default_sprite_pipeline_initialized = init_default_sprite_pipeline();
         HOB_CHECK(default_sprite_pipeline_initialized, "Renderer::init_default_sprite_pipeline failed: {}", SDL_GetError());
 
+        const bool default_mesh_pipeline_initialized = init_default_mesh_pipeline();
+        HOB_CHECK(default_mesh_pipeline_initialized, "Renderer::init_default_mesh_pipeline failed: {}", SDL_GetError());
+
         const bool blit_pipeline_initialized = init_blit_pipeline();
         HOB_CHECK(blit_pipeline_initialized, "Renderer::init_blit_pipeline failed: {}", SDL_GetError());
+
+        const bool tonemap_pipeline_initialized = init_tonemap_pipeline();
+        HOB_CHECK(tonemap_pipeline_initialized, "Renderer::init_tonemap_pipeline failed: {}", SDL_GetError());
+
+        const bool sky_pipeline_initialized = init_sky_pipeline();
+        HOB_CHECK(sky_pipeline_initialized, "Renderer::init_sky_pipeline failed: {}", SDL_GetError());
+
+        const bool shadow_resources_initialized = init_shadow_resources();
+        HOB_CHECK(shadow_resources_initialized, "Renderer::init_shadow_resources failed: {}", SDL_GetError());
+
+        const bool prepass_pipeline_initialized = init_prepass_pipeline();
+        HOB_CHECK(prepass_pipeline_initialized, "Renderer::init_prepass_pipeline failed: {}", SDL_GetError());
+
+        const bool ssao_pipelines_initialized = init_ssao_pipelines();
+        HOB_CHECK(ssao_pipelines_initialized, "Renderer::init_ssao_pipelines failed: {}", SDL_GetError());
+
+        const bool bloom_pipelines_initialized = init_bloom_pipelines();
+        HOB_CHECK(bloom_pipelines_initialized, "Renderer::init_bloom_pipelines failed: {}", SDL_GetError());
+
+        const bool fog_pipelines_initialized = init_fog_pipelines();
+        HOB_CHECK(fog_pipelines_initialized, "Renderer::init_fog_pipelines failed: {}", SDL_GetError());
 
         const bool debug_line_pipeline_initialized = init_debug_line_pipeline();
         HOB_CHECK(debug_line_pipeline_initialized, "Renderer::init_debug_line_pipeline failed: {}", SDL_GetError());
@@ -91,6 +127,7 @@ namespace hob {
         release_materials();
         release_shaders();
         release_textures();
+        release_meshes();
 
         if (m_upload_transfer_buffer)
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, m_upload_transfer_buffer);
@@ -101,6 +138,33 @@ namespace hob {
         for (auto& [key, sampler] : m_samplers) {
             SDL_ReleaseGPUSampler(m_gpu_device, sampler);
         }
+        release_targets_3d(m_offscreen_targets_3d);
+        if (m_tonemap_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_tonemap_pipeline);
+        if (m_sky_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_sky_pipeline);
+        if (m_shadow_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_shadow_pipeline);
+        if (m_prepass_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_prepass_pipeline);
+        if (m_ssao_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_ssao_pipeline);
+        if (m_ssao_blur_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_ssao_blur_pipeline);
+        if (m_bloom_prefilter_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_bloom_prefilter_pipeline);
+        if (m_bloom_downsample_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_bloom_downsample_pipeline);
+        if (m_bloom_upsample_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_bloom_upsample_pipeline);
+        if (m_fog_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_fog_pipeline);
+        if (m_fog_upsample_pipeline)
+            SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_fog_upsample_pipeline);
+        if (m_shadow_sampler)
+            SDL_ReleaseGPUSampler(m_gpu_device, m_shadow_sampler);
+        if (m_shadow_map)
+            SDL_ReleaseGPUTexture(m_gpu_device, m_shadow_map);
         if (m_offscreen_color_target)
             SDL_ReleaseGPUTexture(m_gpu_device, m_offscreen_color_target);
 
@@ -112,6 +176,10 @@ namespace hob {
     }
 
     void Renderer::set_time(float game_time, float real_time) {
+        m_stats_frame_seconds = real_time - m_real_time;
+        m_stats_sprite_draws = 0;
+        m_stats_mesh_draws = 0;
+        m_stats_mesh_triangles = 0;
         m_game_time = game_time;
         m_real_time = real_time;
     }
@@ -160,8 +228,8 @@ namespace hob {
         m_offscreen_projection = ortho_top_left(logical.x, logical.y);
         m_swapchain_projection = ortho_top_left_y_flipped(logical.x, logical.y);
 
-        if (!init_offscreen_color_target()) {
-            log::renderer.error("Renderer::on_window_resized: failed to recreate offscreen target");
+        if (!init_offscreen_targets()) {
+            log::renderer.error("Renderer::on_window_resized: failed to recreate offscreen targets");
         }
 
         if (density_changed || !m_debug_font.is_initialized()) {
@@ -180,6 +248,12 @@ namespace hob {
         out.m[12] = -1.0f;
         out.m[13] = -1.0f;
         out.m[15] = 1.0f;
+        return out;
+    }
+
+    Matrix4x4 Renderer::perspective_offscreen(float fov_y_rad, float aspect, float near_plane, float far_plane) {
+        Matrix4x4 out = Matrix4x4::perspective_lh(fov_y_rad, aspect, near_plane, far_plane);
+        out.m[5] = -out.m[5];
         return out;
     }
 
@@ -264,6 +338,18 @@ namespace hob {
         return m_offscreen_format;
     }
 
+    SDL_GPUTextureFormat Renderer::get_depth_format() const {
+        return m_depth_format;
+    }
+
+    SDL_GPUTextureFormat Renderer::get_hdr_format() const {
+        return m_hdr_format;
+    }
+
+    SDL_GPUSampleCount Renderer::get_msaa_sample_count() const {
+        return m_msaa_sample_count;
+    }
+
     SpriteDrawId Renderer::register_sprite_draw() {
         const SpriteDrawIndex index = static_cast<SpriteDrawIndex>(m_sprite_draws.size());
         m_sprite_draws.emplace_back();
@@ -341,6 +427,89 @@ namespace hob {
         }
 
         return &m_sprite_draws[index];
+    }
+
+    MeshDrawId Renderer::register_mesh_draw() {
+        MeshDrawId draw_id;
+        if (!m_mesh_draw_free_ids.empty()) {
+            draw_id = m_mesh_draw_free_ids.back();
+            m_mesh_draw_free_ids.pop_back();
+        }
+        else {
+            draw_id = static_cast<MeshDrawId>(m_mesh_draw_id_to_index.size());
+            m_mesh_draw_id_to_index.push_back(INVALID_MESH_DRAW_INDEX);
+        }
+
+        m_mesh_draw_id_to_index[draw_id] = static_cast<MeshDrawIndex>(m_mesh_draws.size());
+        m_mesh_draws.emplace_back();
+        m_mesh_draw_index_to_id.push_back(draw_id);
+        m_mesh_draw_order_dirty = true;
+        return draw_id;
+    }
+
+    void Renderer::unregister_mesh_draw(MeshDrawId draw_id) {
+        if (draw_id < 0 || draw_id >= static_cast<MeshDrawId>(m_mesh_draw_id_to_index.size())) {
+            return;
+        }
+
+        const MeshDrawIndex index = m_mesh_draw_id_to_index[draw_id];
+        if (index == INVALID_MESH_DRAW_INDEX) {
+            return;
+        }
+
+        const MeshDrawIndex last_index = static_cast<MeshDrawIndex>(m_mesh_draws.size()) - 1;
+        if (index != last_index) {
+            m_mesh_draws[index] = std::move(m_mesh_draws[last_index]);
+            const MeshDrawId moved_id = m_mesh_draw_index_to_id[last_index];
+            m_mesh_draw_index_to_id[index] = moved_id;
+            m_mesh_draw_id_to_index[moved_id] = index;
+        }
+
+        m_mesh_draws.pop_back();
+        m_mesh_draw_index_to_id.pop_back();
+        m_mesh_draw_id_to_index[draw_id] = INVALID_MESH_DRAW_INDEX;
+        m_mesh_draw_free_ids.push_back(draw_id);
+        m_mesh_draw_order_dirty = true;
+    }
+
+    void Renderer::update_mesh_draw(MeshDrawId draw_id, MeshDrawData draw_data) {
+        if (draw_id < 0 || draw_id >= static_cast<MeshDrawId>(m_mesh_draw_id_to_index.size())) {
+            return;
+        }
+
+        const MeshDrawIndex index = m_mesh_draw_id_to_index[draw_id];
+        if (index == INVALID_MESH_DRAW_INDEX) {
+            return;
+        }
+
+        MeshDrawData& slot = m_mesh_draws[index];
+        if (slot.get_shader() != draw_data.get_shader() || slot.mesh != draw_data.mesh) {
+            m_mesh_draw_order_dirty = true;
+        }
+
+        slot = std::move(draw_data);
+    }
+
+    const MeshDrawData* Renderer::get_mesh_draw(MeshDrawId draw_id) const {
+        if (draw_id < 0 || draw_id >= static_cast<MeshDrawId>(m_mesh_draw_id_to_index.size())) {
+            return nullptr;
+        }
+
+        const MeshDrawIndex index = m_mesh_draw_id_to_index[draw_id];
+        if (index == INVALID_MESH_DRAW_INDEX) {
+            return nullptr;
+        }
+
+        return &m_mesh_draws[index];
+    }
+
+    const SceneLight& Renderer::get_scene_light() const {
+        return m_scene_light;
+    }
+
+    void Renderer::set_scene_light(const SceneLight& light) {
+        m_scene_light = light;
+        m_scene_light.direction = light.direction.normalized();
     }
 
     void Renderer::draw_debug_line(const Vector2& screen_start,

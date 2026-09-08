@@ -56,6 +56,7 @@ namespace hob::editor {
         };
 
         constexpr const char* NEW_SCENE_DIALOG_TITLE = "New Scene";
+        constexpr const char* NEW_SCENE_3D_DIALOG_TITLE = "New 3D Scene";
         constexpr const char* SAVE_SCENE_AS_DIALOG_TITLE = "Save Scene As";
         constexpr const char* NEW_PREFAB_DIALOG_TITLE = "New Prefab";
         constexpr const char* CREATE_PREFAB_COMMAND_LABEL = "Create Prefab";
@@ -464,11 +465,14 @@ namespace hob::editor {
         return !editor.get_current_scene().empty() && editor.get_state() == WorldState::Stopped;
     }
 
-    void show_new_scene_dialog(Editor& editor) {
+    void show_new_scene_dialog(Editor& editor, Space space) {
         EditorFileDialogConfig config =
-            make_file_dialog_config(editor, SCENE_FILE_KIND, NEW_SCENE_DIALOG_TITLE, get_default_folder());
-        config.on_pick = [&editor](const std::filesystem::path& path) {
-            new_scene(editor, path);
+            make_file_dialog_config(editor,
+                                    SCENE_FILE_KIND,
+                                    space == Space::Space3D ? NEW_SCENE_3D_DIALOG_TITLE : NEW_SCENE_DIALOG_TITLE,
+                                    get_default_folder());
+        config.on_pick = [&editor, space](const std::filesystem::path& path) {
+            new_scene(editor, path, space);
         };
 
         editor.get_file_dialog().open(std::move(config));
@@ -488,12 +492,13 @@ namespace hob::editor {
         return get_definition_create_error(editor, SCENE_FILE_KIND, path);
     }
 
-    void new_scene(Editor& editor, const std::filesystem::path& path) {
+    void new_scene(Editor& editor, const std::filesystem::path& path, Space space) {
         Engine& engine = editor.get_engine();
+        const char* space_key = space_to_key(space);
 
         const std::string scene_name =
-            create_definition_file(editor, SCENE_FILE_KIND, path, [&engine](const std::string& name) {
-                return editor_call(engine, editor_func::SERIALIZE_NEW_SCENE, name);
+            create_definition_file(editor, SCENE_FILE_KIND, path, [&engine, space_key](const std::string& name) {
+                return editor_call(engine, editor_func::SERIALIZE_NEW_SCENE, name, space_key);
             });
         if (scene_name.empty()) {
             return;

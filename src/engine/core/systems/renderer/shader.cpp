@@ -39,6 +39,10 @@ namespace hob {
         return true;
     }
 
+    const char* vertex_layout_to_string(VertexLayout layout) {
+        return layout == VertexLayout::Mesh ? "mesh" : "sprite";
+    }
+
     const char* cull_mode_to_string(CullMode mode) {
         switch (mode) {
             case CullMode::None:
@@ -71,17 +75,32 @@ namespace hob {
                    SDL_GPUGraphicsPipeline* pipeline,
                    std::string relative_path,
                    BlendMode blend,
-                   CullMode cull)
+                   CullMode cull,
+                   VertexLayout vertex_layout)
         : m_device(device)
         , m_pipeline(pipeline)
         , m_path(std::move(relative_path))
         , m_blend_mode(blend)
-        , m_cull_mode(cull) {}
+        , m_cull_mode(cull)
+        , m_vertex_layout(vertex_layout) {}
 
     Shader::~Shader() {
         if (m_pipeline) {
             SDL_ReleaseGPUGraphicsPipeline(m_device, m_pipeline);
         }
+    }
+
+    void Shader::replace_pipeline(SDL_GPUGraphicsPipeline* pipeline) {
+        if (m_pipeline) {
+            SDL_ReleaseGPUGraphicsPipeline(m_device, m_pipeline);
+        }
+        m_pipeline = pipeline;
+    }
+
+    SDL_GPUGraphicsPipeline* Shader::detach_pipeline() {
+        SDL_GPUGraphicsPipeline* pipeline = m_pipeline;
+        m_pipeline = nullptr;
+        return pipeline;
     }
 
     const std::string& Shader::get_path() const {
@@ -94,6 +113,10 @@ namespace hob {
 
     CullMode Shader::get_cull_mode() const {
         return m_cull_mode;
+    }
+
+    VertexLayout Shader::get_vertex_layout() const {
+        return m_vertex_layout;
     }
 
     SDL_GPUGraphicsPipeline* Shader::get_pipeline() const {
@@ -118,6 +141,22 @@ namespace hob {
         m_engine_slot = slot;
         m_engine_size = size;
         m_engine_offsets = offsets;
+    }
+
+    uint32_t Shader::get_shadow_map_slot() const {
+        return m_shadow_map_slot;
+    }
+
+    void Shader::set_shadow_map_slot(uint32_t slot) {
+        m_shadow_map_slot = slot;
+    }
+
+    uint32_t Shader::get_ssao_slot() const {
+        return m_ssao_slot;
+    }
+
+    void Shader::set_ssao_slot(uint32_t slot) {
+        m_ssao_slot = slot;
     }
 
     uint32_t Shader::get_material_slot() const {

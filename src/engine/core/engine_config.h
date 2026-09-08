@@ -8,6 +8,7 @@
 #include "engine/core/systems/renderer/sampler.h"
 #include "engine/core/systems/window.h"
 #include "engine/math/vector2.h"
+#include "engine/math/vector3.h"
 
 namespace hob {
     struct GraphicsConfig {
@@ -38,6 +39,13 @@ namespace hob {
         bool interpolation_enabled = true;
     };
 
+    struct PhysicsConfig3D {
+        Vector3 gravity = Vector3(0.0f, -9.81f, 0.0f);
+        uint32_t ticks_per_second = 60;
+        uint32_t sub_steps_per_tick = 4;
+        bool interpolation_enabled = true;
+    };
+
     struct AudioConfig {
         float master_volume = 1.0f;
         bool enabled = true;
@@ -54,6 +62,7 @@ namespace hob {
         GraphicsConfig graphics_config;
         UiSystemConfig ui_system_config;
         PhysicsConfig physics_config;
+        PhysicsConfig3D physics_config_3d;
         AudioConfig audio_config;
         HostConfig host_config;
 

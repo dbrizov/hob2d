@@ -10,13 +10,17 @@
 #include <vector>
 
 #include "engine/components/component.h"
+#include "engine/core/space.h"
 
 namespace hob {
     class Engine;
     class ColliderComponent;
+    class ColliderComponent3D;
     class LuaScriptComponent;
     class RigidbodyComponent;
+    class RigidbodyComponent3D;
     class TransformComponent;
+    class TransformComponent3D;
 
     using EntityId = int64_t;
     constexpr EntityId INVALID_ENTITY_ID = -1;
@@ -41,6 +45,7 @@ namespace hob {
 
         Engine& m_engine;
         EntityId m_id = 0;
+        Space m_space = Space::Space2D;
         std::string m_name;
         std::string m_prefab_name;
         mutable std::string m_fallback_display_name;
@@ -52,8 +57,11 @@ namespace hob {
 
         std::vector<std::unique_ptr<Component>> m_components;
         mutable TransformComponent* m_transform = nullptr;
+        mutable TransformComponent3D* m_transform_3d = nullptr;
         mutable RigidbodyComponent* m_rigidbody = nullptr;
         mutable bool m_rigidbody_resolved = false;
+        mutable RigidbodyComponent3D* m_rigidbody_3d = nullptr;
+        mutable bool m_rigidbody_3d_resolved = false;
 
         explicit Entity(Engine& engine);
 
@@ -76,6 +84,10 @@ namespace hob {
         void on_collision_exit(const ColliderComponent* other_collider);
         void on_trigger_enter(const ColliderComponent* other_collider);
         void on_trigger_exit(const ColliderComponent* other_collider);
+        void on_collision_enter_3d(const ColliderComponent3D* other_collider);
+        void on_collision_exit_3d(const ColliderComponent3D* other_collider);
+        void on_trigger_enter_3d(const ColliderComponent3D* other_collider);
+        void on_trigger_exit_3d(const ColliderComponent3D* other_collider);
 
         std::string to_string() const;
 
@@ -98,8 +110,15 @@ namespace hob {
         bool is_ticking() const;
         void set_ticking(bool is_ticking);
 
+        Space get_space() const;
+
         TransformComponent* get_transform() const;
+        TransformComponent3D* get_transform_3d() const;
+        Entity* get_parent_entity() const;
+        void get_child_entities(std::vector<Entity*>& out_children) const;
+
         RigidbodyComponent* get_rigidbody() const;
+        RigidbodyComponent3D* get_rigidbody_3d() const;
 
         template<NonLuaComponentType T, typename... Args>
         T* add_component(Args&&... args);
@@ -165,6 +184,7 @@ namespace hob {
         m_components.push_back(std::move(component));
         sort_components();
         m_rigidbody_resolved = false;
+        m_rigidbody_3d_resolved = false;
 
         return component_ptr;
     }

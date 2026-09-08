@@ -124,9 +124,21 @@ target_link_libraries(${PROJECT_NAME} PRIVATE unofficial::spirv-reflect)
 find_package(box2d CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE box2d::box2d)
 
+# Find and link box3d.
+find_package(box3d CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE box3d::box3d)
+
+# Find cgltf (header-only glTF loader).
+find_path(CGLTF_INCLUDE_DIRS "cgltf.h" REQUIRED)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CGLTF_INCLUDE_DIRS})
+
 # Find and link imgui.
 find_package(imgui CONFIG REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE imgui::imgui)
+
+# Find and link ImGuizmo (editor 3D gizmo).
+find_package(imguizmo CONFIG REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE imguizmo::imguizmo)
 
 # Find and link lunasvg.
 find_package(lunasvg CONFIG REQUIRED)

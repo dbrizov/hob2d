@@ -44,19 +44,23 @@ namespace hob {
     void LuaComponentSchemaRegistry::add_schema(std::string key,
                                                 std::string add_method,
                                                 std::string get_method,
-                                                std::vector<LuaComponentSchemaField> fields) {
-        m_schemas.emplace_back(std::move(key), std::move(add_method), std::move(get_method), std::move(fields));
+                                                std::vector<LuaComponentSchemaField> fields,
+                                                std::optional<Space> space) {
+        m_schemas.emplace_back(
+            std::move(key), std::move(add_method), std::move(get_method), std::move(fields), std::string(), space);
     }
 
     void LuaComponentSchemaRegistry::add_map_schema(std::string key,
                                                     std::string add_method,
                                                     std::string get_method,
-                                                    std::string map_setter) {
+                                                    std::string map_setter,
+                                                    std::optional<Space> space) {
         m_schemas.emplace_back(std::move(key),
                                std::move(add_method),
                                std::move(get_method),
                                std::vector<LuaComponentSchemaField>{},
-                               std::move(map_setter));
+                               std::move(map_setter),
+                               space);
     }
 
     bool LuaComponentSchemaRegistry::write_to_file(const std::filesystem::path& full_path) const {
@@ -69,6 +73,9 @@ namespace hob {
             out << "    " << s.key << " = {\n";
             out << "        " << component_schema_key::ADD << " = \"" << s.add_method << "\",\n";
             out << "        " << component_schema_key::GET << " = \"" << s.get_method << "\",\n";
+            if (s.space.has_value()) {
+                out << "        " << component_schema_key::SPACE << " = \"" << space_to_key(*s.space) << "\",\n";
+            }
 
             if (!s.map_setter.empty()) {
                 out << "        " << component_schema_key::MAP_SETTER << " = \"" << s.map_setter << "\",\n";

@@ -11,10 +11,13 @@
 #include "editor_inspector_entries.h"
 #include "editor_style.h"
 #include "engine/math/aabb.h"
+#include "engine/math/aabb3.h"
 #include "engine/math/capsule.h"
 #include "engine/math/circle.h"
 #include "engine/math/color.h"
+#include "engine/math/quaternion.h"
 #include "engine/math/vector2.h"
+#include "engine/math/vector3.h"
 
 namespace hob::editor {
     struct EditorStyleColorStack {
@@ -113,10 +116,14 @@ namespace hob::editor {
     bool field_string(const char* label, std::string& value);
     void field_text(const char* label, const std::string& value);
     bool field_vector2(const char* label, Vector2& value, float drag_speed = INSPECTOR_DRAG_SPEED_FLOAT);
+    bool field_vector3(const char* label, Vector3& value, float drag_speed = INSPECTOR_DRAG_SPEED_FLOAT);
+    bool field_euler_deg(const char* label, Vector3& degrees, float drag_speed = INSPECTOR_DRAG_SPEED_ROTATION_DEG);
+    bool field_quaternion(const char* label, Quaternion& value);
     bool field_color(const char* label, Color& value);
     bool field_enum(const char* label, int64_t& value, const std::vector<EditorInspectorEntryEnum>& entries);
     bool field_bitmask(const char* label, int64_t& value, const std::vector<EditorInspectorEntryEnum>& entries);
     bool field_aabb(const char* label, AABB& value);
+    bool field_aabb3(const char* label, AABB3& value);
     bool field_capsule(const char* label, Capsule& value);
     bool field_circle(const char* label, Circle& value);
     bool field_asset(const char* label,

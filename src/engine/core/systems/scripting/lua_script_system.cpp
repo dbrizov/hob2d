@@ -29,7 +29,8 @@ namespace hob {
                                                               file_extension::MATERIAL,
                                                               file_extension::ANIMATION_CLIP,
                                                               file_extension::SHADER,
-                                                              file_extension::META};
+                                                              file_extension::META,
+                                                              file_extension::MESH};
 
         bool is_lua_source_file(const std::filesystem::directory_entry& entry) {
             if (!entry.is_regular_file()) {

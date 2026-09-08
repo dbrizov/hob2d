@@ -11,6 +11,7 @@
 ---@field ANIMATION_CLIP string
 ---@field SHADER string
 ---@field META string
+---@field MESH string
 FileExtension = {}
 
 -- DefRegistry
@@ -23,6 +24,7 @@ FileExtension = {}
 ---@field MATERIALS string
 ---@field ANIMATION_CLIPS string
 ---@field AUDIO_CLIPS string
+---@field MESHES string
 DefRegistry = {}
 
 -- SceneKey
@@ -38,6 +40,22 @@ SceneKey = {}
 ---@field LUA_COMPONENTS string
 ---@field LUA_FIELDS string
 PrefabKey = {}
+
+-- SpaceKey
+---@class SpaceKey
+---@field KEY string
+---@field SPACE_2D string
+---@field SPACE_3D string
+SpaceKey = {}
+
+-- TransformKey3D
+---@class TransformKey3D
+---@field SECTION string
+---@field POSITION string
+---@field ROTATION string
+---@field ROTATION_DEG string
+---@field SCALE string
+TransformKey3D = {}
 
 -- TransformKey
 ---@class TransformKey
@@ -55,6 +73,9 @@ TransformKey = {}
 ---@field BOOL string
 ---@field STRING string
 ---@field VECTOR2 string
+---@field VECTOR3 string
+---@field QUATERNION string
+---@field EULER_DEG string
 ---@field COLOR string
 ---@field ANGLE string
 ---@field ENUM string
@@ -63,7 +84,9 @@ TransformKey = {}
 ---@field MATERIAL string
 ---@field ANIMATION_CLIP string
 ---@field AUDIO_CLIP string
+---@field MESH string
 ---@field AABB string
+---@field AABB3 string
 ---@field CAPSULE string
 ---@field CIRCLE string
 ---@field OTHER string
@@ -141,6 +164,33 @@ function Camera.get_position() end
 
 ---@param position Vector2
 function Camera.set_position(position) end
+
+-- Camera3D
+---@class Camera3D
+Camera3D = {}
+
+---@return Entity?
+function Camera3D.get_active() end
+
+---@return number
+function Camera3D.get_fov_deg() end
+
+---@param value number
+function Camera3D.set_fov_deg(value) end
+
+---@param world_pos Vector3
+---@return Vector2?
+function Camera3D.world_to_screen(world_pos) end
+
+---@param screen_pos Vector2
+---@return Ray
+function Camera3D.screen_to_ray(screen_pos) end
+
+---@return Vector3
+function Camera3D.get_position() end
+
+---@param position Vector3
+function Camera3D.set_position(position) end
 
 -- Timer
 ---@class Timer
@@ -274,6 +324,24 @@ function Physics.raycast(origin, direction, distance, layer_mask) end
 ---@return RaycastHit[]
 function Physics.raycast_all(origin, direction, distance, layer_mask) end
 
+-- Physics3D
+---@class Physics3D
+Physics3D = {}
+
+---@param origin Vector3
+---@param direction Vector3
+---@param distance number
+---@param layer_mask integer?
+---@return RaycastHit3D
+function Physics3D.raycast(origin, direction, distance, layer_mask) end
+
+---@param origin Vector3
+---@param direction Vector3
+---@param distance number
+---@param layer_mask integer?
+---@return RaycastHit3D[]
+function Physics3D.raycast_all(origin, direction, distance, layer_mask) end
+
 -- Audio
 ---@class Audio
 Audio = {}
@@ -292,8 +360,9 @@ function Audio.set_master_volume(volume) end
 ---@class EntitySpawner
 EntitySpawner = {}
 
+---@param space string?
 ---@return Entity
-function EntitySpawner.spawn_entity() end
+function EntitySpawner.spawn_entity(space) end
 
 ---@param entity Entity
 function EntitySpawner.destroy_entity(entity) end
@@ -355,6 +424,27 @@ function Debug.draw_line(from, to, color, duration, thickness) end
 ---@param segments integer?
 function Debug.draw_circle(center, radius, color, duration, thickness, segments) end
 
+---@param from Vector3
+---@param to Vector3
+---@param color Color?
+---@param duration number?
+---@param thickness number?
+function Debug.draw_line_3d(from, to, color, duration, thickness) end
+
+---@param box AABB3
+---@param color Color?
+---@param duration number?
+---@param thickness number?
+function Debug.draw_aabb3(box, color, duration, thickness) end
+
+---@param center Vector3
+---@param radius number
+---@param color Color?
+---@param duration number?
+---@param thickness number?
+---@param segments integer?
+function Debug.draw_sphere_3d(center, radius, color, duration, thickness, segments) end
+
 -- Log
 ---@class Log
 Log = {}
@@ -386,6 +476,19 @@ InputEventType = {
 CollisionLayer = {
     None = 0,
     Default = 1,
+}
+
+-- MotionLock
+---@enum MotionLock
+MotionLock = {
+    None = 0,
+    LinearX = 1,
+    LinearY = 2,
+    LinearZ = 4,
+    AngularX = 8,
+    AngularY = 16,
+    AngularZ = 32,
+    Angular = 56,
 }
 
 -- Asset
@@ -463,6 +566,227 @@ function Vector2.lerp(a, b, t) end
 function Vector2.rotate_around(point, pivot, radians) end
 
 _G.Vector2 = Vector2
+
+-- Vector3
+---@class Vector3
+---@field x number
+---@field y number
+---@field z number
+---@operator add(Vector3): Vector3
+---@operator sub(Vector3): Vector3
+---@operator unm: Vector3
+---@operator mul(number): Vector3
+---@operator div(number): Vector3
+---@overload fun(): Vector3
+---@overload fun(x: number, y: number, z: number): Vector3
+local Vector3 = {}
+
+---@return number
+function Vector3:length() end
+
+---@return number
+function Vector3:length_sqr() end
+
+---@return Vector3
+function Vector3:normalized() end
+
+---@return Vector3
+function Vector3.zero() end
+
+---@return Vector3
+function Vector3.one() end
+
+---@return Vector3
+function Vector3.left() end
+
+---@return Vector3
+function Vector3.right() end
+
+---@return Vector3
+function Vector3.up() end
+
+---@return Vector3
+function Vector3.down() end
+
+---@return Vector3
+function Vector3.forward() end
+
+---@return Vector3
+function Vector3.back() end
+
+---@param a Vector3
+---@param b Vector3
+---@return number
+function Vector3.dot(a, b) end
+
+---@param a Vector3
+---@param b Vector3
+---@return Vector3
+function Vector3.cross(a, b) end
+
+---@param a Vector3
+---@param b Vector3
+---@return Vector3
+function Vector3.scale(a, b) end
+
+---@param a Vector3
+---@param b Vector3
+---@return number
+function Vector3.distance(a, b) end
+
+---@param a Vector3
+---@param b Vector3
+---@param t number
+---@return Vector3
+function Vector3.lerp(a, b, t) end
+
+---@param a Vector3
+---@param b Vector3
+---@return Vector3
+function Vector3.min(a, b) end
+
+---@param a Vector3
+---@param b Vector3
+---@return Vector3
+function Vector3.max(a, b) end
+
+---@param a Vector3
+---@return Vector3
+function Vector3.abs(a) end
+
+---@param vector Vector3
+---@param plane_normal Vector3
+---@return Vector3
+function Vector3.project_on_plane(vector, plane_normal) end
+
+_G.Vector3 = Vector3
+
+-- Quaternion
+---@class Quaternion
+---@field x number
+---@field y number
+---@field z number
+---@field w number
+---@operator mul(Quaternion): Quaternion
+---@overload fun(): Quaternion
+---@overload fun(x: number, y: number, z: number, w: number): Quaternion
+local Quaternion = {}
+
+---@return Quaternion
+function Quaternion:normalized() end
+
+---@return Quaternion
+function Quaternion:conjugate() end
+
+---@return Quaternion
+function Quaternion:inverse() end
+
+---@return Vector3
+function Quaternion:to_euler_deg() end
+
+---@param vector Vector3
+---@return Vector3
+function Quaternion:rotate(vector) end
+
+---@return Vector3
+function Quaternion:get_forward() end
+
+---@return Vector3
+function Quaternion:get_right() end
+
+---@return Vector3
+function Quaternion:get_up() end
+
+---@return Quaternion
+function Quaternion.identity() end
+
+---@param axis Vector3
+---@param radians number
+---@return Quaternion
+function Quaternion.from_axis_angle(axis, radians) end
+
+---@param euler_deg Vector3
+---@return Quaternion
+function Quaternion.from_euler_deg(euler_deg) end
+
+---@param forward Vector3
+---@param up Vector3?
+---@return Quaternion
+function Quaternion.look_rotation(forward, up) end
+
+---@param from Vector3
+---@param to Vector3
+---@return Quaternion
+function Quaternion.from_to_rotation(from, to) end
+
+---@param a Quaternion
+---@param b Quaternion
+---@return number
+function Quaternion.dot(a, b) end
+
+---@param a Quaternion
+---@param b Quaternion
+---@param t number
+---@return Quaternion
+function Quaternion.slerp(a, b, t) end
+
+---@param a Quaternion
+---@param b Quaternion
+---@return number
+function Quaternion.angle_deg(a, b) end
+
+_G.Quaternion = Quaternion
+
+-- AABB3
+---@class AABB3
+---@field center Vector3
+---@field extents Vector3
+---@overload fun(): AABB3
+---@overload fun(center: Vector3, extents: Vector3): AABB3
+local AABB3 = {}
+
+---@return Vector3
+function AABB3:min() end
+
+---@return Vector3
+function AABB3:max() end
+
+---@return Vector3
+function AABB3:size() end
+
+---@param point Vector3
+---@return boolean
+function AABB3:contains(point) end
+
+---@param ray Ray
+---@return number?
+function AABB3:raycast(ray) end
+
+---@param min Vector3
+---@param max Vector3
+---@return AABB3
+function AABB3.from_min_max(min, max) end
+
+---@param a AABB3
+---@param b AABB3
+---@return AABB3
+function AABB3.combine(a, b) end
+
+_G.AABB3 = AABB3
+
+-- Ray
+---@class Ray
+---@field origin Vector3
+---@field direction Vector3
+---@overload fun(): Ray
+---@overload fun(origin: Vector3, direction: Vector3): Ray
+local Ray = {}
+
+---@param distance number
+---@return Vector3
+function Ray:point_at(distance) end
+
+_G.Ray = Ray
 
 -- AABB
 ---@class AABB
@@ -588,6 +912,12 @@ function Entity:add_lua_component(class_name) end
 ---@return TransformComponent?
 function Entity:get_transform() end
 
+---@return TransformComponent3D?
+function Entity:get_transform_3d() end
+
+---@return string
+function Entity:get_space() end
+
 ---@return RigidbodyComponent?
 function Entity:get_rigidbody() end
 
@@ -596,6 +926,21 @@ function Entity:get_character_body() end
 
 ---@return BoxColliderComponent?
 function Entity:get_box_collider() end
+
+---@return CharacterBodyComponent3D?
+function Entity:get_character_body_3d() end
+
+---@return RigidbodyComponent3D?
+function Entity:get_rigidbody_3d() end
+
+---@return BoxColliderComponent3D?
+function Entity:get_box_collider_3d() end
+
+---@return SphereColliderComponent3D?
+function Entity:get_sphere_collider_3d() end
+
+---@return CapsuleColliderComponent3D?
+function Entity:get_capsule_collider_3d() end
 
 ---@return CapsuleColliderComponent?
 function Entity:get_capsule_collider() end
@@ -618,6 +963,15 @@ function Entity:get_sockets() end
 ---@return CameraComponent?
 function Entity:get_camera() end
 
+---@return CameraComponent3D?
+function Entity:get_camera_3d() end
+
+---@return DirectionalLightComponent?
+function Entity:get_directional_light() end
+
+---@return MeshRendererComponent?
+function Entity:get_mesh_renderer() end
+
 ---@return AudioComponent?
 function Entity:get_audio() end
 
@@ -634,6 +988,30 @@ function Entity:get_components() end
 ---@param func fun(component: Component)
 ---@param until_predicate (fun(component: Component): boolean)?
 function Entity:for_each_component(func, until_predicate) end
+
+---@return RigidbodyComponent3D?
+function Entity:add_rigidbody_3d() end
+
+---@return BoxColliderComponent3D?
+function Entity:add_box_collider_3d() end
+
+---@return SphereColliderComponent3D?
+function Entity:add_sphere_collider_3d() end
+
+---@return CapsuleColliderComponent3D?
+function Entity:add_capsule_collider_3d() end
+
+---@return CharacterBodyComponent3D?
+function Entity:add_character_body_3d() end
+
+---@return DirectionalLightComponent?
+function Entity:add_directional_light() end
+
+---@return CameraComponent3D?
+function Entity:add_camera_3d() end
+
+---@return MeshRendererComponent?
+function Entity:add_mesh_renderer() end
 
 ---@return RigidbodyComponent?
 function Entity:add_rigidbody() end
@@ -736,6 +1114,457 @@ function TransformComponent:get_interpolate_physics() end
 function TransformComponent:set_interpolate_physics(value) end
 
 _G.TransformComponent = TransformComponent
+
+-- TransformComponent3D
+---@class TransformComponent3D : Component
+local TransformComponent3D = {}
+
+---@return Vector3
+function TransformComponent3D:get_position() end
+
+---@param position Vector3
+function TransformComponent3D:set_position(position) end
+
+---@return Quaternion
+function TransformComponent3D:get_rotation() end
+
+---@param rotation Quaternion
+function TransformComponent3D:set_rotation(rotation) end
+
+---@return Vector3
+function TransformComponent3D:get_euler_deg() end
+
+---@param euler_deg Vector3
+function TransformComponent3D:set_euler_deg(euler_deg) end
+
+---@return Vector3
+function TransformComponent3D:get_lossy_scale() end
+
+---@return Vector3
+function TransformComponent3D:get_local_position() end
+
+---@param position Vector3
+function TransformComponent3D:set_local_position(position) end
+
+---@return Quaternion
+function TransformComponent3D:get_local_rotation() end
+
+---@param rotation Quaternion
+function TransformComponent3D:set_local_rotation(rotation) end
+
+---@return Vector3
+function TransformComponent3D:get_local_euler_deg() end
+
+---@param euler_deg Vector3
+function TransformComponent3D:set_local_euler_deg(euler_deg) end
+
+---@return Vector3
+function TransformComponent3D:get_local_scale() end
+
+---@param scale Vector3
+function TransformComponent3D:set_local_scale(scale) end
+
+---@return Vector3
+function TransformComponent3D:get_forward() end
+
+---@return Vector3
+function TransformComponent3D:get_right() end
+
+---@return Vector3
+function TransformComponent3D:get_up() end
+
+---@return TransformComponent3D?
+function TransformComponent3D:get_parent() end
+
+---@param parent TransformComponent3D?
+---@param keep_world_transform boolean?
+function TransformComponent3D:set_parent(parent, keep_world_transform) end
+
+---@return TransformComponent3D[]
+function TransformComponent3D:get_children() end
+
+---@return boolean
+function TransformComponent3D:get_interpolate_physics() end
+
+---@param value boolean
+function TransformComponent3D:set_interpolate_physics(value) end
+
+_G.TransformComponent3D = TransformComponent3D
+
+-- RigidbodyComponent3D
+---@class RigidbodyComponent3D : Component
+local RigidbodyComponent3D = {}
+
+---@return boolean
+function RigidbodyComponent3D:has_body() end
+
+---@return boolean
+function RigidbodyComponent3D:is_awake() end
+
+---@return BodyType
+function RigidbodyComponent3D:get_body_type() end
+
+---@param body_type BodyType
+function RigidbodyComponent3D:set_body_type(body_type) end
+
+---@return integer
+function RigidbodyComponent3D:get_motion_locks() end
+
+---@param locks integer
+function RigidbodyComponent3D:set_motion_locks(locks) end
+
+---@return number
+function RigidbodyComponent3D:get_gravity_scale() end
+
+---@param value number
+function RigidbodyComponent3D:set_gravity_scale(value) end
+
+---@return number
+function RigidbodyComponent3D:get_linear_damping() end
+
+---@param value number
+function RigidbodyComponent3D:set_linear_damping(value) end
+
+---@return number
+function RigidbodyComponent3D:get_angular_damping() end
+
+---@param value number
+function RigidbodyComponent3D:set_angular_damping(value) end
+
+---@return Vector3
+function RigidbodyComponent3D:get_velocity() end
+
+---@param velocity Vector3
+function RigidbodyComponent3D:set_velocity(velocity) end
+
+---@return Vector3
+function RigidbodyComponent3D:get_angular_velocity() end
+
+---@param angular_velocity Vector3
+function RigidbodyComponent3D:set_angular_velocity(angular_velocity) end
+
+---@return Vector3
+function RigidbodyComponent3D:get_position() end
+
+---@param position Vector3
+function RigidbodyComponent3D:set_position(position) end
+
+---@return Quaternion
+function RigidbodyComponent3D:get_rotation() end
+
+---@param rotation Quaternion
+function RigidbodyComponent3D:set_rotation(rotation) end
+
+---@param force Vector3
+function RigidbodyComponent3D:apply_force(force) end
+
+---@param impulse Vector3
+function RigidbodyComponent3D:apply_impulse(impulse) end
+
+---@param torque Vector3
+function RigidbodyComponent3D:apply_torque(torque) end
+
+_G.RigidbodyComponent3D = RigidbodyComponent3D
+
+-- ColliderComponent3D
+---@class ColliderComponent3D : Component
+local ColliderComponent3D = {}
+
+---@return number
+function ColliderComponent3D:get_density() end
+
+---@param density number
+function ColliderComponent3D:set_density(density) end
+
+---@return number
+function ColliderComponent3D:get_friction() end
+
+---@param friction number
+function ColliderComponent3D:set_friction(friction) end
+
+---@return number
+function ColliderComponent3D:get_bounciness() end
+
+---@param bounciness number
+function ColliderComponent3D:set_bounciness(bounciness) end
+
+---@return integer
+function ColliderComponent3D:get_collision_layer() end
+
+---@param layer integer
+function ColliderComponent3D:set_collision_layer(layer) end
+
+---@return integer
+function ColliderComponent3D:get_collision_mask() end
+
+---@param mask integer
+function ColliderComponent3D:set_collision_mask(mask) end
+
+---@return boolean
+function ColliderComponent3D:is_trigger() end
+
+---@param trigger boolean
+function ColliderComponent3D:set_trigger(trigger) end
+
+_G.ColliderComponent3D = ColliderComponent3D
+
+-- BoxColliderComponent3D
+---@class BoxColliderComponent3D : ColliderComponent3D
+local BoxColliderComponent3D = {}
+
+---@return AABB3
+function BoxColliderComponent3D:get_box() end
+
+---@param box AABB3
+function BoxColliderComponent3D:set_box(box) end
+
+---@return AABB3
+function BoxColliderComponent3D:get_scaled_box() end
+
+_G.BoxColliderComponent3D = BoxColliderComponent3D
+
+-- SphereColliderComponent3D
+---@class SphereColliderComponent3D : ColliderComponent3D
+local SphereColliderComponent3D = {}
+
+---@return Vector3
+function SphereColliderComponent3D:get_center() end
+
+---@param center Vector3
+function SphereColliderComponent3D:set_center(center) end
+
+---@return number
+function SphereColliderComponent3D:get_radius() end
+
+---@param radius number
+function SphereColliderComponent3D:set_radius(radius) end
+
+---@return number
+function SphereColliderComponent3D:get_scaled_radius() end
+
+_G.SphereColliderComponent3D = SphereColliderComponent3D
+
+-- CapsuleColliderComponent3D
+---@class CapsuleColliderComponent3D : ColliderComponent3D
+local CapsuleColliderComponent3D = {}
+
+---@return Vector3
+function CapsuleColliderComponent3D:get_center() end
+
+---@param center Vector3
+function CapsuleColliderComponent3D:set_center(center) end
+
+---@return number
+function CapsuleColliderComponent3D:get_radius() end
+
+---@param radius number
+function CapsuleColliderComponent3D:set_radius(radius) end
+
+---@return number
+function CapsuleColliderComponent3D:get_height() end
+
+---@param height number
+function CapsuleColliderComponent3D:set_height(height) end
+
+_G.CapsuleColliderComponent3D = CapsuleColliderComponent3D
+
+-- CharacterBodyComponent3D
+---@class CharacterBodyComponent3D : Component
+local CharacterBodyComponent3D = {}
+
+---@return Vector3
+function CharacterBodyComponent3D:get_center() end
+
+---@param center Vector3
+function CharacterBodyComponent3D:set_center(center) end
+
+---@return number
+function CharacterBodyComponent3D:get_radius() end
+
+---@param radius number
+function CharacterBodyComponent3D:set_radius(radius) end
+
+---@return number
+function CharacterBodyComponent3D:get_height() end
+
+---@param height number
+function CharacterBodyComponent3D:set_height(height) end
+
+---@return integer
+function CharacterBodyComponent3D:get_collision_layer() end
+
+---@param layer integer
+function CharacterBodyComponent3D:set_collision_layer(layer) end
+
+---@return integer
+function CharacterBodyComponent3D:get_collision_mask() end
+
+---@param mask integer
+function CharacterBodyComponent3D:set_collision_mask(mask) end
+
+---@return integer
+function CharacterBodyComponent3D:get_solver_ignore_mask() end
+
+---@param mask integer
+function CharacterBodyComponent3D:set_solver_ignore_mask(mask) end
+
+---@return number
+function CharacterBodyComponent3D:get_max_slope_deg() end
+
+---@param degrees number
+function CharacterBodyComponent3D:set_max_slope_deg(degrees) end
+
+---@param velocity Vector3
+---@param fixed_dt number
+function CharacterBodyComponent3D:move_and_slide(velocity, fixed_dt) end
+
+---@return boolean
+function CharacterBodyComponent3D:is_on_floor() end
+
+---@return Vector3
+function CharacterBodyComponent3D:get_floor_normal() end
+
+---@return Vector3
+function CharacterBodyComponent3D:get_velocity() end
+
+---@param velocity Vector3
+function CharacterBodyComponent3D:set_velocity(velocity) end
+
+---@return Vector3
+function CharacterBodyComponent3D:get_position() end
+
+---@param position Vector3
+function CharacterBodyComponent3D:set_position(position) end
+
+---@return Quaternion
+function CharacterBodyComponent3D:get_rotation() end
+
+---@param rotation Quaternion
+function CharacterBodyComponent3D:set_rotation(rotation) end
+
+_G.CharacterBodyComponent3D = CharacterBodyComponent3D
+
+-- DirectionalLightComponent
+---@class DirectionalLightComponent : Component
+local DirectionalLightComponent = {}
+
+---@return Color
+function DirectionalLightComponent:get_color() end
+
+---@param color Color
+function DirectionalLightComponent:set_color(color) end
+
+---@return number
+function DirectionalLightComponent:get_intensity() end
+
+---@param intensity number
+function DirectionalLightComponent:set_intensity(intensity) end
+
+---@return Color
+function DirectionalLightComponent:get_sky_color() end
+
+---@param color Color
+function DirectionalLightComponent:set_sky_color(color) end
+
+---@return Color
+function DirectionalLightComponent:get_ground_color() end
+
+---@param color Color
+function DirectionalLightComponent:set_ground_color(color) end
+
+---@return number
+function DirectionalLightComponent:get_fog_density() end
+
+---@param density number
+function DirectionalLightComponent:set_fog_density(density) end
+
+---@return number
+function DirectionalLightComponent:get_fog_height() end
+
+---@param height number
+function DirectionalLightComponent:set_fog_height(height) end
+
+---@return number
+function DirectionalLightComponent:get_fog_falloff() end
+
+---@param falloff number
+function DirectionalLightComponent:set_fog_falloff(falloff) end
+
+---@return number
+function DirectionalLightComponent:get_fog_anisotropy() end
+
+---@param anisotropy number
+function DirectionalLightComponent:set_fog_anisotropy(anisotropy) end
+
+---@return Color
+function DirectionalLightComponent:get_fog_color() end
+
+---@param color Color
+function DirectionalLightComponent:set_fog_color(color) end
+
+---@return Vector3
+function DirectionalLightComponent:get_direction() end
+
+_G.DirectionalLightComponent = DirectionalLightComponent
+
+-- CameraComponent3D
+---@class CameraComponent3D : Component
+local CameraComponent3D = {}
+
+---@return number
+function CameraComponent3D:get_fov_deg() end
+
+---@param value number
+function CameraComponent3D:set_fov_deg(value) end
+
+---@return number
+function CameraComponent3D:get_near_plane() end
+
+---@param value number
+function CameraComponent3D:set_near_plane(value) end
+
+---@return number
+function CameraComponent3D:get_far_plane() end
+
+---@param value number
+function CameraComponent3D:set_far_plane(value) end
+
+---@param world_pos Vector3
+---@return Vector2?
+function CameraComponent3D:world_to_screen(world_pos) end
+
+---@param screen_pos Vector2
+---@return Ray
+function CameraComponent3D:screen_to_ray(screen_pos) end
+
+_G.CameraComponent3D = CameraComponent3D
+
+-- MeshRendererComponent
+---@class MeshRendererComponent : Component
+local MeshRendererComponent = {}
+
+---@return Mesh?
+function MeshRendererComponent:get_mesh() end
+
+---@param mesh Mesh|nil
+function MeshRendererComponent:set_mesh(mesh) end
+
+---@return Material?
+function MeshRendererComponent:get_material() end
+
+---@return Material?
+function MeshRendererComponent:get_material_const() end
+
+---@param material Material|nil
+function MeshRendererComponent:set_material(material) end
+
+---@return AABB3
+function MeshRendererComponent:get_local_bounds() end
+
+---@return AABB3
+function MeshRendererComponent:get_world_bounds() end
+
+_G.MeshRendererComponent = MeshRendererComponent
 
 -- RigidbodyComponent
 ---@class RigidbodyComponent : Component
@@ -1171,6 +2000,25 @@ function Material:clone() end
 
 _G.Material = Material
 
+-- Mesh
+---@class Mesh : Asset
+---@overload fun(config: table): Mesh
+local Mesh = {}
+
+---@return string
+function Mesh:get_source() end
+
+---@return AABB3
+function Mesh:get_bounds() end
+
+---@return integer
+function Mesh:get_vertex_count() end
+
+---@return integer
+function Mesh:get_index_count() end
+
+_G.Mesh = Mesh
+
 -- RaycastHit
 ---@class RaycastHit
 ---@field collider ColliderComponent?
@@ -1182,6 +2030,18 @@ _G.Material = Material
 local RaycastHit = {}
 
 _G.RaycastHit = RaycastHit
+
+-- RaycastHit3D
+---@class RaycastHit3D
+---@field collider ColliderComponent3D?
+---@field point Vector3
+---@field normal Vector3
+---@field distance number
+---@field hit boolean
+---@field entity Entity?
+local RaycastHit3D = {}
+
+_G.RaycastHit3D = RaycastHit3D
 
 -- AudioClip
 ---@class AudioClip : Asset

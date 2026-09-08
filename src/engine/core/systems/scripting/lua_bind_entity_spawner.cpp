@@ -2,6 +2,7 @@
 
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
+#include "engine/core/space.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
@@ -46,10 +47,13 @@ namespace hob {
         EntitySpawner& spawner = m_engine.get_entity_spawner();
 
         bind_table(lua, meta, "EntitySpawner")
-            .func("spawn_entity",
-                  [&spawner]() {
-                      return EntityRef(spawner.spawn_entity().get_id(), spawner);
-                  })
+            .func_sig(
+                "spawn_entity",
+                [&spawner](sol::optional<std::string> space_key) {
+                    const Space space = space_from_key(space_key.value_or("")).value_or(Space::Space2D);
+                    return EntityRef(spawner.spawn_entity(space).get_id(), spawner);
+                },
+                "(space: string?): Entity")
             .func("destroy_entity",
                   [&spawner](const EntityRef& r) {
                       spawner.destroy_entity(r.get_id());

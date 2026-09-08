@@ -6,7 +6,7 @@
 #include "engine/entity/entity.h"
 
 namespace hob {
-    class TransformComponent;
+    class Entity;
 } // namespace hob
 
 namespace hob::editor {
@@ -22,7 +22,7 @@ namespace hob::editor {
 
     private:
         void draw_entity(const Editor& editor,
-                         const TransformComponent* transform,
+                         const Entity& entity,
                          std::vector<EntityId>& visible_order,
                          EntityId& out_clicked_entity_id);
     };

@@ -29,6 +29,7 @@ namespace hob::editor {
         ResetLayout,
         RefreshAssets,
         NewScene,
+        NewScene3D,
         OpenScene,
         Save,
         SaveSceneAs,

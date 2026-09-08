@@ -106,6 +106,19 @@ local function set_pose_field(inst, field, value)
     return changed
 end
 
+local function set_pose_field_3d(inst, field, value)
+    if field ~= TransformKey.POSITION and field ~= TransformKey.ROTATION and field ~= TransformKey.SCALE then
+        return nil
+    end
+
+    local pose = get_or_create(inst, SceneKey.POSE_OVERRIDES)
+    local pose_field = field == TransformKey.ROTATION and TransformKey.ROTATION_DEG or field
+    local changed = pose[pose_field] ~= value
+    pose[pose_field] = value
+
+    return changed
+end
+
 local function set_override_field(inst, overrides_key, component_key, field, value)
     local section = get_or_create(get_or_create(inst, overrides_key), component_key)
 
@@ -120,6 +133,12 @@ local function set_override_field(inst, overrides_key, component_key, field, val
     return changed
 end
 
+---@return string|nil
+function Editor.get_scene_space()
+    local name = scene_state.name
+    return name ~= nil and Scene.get_space(name) or nil
+end
+
 function Editor.set_instance_field(entity_id, component_key, field, value)
     local instance_id = scene_state.instance_id_by_entity_id[entity_id]
     local inst = instance_id and scene_state.entity_def_by_instance_id[instance_id]
@@ -130,6 +149,8 @@ function Editor.set_instance_field(entity_id, component_key, field, value)
     local changed
     if component_key == TransformKey.SECTION then
         changed = set_pose_field(inst, field, value)
+    elseif component_key == TransformKey3D.SECTION then
+        changed = set_pose_field_3d(inst, field, value)
     end
 
     if changed == nil then
@@ -173,10 +194,11 @@ function Editor.get_instance_override(entity_id, component_key, field, is_lua)
         return inst[SceneKey.LUA_OVERRIDES][component_key][field]
     end
 
-    if component_key == TransformKey.SECTION then
+    if component_key == TransformKey.SECTION or component_key == TransformKey3D.SECTION then
         local pose = inst[SceneKey.POSE_OVERRIDES]
         if field == TransformKey.ROTATION and pose ~= nil and pose[TransformKey.ROTATION_DEG] ~= nil then
-            return pose[TransformKey.ROTATION_DEG] * Math.DEG_TO_RAD
+            local rotation_deg = pose[TransformKey.ROTATION_DEG]
+            return component_key == TransformKey.SECTION and rotation_deg * Math.DEG_TO_RAD or rotation_deg
         end
 
         if pose ~= nil and pose[field] ~= nil then
@@ -220,7 +242,7 @@ function Editor.clear_instance_field(entity_id, component_key, field, is_lua)
     if is_lua then
         removed = remove_section_field(inst, SceneKey.LUA_OVERRIDES, component_key, field)
     else
-        if component_key == TransformKey.SECTION then
+        if component_key == TransformKey.SECTION or component_key == TransformKey3D.SECTION then
             local pose = inst[SceneKey.POSE_OVERRIDES]
             local pose_field = field == TransformKey.ROTATION and TransformKey.ROTATION_DEG or field
             if pose ~= nil and pose[pose_field] ~= nil then
@@ -375,7 +397,7 @@ local function bind_instance_entity(instance_id, entity_id)
 end
 
 ---@param prefab_name string
----@param position Vector2
+---@param position Vector2|Vector3
 ---@return table
 function Editor.create_instance_def(prefab_name, position)
     return {
@@ -433,7 +455,7 @@ function Editor.add_instance(inst, index)
         return nil
     end
 
-    local entity = Scene.spawn_instance(inst)
+    local entity = Scene.spawn_instance(inst, __resolve_def_space(scene_def))
     if entity == nil then
         return nil
     end
@@ -479,11 +501,13 @@ end
 
 ---@param prefab_name string
 function Editor.respawn_prefab_instances(prefab_name)
+    local scene_def = get_open_scene_def()
+    local scene_space = scene_def and __resolve_def_space(scene_def) or SpaceKey.SPACE_2D
     for instance_id, inst in pairs(scene_state.entity_def_by_instance_id) do
         if inst.prefab == prefab_name then
             destroy_instance_entity(instance_id)
 
-            local entity = Scene.spawn_instance(inst)
+            local entity = Scene.spawn_instance(inst, scene_space)
             if entity ~= nil then
                 bind_instance_entity(instance_id, entity:get_id())
             end

@@ -12,6 +12,7 @@ namespace hob {
         constexpr const char* ANIMATION_CLIP = ".anim";
         constexpr const char* SHADER = ".shader";
         constexpr const char* META = ".meta";
+        constexpr const char* MESH = ".mesh";
     } // namespace file_extension
 
     namespace def_registry {
@@ -23,6 +24,7 @@ namespace hob {
         constexpr const char* MATERIALS = "Materials";
         constexpr const char* ANIMATION_CLIPS = "AnimationClips";
         constexpr const char* AUDIO_CLIPS = "AudioClips";
+        constexpr const char* MESHES = "Meshes";
     } // namespace def_registry
 
     namespace component_schema_key {
@@ -35,6 +37,7 @@ namespace hob {
         constexpr const char* MAP_SETTER = "map_setter";
         constexpr const char* TYPES = "types";
         constexpr const char* REAPPLY_ON_HOT_RELOAD = "reapply_on_hot_reload";
+        constexpr const char* SPACE = "space";
 
         // Per-field metadata.
         constexpr const char* TYPE = "type";
@@ -49,6 +52,12 @@ namespace hob {
         constexpr const char* CPP_OVERRIDES = "cpp_overrides";
         constexpr const char* LUA_OVERRIDES = "lua_overrides";
     } // namespace scene_key
+
+    namespace space_key {
+        constexpr const char* KEY = "space";
+        constexpr const char* SPACE_2D = "2d";
+        constexpr const char* SPACE_3D = "3d";
+    } // namespace space_key
 
     namespace prefab_key {
         constexpr const char* TICKING = "ticking";
@@ -66,23 +75,32 @@ namespace hob {
         constexpr const char* ROTATION_DEG = "rotation_deg";
     } // namespace transform_key
 
+    namespace transform_3d_key {
+        constexpr const char* SECTION = "transform_3d";
+    } // namespace transform_3d_key
+
     namespace field_type {
         constexpr const char* INT = "int";
         constexpr const char* FLOAT = "float";
         constexpr const char* BOOL = "bool";
         constexpr const char* STRING = "string";
         constexpr const char* VECTOR2 = "vector2";
+        constexpr const char* VECTOR3 = "vector3";
+        constexpr const char* QUATERNION = "quaternion";
+        constexpr const char* EULER_DEG = "euler_deg"; // A Vector3 of degrees, Z-X-Y order
         constexpr const char* COLOR = "color";
         constexpr const char* ANGLE = "angle"; // Stored in radians
         constexpr const char* ENUM = "enum";
         constexpr const char* BITMASK = "bitmask";
         constexpr const char* AABB = "aabb";
+        constexpr const char* AABB3 = "aabb3";
         constexpr const char* CAPSULE = "capsule";
         constexpr const char* CIRCLE = "circle";
         constexpr const char* TEXTURE = "texture";
         constexpr const char* MATERIAL = "material";
         constexpr const char* ANIMATION_CLIP = "animation_clip";
         constexpr const char* AUDIO_CLIP = "audio_clip";
+        constexpr const char* MESH = "mesh";
 
         constexpr const char* OTHER = "other";
     } // namespace field_type

@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "engine/components/physics/collider_component.h"
+#include "engine/components/physics_3d/collider_component_3d.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
 #include "engine/core/systems/scripting/lua_bind_helpers.h"
@@ -183,6 +184,22 @@ namespace hob {
     }
 
     void LuaScriptComponent::on_trigger_exit(const ColliderComponent* other_collider) {
+        invoke_hook(m_impl->on_trigger_exit, m_impl->lua_instance, "on_trigger_exit", other_collider);
+    }
+
+    void LuaScriptComponent::on_collision_enter_3d(const ColliderComponent3D* other_collider) {
+        invoke_hook(m_impl->on_collision_enter, m_impl->lua_instance, "on_collision_enter", other_collider);
+    }
+
+    void LuaScriptComponent::on_collision_exit_3d(const ColliderComponent3D* other_collider) {
+        invoke_hook(m_impl->on_collision_exit, m_impl->lua_instance, "on_collision_exit", other_collider);
+    }
+
+    void LuaScriptComponent::on_trigger_enter_3d(const ColliderComponent3D* other_collider) {
+        invoke_hook(m_impl->on_trigger_enter, m_impl->lua_instance, "on_trigger_enter", other_collider);
+    }
+
+    void LuaScriptComponent::on_trigger_exit_3d(const ColliderComponent3D* other_collider) {
         invoke_hook(m_impl->on_trigger_exit, m_impl->lua_instance, "on_trigger_exit", other_collider);
     }
 

@@ -1,7 +1,10 @@
 #include <string_view>
 
 #include "engine/core/debug.h"
+#include "engine/math/aabb3.h"
+#include "engine/math/matrix4x4.h"
 #include "engine/math/vector2.h"
+#include "engine/math/vector3.h"
 #include "lua_bind_helpers.h"
 #include "lua_meta.h"
 #include "lua_script_system.h"
@@ -59,6 +62,50 @@ namespace hob {
                                        segments ? lua_narrow<int32_t>(*segments, "Debug.draw_circle segments")
                                                 : debug::DEFAULT_CIRCLE_SEGMENTS);
                 },
-                "(center: Vector2, radius: number, color: Color?, duration: number?, thickness: number?, segments: integer?)");
+                "(center: Vector2, radius: number, color: Color?, duration: number?, thickness: number?, segments: integer?)")
+            .func_sig(
+                "draw_line_3d",
+                [](const Vector3& from,
+                   const Vector3& to,
+                   sol::optional<Color> color,
+                   sol::optional<float> duration,
+                   sol::optional<float> thickness) {
+                    debug::draw_line_3d(from,
+                                        to,
+                                        color.value_or(debug::DEFAULT_DRAW_COLOR),
+                                        duration.value_or(debug::DEFAULT_DRAW_DURATION),
+                                        thickness.value_or(debug::DEFAULT_LINE_THICKNESS));
+                },
+                "(from: Vector3, to: Vector3, color: Color?, duration: number?, thickness: number?)")
+            .func_sig(
+                "draw_aabb3",
+                [](const AABB3& box,
+                   sol::optional<Color> color,
+                   sol::optional<float> duration,
+                   sol::optional<float> thickness) {
+                    debug::draw_aabb3(box,
+                                      Matrix4x4::identity(),
+                                      color.value_or(debug::DEFAULT_DRAW_COLOR),
+                                      duration.value_or(debug::DEFAULT_DRAW_DURATION),
+                                      thickness.value_or(debug::DEFAULT_LINE_THICKNESS));
+                },
+                "(box: AABB3, color: Color?, duration: number?, thickness: number?)")
+            .func_sig(
+                "draw_sphere_3d",
+                [](const Vector3& center,
+                   float radius,
+                   sol::optional<Color> color,
+                   sol::optional<float> duration,
+                   sol::optional<float> thickness,
+                   sol::optional<int64_t> segments) {
+                    debug::draw_sphere_3d(center,
+                                          radius,
+                                          color.value_or(debug::DEFAULT_DRAW_COLOR),
+                                          duration.value_or(debug::DEFAULT_DRAW_DURATION),
+                                          thickness.value_or(debug::DEFAULT_LINE_THICKNESS),
+                                          segments ? lua_narrow<int32_t>(*segments, "Debug.draw_sphere_3d segments")
+                                                   : debug::DEFAULT_CIRCLE_SEGMENTS);
+                },
+                "(center: Vector3, radius: number, color: Color?, duration: number?, thickness: number?, segments: integer?)");
     }
 } // namespace hob

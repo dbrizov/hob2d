@@ -8,10 +8,15 @@
 #include "debug.h"
 #include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
+#include "engine/components/camera_component_3d.h"
+#include "engine/components/directional_light_component.h"
+#include "engine/components/mesh_renderer_component.h"
 #include "engine/components/physics/rigidbody_component.h"
+#include "engine/components/physics_3d/rigidbody_component_3d.h"
 #include "engine/components/sockets_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/components/transform_component_3d.h"
 #include "engine/core/assert.h"
 #include "engine/core/engine_hooks.h"
 #include "engine/core/systems/window.h"
@@ -45,6 +50,7 @@ namespace hob {
         , m_imgui_system(m_renderer)
         , m_console()
         , m_physics(config.physics_config)
+        , m_physics_3d(config.physics_config_3d)
         , m_audio(config.audio_config)
         , m_entity_spawner(*this)
         , m_lua_script_system(*this, config.host_config.run_project_main_on_boot)
@@ -52,6 +58,7 @@ namespace hob {
 
         m_renderer.register_cvars(m_console);
         m_physics.register_cvars(m_console);
+        m_physics_3d.register_cvars(m_console);
         m_audio.register_cvars(m_console);
         m_entity_spawner.register_cvars(m_console);
         m_lua_script_system.register_cvars(m_console);
@@ -172,6 +179,7 @@ namespace hob {
                 }
 
                 m_physics.tick(scaled_delta_time, m_entity_spawner.get_simulated_rigidbodies());
+                m_physics_3d.tick(scaled_delta_time, m_entity_spawner.get_simulated_rigidbodies_3d());
 
                 for (Entity* entity : m_entity_spawner.get_ticking_entities()) {
                     entity->late_tick(scaled_delta_time);
@@ -208,7 +216,7 @@ namespace hob {
             m_renderer.set_time(m_timer.get_game_time(), m_timer.get_real_time());
             if (m_renderer.acquire_command_buffer()) {
                 if (m_renderer.get_game_swap_texture() != nullptr) {
-                    m_renderer.render_world_pass(get_game_camera_view_projection());
+                    render_game_world_pass();
                     m_renderer.render_blit_pass();
                     m_renderer.render_debug_lines_pass();
                     m_ui_system.render_pass();
@@ -270,6 +278,10 @@ namespace hob {
 
     Physics& Engine::get_physics() {
         return m_physics;
+    }
+
+    Physics3D& Engine::get_physics_3d() {
+        return m_physics_3d;
     }
 
     Audio& Engine::get_audio() {
@@ -377,7 +389,50 @@ namespace hob {
         }
     }
 
+    CameraComponent3D* Engine::get_active_camera_3d() const {
+        return m_active_camera_3d;
+    }
+
+    void Engine::set_active_camera_3d(CameraComponent3D* camera) {
+        m_active_camera_3d = camera;
+        m_warned_no_active_camera = false;
+    }
+
+    void Engine::clear_active_camera_3d(CameraComponent3D* camera) {
+        if (m_active_camera_3d == camera) {
+            m_active_camera_3d = nullptr;
+        }
+    }
+
+    DirectionalLightComponent* Engine::get_active_directional_light() const {
+        return m_active_directional_light;
+    }
+
+    void Engine::set_active_directional_light(DirectionalLightComponent* light) {
+        m_active_directional_light = light;
+    }
+
+    void Engine::clear_active_directional_light(DirectionalLightComponent* light) {
+        if (m_active_directional_light == light) {
+            m_active_directional_light = nullptr;
+        }
+    }
+
+    void Engine::render_game_world_pass() {
+        if (m_active_camera_3d != nullptr) {
+            m_renderer.render_world_pass_3d(m_active_camera_3d->build_view_projection(),
+                                            m_active_camera_3d->get_position());
+            return;
+        }
+
+        m_renderer.render_world_pass(get_game_camera_view_projection());
+    }
+
     Matrix4x4 Engine::get_game_camera_view_projection() const {
+        if (m_active_camera_3d != nullptr) {
+            return m_active_camera_3d->build_view_projection();
+        }
+
         const CameraComponent* camera = get_active_camera();
         if (camera == nullptr) {
             // A host may legitimately run frames with no game camera (a stopped world).
@@ -405,6 +460,9 @@ namespace hob {
     }
 
     void Engine::draw_entities() {
+        m_renderer.set_scene_light(
+            m_active_directional_light != nullptr ? m_active_directional_light->build_scene_light() : SceneLight{});
+
         const float interpolation_fraction = m_physics.get_interpolation_fraction();
 
         for (SpriteComponent* sprite_comp : m_entity_spawner.get_sprites()) {
@@ -443,15 +501,47 @@ namespace hob {
 
             m_renderer.update_sprite_draw(sprite_comp->get_sprite_draw_id(), std::move(draw_data));
         }
+
+        const float interpolation_fraction_3d = m_physics_3d.get_interpolation_fraction();
+        for (MeshRendererComponent* mesh_comp : m_entity_spawner.get_mesh_renderers()) {
+            TransformComponent3D* transform_comp = mesh_comp->get_entity().get_transform_3d();
+
+            const bool mesh_dirty = mesh_comp->consume_render_dirty();
+            const bool transform_dirty = transform_comp->consume_render_dirty();
+            const bool interpolating =
+                transform_comp->get_interpolate_physics() && has_moving_physics_body_3d(mesh_comp->get_entity());
+            if (!mesh_dirty && !transform_dirty && !interpolating) {
+                continue;
+            }
+
+            const MeshRef& mesh = mesh_comp->get_mesh();
+            const MaterialRef& material = static_cast<const MeshRendererComponent*>(mesh_comp)->get_material();
+
+            MeshDrawData draw_data;
+            draw_data.mesh = mesh.get();
+            draw_data.material = material.get();
+            draw_data.world_matrix = transform_comp->get_interpolate_physics()
+                                         ? transform_comp->get_interpolated_world_matrix(interpolation_fraction_3d)
+                                         : transform_comp->get_world_matrix();
+
+            m_renderer.update_mesh_draw(mesh_comp->get_mesh_draw_id(), std::move(draw_data));
+        }
     }
 
     void Engine::flush_debug_draws_to_renderer(float delta_time) {
         CameraComponent* camera = get_active_camera();
-        if (camera == nullptr) {
+        CameraComponent3D* camera_3d = get_active_camera_3d();
+        if (camera == nullptr && camera_3d == nullptr) {
             return;
         }
 
-        debug::flush_draws_to_renderer(m_renderer, camera, get_play_window().get_size(), delta_time);
+        debug::flush_draws_to_renderer(m_renderer, camera, camera_3d, get_play_window().get_size(), delta_time);
+    }
+
+    bool Engine::has_moving_physics_body_3d(const Entity& entity) {
+        const RigidbodyComponent3D* rigidbody = entity.get_rigidbody_3d();
+        return rigidbody != nullptr && rigidbody->has_body() && rigidbody->get_body_type() != BodyType::Static &&
+               rigidbody->is_awake();
     }
 
     bool Engine::has_moving_physics_body(const Entity& entity) {

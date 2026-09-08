@@ -21,11 +21,36 @@ function _G.__clear_component_defaults()
     component_defaults_cache = {}
 end
 
+---@param def table
+---@return string
+function _G.__resolve_def_space(def)
+    return def[SpaceKey.KEY] or SpaceKey.SPACE_2D
+end
+
+---@param registry string
+---@param name string
+---@param def table
+---@return boolean
+function _G.__validate_def_space(registry, name, def)
+    local space = def[SpaceKey.KEY]
+    if space ~= nil and space ~= SpaceKey.SPACE_2D and space ~= SpaceKey.SPACE_3D then
+        Log.error(registry .. "." .. tostring(name) .. ": space must be '" .. SpaceKey.SPACE_2D .. "' or '" ..
+            SpaceKey.SPACE_3D .. "', got '" .. tostring(space) .. "'")
+        return false
+    end
+
+    return true
+end
+
 ---@class DefineEntity
 _G.DefineEntity = setmetatable({}, {
     __newindex = function(_, name, def)
         if type(def) ~= "table" then
             Log.error("DefineEntity." .. tostring(name) .. " must be assigned a table")
+            return
+        end
+
+        if not __validate_def_space("DefineEntity", name, def) then
             return
         end
 
@@ -56,7 +81,7 @@ end
 
 local call_setter = _G.__call_component_setter
 
----@type fun(): Entity
+---@type fun(space: string?): Entity
 local spawn_entity_c = EntitySpawner.spawn_entity
 local destroy_entity_c = EntitySpawner.destroy_entity
 
@@ -98,13 +123,19 @@ end
 
 local function for_each_section(entity, prefab, accessor, fn)
     local schemas = _G.__component_schemas
+    local prefab_space = __resolve_def_space(prefab)
     for _, key in ipairs(schemas.__order) do
         local section = prefab[key]
         if section ~= nil then
             local schema = schemas[key]
-            local component = entity[schema[accessor]](entity)
-            if component ~= nil then
-                fn(key, schema, section, component)
+            if schema.space ~= nil and schema.space ~= prefab_space then
+                Log.error("Prefab '" .. tostring(entity:get_prefab_name()) .. "' is " .. prefab_space ..
+                    " but declares the " .. schema.space .. " section '" .. key .. "'")
+            else
+                local component = entity[schema[accessor]](entity)
+                if component ~= nil then
+                    fn(key, schema, section, component)
+                end
             end
         end
     end
@@ -176,7 +207,7 @@ function _G.__get_component_defaults(key)
 
     -- A map_setter section (sockets) has no getters to read.
     if schema ~= nil and schema.getters ~= nil then
-        local probe = spawn_entity_c()
+        local probe = spawn_entity_c(schema.space)
         local component = probe[schema.add](probe)
         if component ~= nil then
             for field, getter in pairs(schema.getters) do
@@ -233,24 +264,7 @@ function _G.__reapply_prefabs_to_spawned_entities()
     _G.__entity_prefab_name_by_id = live
 end
 
----@param prefab_name string
----@param position? Vector2
----@param rotation_deg? number
----@param scale? Vector2
----@return Entity|nil
-EntitySpawner.spawn_entity = function(prefab_name, position, rotation_deg, scale)
-    local prefab = _G.__entity_prefab_registry[prefab_name]
-    if not prefab then
-        Log.error("EntitySpawner.spawn_entity: prefab '" .. prefab_name .. "' is not registered")
-        return nil
-    end
-
-    local entity = spawn_entity_c()
-    entity:set_prefab_name(prefab_name)
-
-    apply_prefab(entity, prefab)
-    _G.__entity_prefab_name_by_id[entity:get_id()] = prefab_name
-
+local function apply_pose_2d(entity, position, rotation_deg, scale)
     local transform = entity:get_transform()
     if position ~= nil then
         transform:set_position(position)
@@ -260,6 +274,52 @@ EntitySpawner.spawn_entity = function(prefab_name, position, rotation_deg, scale
     end
     if scale ~= nil then
         transform:set_scale(scale)
+    end
+end
+
+local function apply_pose_3d(entity, position, rotation_deg, scale)
+    local transform = entity:get_transform_3d()
+    if position ~= nil then
+        transform:set_position(position)
+    end
+    if rotation_deg ~= nil then
+        transform:set_euler_deg(rotation_deg)
+    end
+    if scale ~= nil then
+        transform:set_local_scale(scale)
+    end
+end
+
+---@param prefab_name string
+---@return string|nil
+function EntitySpawner.get_prefab_space(prefab_name)
+    local prefab = _G.__entity_prefab_registry[prefab_name]
+    return prefab and __resolve_def_space(prefab) or nil
+end
+
+---@param prefab_name string
+---@param position? Vector2|Vector3
+---@param rotation_deg? number|Vector3
+---@param scale? Vector2|Vector3
+---@return Entity|nil
+EntitySpawner.spawn_entity = function(prefab_name, position, rotation_deg, scale)
+    local prefab = _G.__entity_prefab_registry[prefab_name]
+    if not prefab then
+        Log.error("EntitySpawner.spawn_entity: prefab '" .. tostring(prefab_name) .. "' is not registered")
+        return nil
+    end
+
+    local space = __resolve_def_space(prefab)
+    local entity = spawn_entity_c(space)
+    entity:set_prefab_name(prefab_name)
+
+    apply_prefab(entity, prefab)
+    _G.__entity_prefab_name_by_id[entity:get_id()] = prefab_name
+
+    if space == SpaceKey.SPACE_3D then
+        apply_pose_3d(entity, position, rotation_deg, scale)
+    else
+        apply_pose_2d(entity, position, rotation_deg, scale)
     end
 
     return entity

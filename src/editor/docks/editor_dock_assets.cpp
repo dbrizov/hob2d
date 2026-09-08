@@ -12,6 +12,7 @@
 #include <vector>
 
 #include <imgui.h>
+#include <sol/sol.hpp>
 
 #include "editor/editor.h"
 #include "editor/editor_definition.h"
@@ -21,6 +22,7 @@
 #include "editor/editor_style.h"
 #include "engine/core/engine.h"
 #include "engine/core/path_utils.h"
+#include "engine/core/space.h"
 #include "engine/core/systems/scripting/lua_schema_keys.h"
 
 namespace hob::editor {
@@ -214,6 +216,20 @@ namespace hob::editor {
             end_context_menu();
         }
 
+        bool is_prefab_of_other_space(Editor& editor, const EditorFileNode& node) {
+            if (node.definition.registry != def_registry::ENTITIES) {
+                return false;
+            }
+
+            const sol::object space =
+                editor_call(editor.get_engine(), editor_func::GET_PREFAB_SPACE, node.definition.name);
+            if (!space.is<std::string>()) {
+                return false;
+            }
+
+            return space_from_key(space.as<std::string>()).value_or(Space::Space2D) != editor.get_scene_space();
+        }
+
         bool is_dirty_prefab(const EditorFileNode& node, const DirtyPrefabNames& dirty_prefabs) {
             return node.definition.registry == def_registry::ENTITIES && dirty_prefabs.contains(node.definition.name);
         }
@@ -230,9 +246,16 @@ namespace hob::editor {
             const float gutter_x = ImGui::GetCursorScreenPos().x;
 
             const bool is_selected = node.definition.is_valid() && editor.get_selection().definition == node.definition;
+            const bool other_space = is_prefab_of_other_space(editor, node);
 
             ImGui::PushID(node.label.c_str());
+            if (other_space) {
+                ImGui::PushStyleColor(ImGuiCol_Text, COLOR_ASSETS_OTHER_SPACE);
+            }
             tree_item(node.label.c_str(), flags, is_selected, "%s", node.label.c_str());
+            if (other_space) {
+                ImGui::PopStyleColor();
+            }
 
             if (node.definition.is_valid() && ImGui::IsItemClicked()) {
                 editor.get_selection().select_definition(node.definition);
@@ -250,7 +273,7 @@ namespace hob::editor {
             }
 
             // Before the badge, which submits an item of its own for BeginDragDropSource to read instead.
-            if (node.definition.registry == def_registry::ENTITIES && ImGui::BeginDragDropSource()) {
+            if (node.definition.registry == def_registry::ENTITIES && !other_space && ImGui::BeginDragDropSource()) {
                 set_drag_payload(DRAG_PAYLOAD_PREFAB, node.definition.name);
                 ImGui::TextUnformatted(node.label.c_str());
                 ImGui::EndDragDropSource();

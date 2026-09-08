@@ -8,9 +8,9 @@
 #include "editor/editor.h"
 #include "editor/editor_gui_utils.h"
 #include "editor/editor_style.h"
-#include "engine/components/transform_component.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
+#include "engine/entity/entity.h"
 
 namespace hob::editor {
     EditorDockHierarchy::EditorDockHierarchy()
@@ -35,12 +35,11 @@ namespace hob::editor {
 
             // Draw parentless entities. Child entities are drawn recursively
             for (const Entity* entity : entities) {
-                const TransformComponent* transform = entity->get_transform();
-                if (transform->get_parent() != nullptr) {
+                if (entity->get_parent_entity() != nullptr) {
                     continue;
                 }
 
-                draw_entity(editor, transform, visible_order, clicked_entity_id);
+                draw_entity(editor, *entity, visible_order, clicked_entity_id);
             }
 
             vars.pop();
@@ -61,12 +60,12 @@ namespace hob::editor {
     }
 
     void EditorDockHierarchy::draw_entity(const Editor& editor,
-                                          const TransformComponent* transform,
+                                          const Entity& entity,
                                           std::vector<EntityId>& visible_order,
                                           EntityId& out_clicked_entity_id) {
-        const Entity& entity = transform->get_entity();
         const EntityId entity_id = entity.get_id();
-        const std::vector<TransformComponent*>& children = transform->get_children();
+        std::vector<Entity*> children;
+        entity.get_child_entities(children);
         const EditorSelection& selection = editor.get_selection();
 
         visible_order.push_back(entity_id);
@@ -100,8 +99,8 @@ namespace hob::editor {
         }
 
         if (open) {
-            for (const TransformComponent* child : children) {
-                draw_entity(editor, child, visible_order, out_clicked_entity_id);
+            for (const Entity* child : children) {
+                draw_entity(editor, *child, visible_order, out_clicked_entity_id);
             }
             ImGui::TreePop();
         }

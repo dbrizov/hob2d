@@ -14,6 +14,7 @@ local DEF_FILE_EXTENSION = {
     [DefRegistry.SHADERS] = FileExtension.SHADER,
     [DefRegistry.TEXTURES] = FileExtension.META,
     [DefRegistry.AUDIO_CLIPS] = FileExtension.META,
+    [DefRegistry.MESHES] = FileExtension.MESH,
 }
 
 local function check_file_name_matches(registry, name, path)

@@ -6,6 +6,7 @@
 
 #include "editor_selection.h"
 #include "engine/math/vector2.h"
+#include "engine/math/vector3.h"
 
 namespace hob::editor {
     class Editor;
@@ -22,6 +23,7 @@ namespace hob::editor {
     bool can_edit_selected_instances(const Editor& editor);
 
     void add_prefab_instance(Editor& editor, const std::string& prefab_name, const Vector2& position);
+    void add_prefab_instance(Editor& editor, const std::string& prefab_name, const Vector3& position);
     void duplicate_selection(Editor& editor);
     void delete_selection(Editor& editor);
 } // namespace hob::editor

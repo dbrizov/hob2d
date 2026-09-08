@@ -12,6 +12,7 @@ local ASSET_FACTORY_TYPES = {
     Materials = FieldType.MATERIAL,
     AnimationClips = FieldType.ANIMATION_CLIP,
     AudioClips = FieldType.AUDIO_CLIP,
+    Meshes = FieldType.MESH,
 }
 
 -- Metatable identity -> field type
@@ -38,6 +39,9 @@ local function ensure_usertype_types()
 
     usertype_types = {
         [getmetatable(Vector2())] = FieldType.VECTOR2,
+        [getmetatable(Vector3())] = FieldType.VECTOR3,
+        [getmetatable(Quaternion())] = FieldType.QUATERNION,
+        [getmetatable(AABB3())] = FieldType.AABB3,
         [getmetatable(Color())] = FieldType.COLOR,
     }
 
@@ -707,9 +711,11 @@ function Editor.get_components(entity_id)
         return section
     end
 
+    local entity_space = entity:get_space()
     for _, key in ipairs(schemas.__order) do
         local schema = schemas[key]
-        if not schema.map_setter then
+        local fits_space = schema.space == nil or schema.space == entity_space
+        if fits_space and not schema.map_setter then
             local component = entity[schema.get](entity)
             if component ~= nil then
                 local fields = {}

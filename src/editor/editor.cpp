@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 
+#include <ImGuizmo.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
 #include <imgui.h>
@@ -201,6 +202,16 @@ namespace hob::editor {
         return m_current_scene;
     }
 
+    Space Editor::get_scene_space() const {
+        return m_scene_space;
+    }
+
+    void Editor::refresh_scene_space() {
+        const sol::object space = editor_call(m_engine, editor_func::GET_SCENE_SPACE);
+        m_scene_space =
+            space.is<std::string>() ? space_from_key(space.as<std::string>()).value_or(Space::Space2D) : Space::Space2D;
+    }
+
     void Editor::open_pending_scene() {
         if (m_pending_scene_open.empty()) {
             return;
@@ -213,11 +224,13 @@ namespace hob::editor {
         if (!result.is<bool>() || !result.as<bool>()) {
             clear_world();
             m_current_scene.clear();
+            m_scene_space = Space::Space2D;
             reset_edit_session();
             return;
         }
 
         m_current_scene = name;
+        refresh_scene_space();
         reset_edit_session();
     }
 
@@ -390,6 +403,8 @@ namespace hob::editor {
     }
 
     void Editor::draw_gui() {
+        ImGuizmo::BeginFrame();
+
         if (ImGui::BeginMainMenuBar()) {
             m_menu_bar.draw(*this);
             m_toolbar.draw(*this);
@@ -424,6 +439,9 @@ namespace hob::editor {
         if (rebound.is<bool>() && !rebound.as<bool>()) {
             open_scene_without_prompt(m_current_scene);
         }
+        else {
+            refresh_scene_space();
+        }
     }
 
     bool Editor::on_quit_requested() {
@@ -454,7 +472,7 @@ namespace hob::editor {
         m_active_contexts = 0;
 
         const bool has_focus = m_engine.get_main_window().has_focus() || m_engine.get_play_window().has_focus();
-        if (has_focus && !ImGui::GetIO().WantTextInput) {
+        if (has_focus && !ImGui::GetIO().WantTextInput && !m_scene_view.is_flying()) {
             m_active_contexts |= context_bit(EditorActionContext::Global);
 
             // Last frame's, since draw() writes them after this runs and a dock rect only exists mid-draw.

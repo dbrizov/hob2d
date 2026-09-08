@@ -7,6 +7,8 @@
 #include "engine/core/logging.h"
 #include "engine/core/path_utils.h"
 #include "engine/math/constants.h"
+#include "mesh_gltf.h"
+#include "mesh_primitives.h"
 #include "renderer.h"
 
 namespace hob {
@@ -158,6 +160,7 @@ namespace hob {
         // surviving Material) that outlived the Renderer and will free its pipeline against a possibly
         // dead GPU device. Diagnose before clearing the map.
         m_default_shader.reset();
+        m_default_mesh_shader.reset();
         for (const auto& [key, shader] : m_shaders) {
             if (shader.use_count() > 1) {
                 log::renderer.error(
@@ -175,6 +178,7 @@ namespace hob {
         // before the Renderer, so a live one here flags a leak / wrong destruction order.
         // Call .lock() adds a temporary +1, so subtract it to report the real external holder count.
         m_default_material.reset();
+        m_default_mesh_material.reset();
         for (const auto& weak : m_materials) {
             if (auto material = weak.lock()) {
                 log::renderer.error(
@@ -336,5 +340,99 @@ namespace hob {
         m_upload_transfer_buffer = grown;
         m_upload_transfer_capacity = capacity;
         return true;
+    }
+    ShaderRef Renderer::get_default_mesh_shader() const {
+        return m_default_mesh_shader;
+    }
+
+    MaterialRef Renderer::get_default_mesh_material() const {
+        return m_default_mesh_material;
+    }
+
+    MeshRef Renderer::create_mesh(const MeshData& data, std::string source) {
+        if (data.vertices.empty() || data.indices.empty()) {
+            log::renderer.error("Renderer::create_mesh '{}': empty mesh data", source);
+            return nullptr;
+        }
+
+        const uint32_t vertex_bytes = static_cast<uint32_t>(data.vertices.size() * sizeof(MeshVertex));
+        const uint32_t index_bytes = static_cast<uint32_t>(data.indices.size() * sizeof(uint32_t));
+
+        SDL_GPUBufferCreateInfo vbi{};
+        vbi.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
+        vbi.size = vertex_bytes;
+        SDL_GPUBuffer* vbo = SDL_CreateGPUBuffer(m_gpu_device, &vbi);
+        if (!vbo) {
+            log::renderer.error("SDL_CreateGPUBuffer (mesh vertices '{}') failed: {}", source, SDL_GetError());
+            return nullptr;
+        }
+
+        SDL_GPUBufferCreateInfo ibi{};
+        ibi.usage = SDL_GPU_BUFFERUSAGE_INDEX;
+        ibi.size = index_bytes;
+        SDL_GPUBuffer* ibo = SDL_CreateGPUBuffer(m_gpu_device, &ibi);
+        if (!ibo) {
+            log::renderer.error("SDL_CreateGPUBuffer (mesh indices '{}') failed: {}", source, SDL_GetError());
+            SDL_ReleaseGPUBuffer(m_gpu_device, vbo);
+            return nullptr;
+        }
+
+        if (!upload_buffer(vbo, data.vertices.data(), vertex_bytes) ||
+            !upload_buffer(ibo, data.indices.data(), index_bytes)) {
+            SDL_ReleaseGPUBuffer(m_gpu_device, ibo);
+            SDL_ReleaseGPUBuffer(m_gpu_device, vbo);
+            return nullptr;
+        }
+
+        MeshRef mesh(new Mesh(m_gpu_device,
+                              vbo,
+                              ibo,
+                              static_cast<uint32_t>(data.vertices.size()),
+                              static_cast<uint32_t>(data.indices.size()),
+                              data.bounds,
+                              source));
+        m_meshes[source] = mesh;
+        return mesh;
+    }
+
+    MeshRef Renderer::get_or_create_primitive_mesh(std::string_view name) {
+        const std::string key = "primitive:" + std::string(name);
+        const auto it = m_meshes.find(key);
+        if (it != m_meshes.end()) {
+            return it->second;
+        }
+
+        const std::optional<MeshData> data = mesh_primitives::make_by_name(name);
+        if (!data.has_value()) {
+            log::renderer.error("Renderer: unknown primitive mesh '{}' (expected cube|plane|sphere|capsule)", name);
+            return nullptr;
+        }
+
+        return create_mesh(*data, key);
+    }
+
+    MeshRef Renderer::get_or_load_mesh(std::string_view relative_path) {
+        const std::string key = std::filesystem::path(relative_path).lexically_normal().generic_string();
+        const auto it = m_meshes.find(key);
+        if (it != m_meshes.end()) {
+            return it->second;
+        }
+
+        std::string error;
+        const std::optional<MeshData> data = mesh_gltf::load(PathUtils::resolve_asset_path(relative_path), error);
+        if (!data.has_value()) {
+            log::renderer.error("Renderer: failed to load mesh '{}': {}", key, error);
+            return nullptr;
+        }
+
+        log::renderer.info("Renderer: loaded mesh '{}' ({} vertices, {} triangles)",
+                           key,
+                           data->vertices.size(),
+                           data->indices.size() / 3);
+        return create_mesh(*data, key);
+    }
+
+    void Renderer::release_meshes() {
+        m_meshes.clear();
     }
 } // namespace hob

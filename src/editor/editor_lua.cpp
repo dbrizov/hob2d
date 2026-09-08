@@ -75,6 +75,10 @@ namespace hob::editor {
             return def_registry::AUDIO_CLIPS;
         }
 
+        if (type == field_type::MESH) {
+            return def_registry::MESHES;
+        }
+
         return nullptr;
     }
 

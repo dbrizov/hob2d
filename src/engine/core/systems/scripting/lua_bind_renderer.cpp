@@ -7,6 +7,7 @@
 #include "engine/core/systems/renderer/renderer.h"
 #include "engine/math/color.h"
 #include "engine/math/vector2.h"
+#include "engine/math/vector3.h"
 #include "lua_bind_helpers.h"
 #include "lua_meta.h"
 #include "lua_schema_asset_factory.h"
@@ -33,6 +34,12 @@ namespace hob {
                         if (auto v = cfg.get<sol::optional<Vector2>>(name)) {
                             const float f[2] = {v->x, v->y};
                             set(name, f, 2);
+                        }
+                        break;
+                    case ShaderParamType::Float3:
+                        if (auto v = cfg.get<sol::optional<Vector3>>(name)) {
+                            const float f[3] = {v->x, v->y, v->z};
+                            set(name, f, 3);
                         }
                         break;
                     case ShaderParamType::Float4:
@@ -197,6 +204,11 @@ namespace hob {
                                 self.get_param(name, v, 2);
                                 return sol::make_object(lua, Vector2(v[0], v[1]));
                             }
+                            case ShaderParamType::Float3: {
+                                float v[3] = {0.0f, 0.0f, 0.0f};
+                                self.get_param(name, v, 3);
+                                return sol::make_object(lua, Vector3(v[0], v[1], v[2]));
+                            }
                             case ShaderParamType::Float4: {
                                 float v[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                                 self.get_param(name, v, 4);
@@ -219,6 +231,11 @@ namespace hob {
                             const float v[2] = {vec.x, vec.y};
                             self.set_param(name, v, 2);
                         }
+                        else if (value.is<Vector3>()) {
+                            const Vector3 vec = value.as<Vector3>();
+                            const float v[3] = {vec.x, vec.y, vec.z};
+                            self.set_param(name, v, 3);
+                        }
                         else if (value.get_type() == sol::type::number) {
                             const float v = value.as<float>();
                             self.set_param(name, &v, 1);
@@ -234,5 +251,29 @@ namespace hob {
 
         bind_asset_factory_schema<Material>(
             asset_factory_schemas, "DefineMaterial", def_registry::MATERIALS, {"shader", "textures"});
+
+        // Mesh
+        bind_usertype<Mesh>(lua, meta, Bases<Asset>{})
+            .factory_ctor(
+                [&renderer](const sol::table& cfg) -> MeshRef {
+                    if (const auto primitive = cfg.get<sol::optional<std::string>>("primitive")) {
+                        return renderer.get_or_create_primitive_mesh(*primitive);
+                    }
+
+                    if (const auto path = cfg.get<sol::optional<std::string>>("path")) {
+                        return renderer.get_or_load_mesh(*path);
+                    }
+
+                    log::lua.error("DefineMesh: expected 'primitive' or 'path'");
+                    return nullptr;
+                },
+                {"config"})
+            .method("get_source", &Mesh::get_source)
+            .method("get_bounds", &Mesh::get_bounds)
+            .method("get_vertex_count", &Mesh::get_vertex_count)
+            .method("get_index_count", &Mesh::get_index_count);
+
+        bind_asset_factory_schema<Mesh>(
+            asset_factory_schemas, "DefineMesh", def_registry::MESHES, {"primitive", "path"});
     }
 } // namespace hob

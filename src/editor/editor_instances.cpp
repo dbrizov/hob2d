@@ -78,21 +78,32 @@ namespace hob::editor {
         return can_edit_scene_instances(editor) && !editor.get_selection().ids.empty();
     }
 
+    namespace {
+        template<typename Position>
+        void add_prefab_instance_at(Editor& editor, const std::string& prefab_name, const Position& position) {
+            if (!can_edit_scene_instances(editor)) {
+                return;
+            }
+
+            const sol::object instance =
+                editor_call(editor.get_engine(), editor_func::CREATE_INSTANCE_DEF, prefab_name, position);
+            if (!instance.is<sol::table>()) {
+                return;
+            }
+
+            editor.get_selection().clear();
+            editor.get_commands().push(editor,
+                                       std::make_unique<EditorCommandAddInstance>(std::format("Add {}", prefab_name),
+                                                                                  instance.as<sol::table>()));
+        }
+    } // namespace
+
     void add_prefab_instance(Editor& editor, const std::string& prefab_name, const Vector2& position) {
-        if (!can_edit_scene_instances(editor)) {
-            return;
-        }
+        add_prefab_instance_at(editor, prefab_name, position);
+    }
 
-        const sol::object instance =
-            editor_call(editor.get_engine(), editor_func::CREATE_INSTANCE_DEF, prefab_name, position);
-        if (!instance.is<sol::table>()) {
-            return;
-        }
-
-        editor.get_selection().clear();
-        editor.get_commands().push(
-            editor,
-            std::make_unique<EditorCommandAddInstance>(std::format("Add {}", prefab_name), instance.as<sol::table>()));
+    void add_prefab_instance(Editor& editor, const std::string& prefab_name, const Vector3& position) {
+        add_prefab_instance_at(editor, prefab_name, position);
     }
 
     void duplicate_selection(Editor& editor) {

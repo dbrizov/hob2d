@@ -12,6 +12,7 @@ namespace hob::editor {
         if (begin_menu("File")) {
             action_menu_item(editor, EditorActionId::NewPrefab);
             action_menu_item(editor, EditorActionId::NewScene);
+            action_menu_item(editor, EditorActionId::NewScene3D);
 
             const std::vector<std::string> scene_names = editor.get_scene_names();
             if (begin_submenu("Open Scene", !scene_names.empty())) {

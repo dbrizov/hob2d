@@ -45,6 +45,7 @@ namespace hob::editor {
         constexpr const char* SERIALIZE_SCENE = "serialize_scene";
         constexpr const char* SERIALIZE_NEW_SCENE = "serialize_new_scene";
         constexpr const char* OPEN_SCENE = "open_scene";
+        constexpr const char* GET_SCENE_SPACE = "get_scene_space";
         constexpr const char* LOAD_SCENE = "load_scene";
         constexpr const char* CLEAR_WORLD = "clear_world";
         constexpr const char* GET_ENTITY_ID = "get_entity_id";
@@ -78,6 +79,7 @@ namespace hob::editor {
         constexpr const char* MARK_PREFAB_SAVED = "mark_prefab_saved";
         constexpr const char* MARK_PREFAB_REVERTED = "mark_prefab_reverted";
         constexpr const char* GET_PREFAB_FILE = "get_prefab_file";
+        constexpr const char* GET_PREFAB_SPACE = "get_prefab_space";
         constexpr const char* GET_PREFAB_SAVE_ERROR = "get_prefab_save_error";
         constexpr const char* SERIALIZE_PREFAB = "serialize_prefab";
         constexpr const char* SERIALIZE_NEW_PREFAB = "serialize_new_prefab";

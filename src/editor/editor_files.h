@@ -4,6 +4,7 @@
 #include <optional>
 #include <string>
 
+#include "engine/core/space.h"
 #include "engine/entity/entity.h"
 
 namespace hob::editor {
@@ -18,11 +19,11 @@ namespace hob::editor {
 
     bool can_new_scene(const Editor& editor);
     bool can_save_scene_as(const Editor& editor);
-    void show_new_scene_dialog(Editor& editor);
+    void show_new_scene_dialog(Editor& editor, Space space);
     void show_save_scene_as_dialog(Editor& editor);
 
     std::optional<std::string> get_scene_create_error(const Editor& editor, const std::filesystem::path& path);
-    void new_scene(Editor& editor, const std::filesystem::path& path);
+    void new_scene(Editor& editor, const std::filesystem::path& path, Space space);
     void save_scene_as(Editor& editor, const std::filesystem::path& path);
 
     bool can_new_prefab(const Editor& editor);

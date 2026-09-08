@@ -27,6 +27,10 @@ _G.DefineScene = setmetatable({}, {
             return
         end
 
+        if not __validate_def_space("DefineScene", name, def) then
+            return
+        end
+
         if not __record_def_source(DefRegistry.SCENES, name) then
             return
         end
@@ -95,9 +99,24 @@ end
 
 local NO_POSE = {}
 
+---@param name string
+---@return string|nil
+function Scene.get_space(name)
+    local def = _G.__scene_registry[name]
+    return def and __resolve_def_space(def) or nil
+end
+
 ---@param inst table
+---@param scene_space string
 ---@return Entity|nil
-function Scene.spawn_instance(inst)
+function Scene.spawn_instance(inst, scene_space)
+    local prefab_space = EntitySpawner.get_prefab_space(inst.prefab)
+    if prefab_space ~= nil and prefab_space ~= scene_space then
+        Log.error("Scene.spawn_instance: prefab '" .. tostring(inst.prefab) .. "' is " .. prefab_space ..
+            " but the scene is " .. scene_space)
+        return nil
+    end
+
     local pose = inst[SceneKey.POSE_OVERRIDES] or NO_POSE
     local entity = EntitySpawner.spawn_entity(inst.prefab, pose[TransformKey.POSITION],
         pose[TransformKey.ROTATION_DEG], pose[TransformKey.SCALE])
@@ -121,9 +140,10 @@ function Scene.load(name)
         return nil
     end
 
+    local scene_space = __resolve_def_space(def)
     local spawned = {}
     for index, inst in ipairs(def.entities) do
-        local entity = Scene.spawn_instance(inst)
+        local entity = Scene.spawn_instance(inst, scene_space)
         if entity then
             spawned[#spawned + 1] = { index = index, entity = entity }
         end

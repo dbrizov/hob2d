@@ -9,15 +9,18 @@
 #include <utility>
 #include <vector>
 
+#include "engine/core/space.h"
 #include "engine/entity/entity.h"
 
 namespace hob {
     class Engine;
     class Console;
     class AudioComponent;
+    class MeshRendererComponent;
     class SpriteComponent;
     class TransformComponent;
     class RigidbodyComponent;
+    class RigidbodyComponent3D;
 
     using EntityIndex = uint32_t;
     constexpr EntityIndex INVALID_ENTITY_INDEX = std::numeric_limits<EntityIndex>::max();
@@ -56,7 +59,9 @@ namespace hob {
 
         std::vector<Entity*> m_ticking_entities; // Registry of in-play entities with ticking enabled
         std::vector<SpriteComponent*> m_sprites; // Registry of in-play sprites
+        std::vector<MeshRendererComponent*> m_mesh_renderers; // Registry of in-world mesh renderers
         std::vector<RigidbodyComponent*> m_simulated_rigidbodies; // Registry of in-play non-static rigidbodies
+        std::vector<RigidbodyComponent3D*> m_simulated_rigidbodies_3d; // Registry of in-world non-static 3D rigidbodies
         std::vector<AudioComponent*> m_audio_sources; // Registry of in-play audio sources
 
         bool m_cvar_show_hierarchy = false;
@@ -72,7 +77,7 @@ namespace hob {
         EntitySpawner(EntitySpawner&&) = delete;
         EntitySpawner& operator=(EntitySpawner&&) = delete;
 
-        Entity& spawn_entity();
+        Entity& spawn_entity(Space space = Space::Space2D);
         void destroy_entity(EntityId id);
 
         void set_entity_spawned_handler(std::function<void(EntityId)> callback);
@@ -97,9 +102,17 @@ namespace hob {
         void unregister_sprite(SpriteComponent* sprite);
         const std::vector<SpriteComponent*>& get_sprites() const;
 
+        void register_mesh_renderer(MeshRendererComponent* mesh_renderer);
+        void unregister_mesh_renderer(MeshRendererComponent* mesh_renderer);
+        const std::vector<MeshRendererComponent*>& get_mesh_renderers() const;
+
         void register_simulated_rigidbody(RigidbodyComponent* rigidbody);
         void unregister_simulated_rigidbody(RigidbodyComponent* rigidbody);
         const std::vector<RigidbodyComponent*>& get_simulated_rigidbodies() const;
+
+        void register_simulated_rigidbody_3d(RigidbodyComponent3D* rigidbody);
+        void unregister_simulated_rigidbody_3d(RigidbodyComponent3D* rigidbody);
+        const std::vector<RigidbodyComponent3D*>& get_simulated_rigidbodies_3d() const;
 
         void register_audio(AudioComponent* audio);
         void unregister_audio(AudioComponent* audio);
@@ -111,7 +124,7 @@ namespace hob {
         void debug_hierarchy();
 
     private:
-        void debug_hierarchy_node(const TransformComponent* transform);
+        void debug_hierarchy_node(const Entity& entity);
         void debug_inspector();
 
         void resolve_requests();

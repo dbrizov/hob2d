@@ -37,6 +37,10 @@ namespace hob {
         void on_collision_exit(const ColliderComponent* other_collider) override;
         void on_trigger_enter(const ColliderComponent* other_collider) override;
         void on_trigger_exit(const ColliderComponent* other_collider) override;
+        void on_collision_enter_3d(const ColliderComponent3D* other_collider) override;
+        void on_collision_exit_3d(const ColliderComponent3D* other_collider) override;
+        void on_trigger_enter_3d(const ColliderComponent3D* other_collider) override;
+        void on_trigger_exit_3d(const ColliderComponent3D* other_collider) override;
 
         std::string to_string() const override;
     };

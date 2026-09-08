@@ -677,6 +677,36 @@ namespace hob::editor {
         return field_components(label, colors, components, IM_COUNTOF(components), drag_speed, 0.0f, 0.0f);
     }
 
+    bool field_vector3(const char* label, Vector3& value, float drag_speed) {
+        const ImVec4 colors[] = {COLOR_AXIS_X, COLOR_AXIS_Y, COLOR_AXIS_Z};
+        float* components[] = {&value.x, &value.y, &value.z};
+
+        return field_components(label, colors, components, IM_COUNTOF(components), drag_speed, 0.0f, 0.0f);
+    }
+
+    bool field_euler_deg(const char* label, Vector3& degrees, float drag_speed) {
+        Vector3 normalized(math::normalize_angle_deg(degrees.x),
+                           math::normalize_angle_deg(degrees.y),
+                           math::normalize_angle_deg(degrees.z));
+        const bool changed = field_vector3(label, normalized, drag_speed);
+
+        if (changed) {
+            degrees = normalized;
+        }
+
+        return changed;
+    }
+
+    bool field_quaternion(const char* label, Quaternion& value) {
+        Vector3 degrees = value.to_euler_deg();
+        if (!field_euler_deg(label, degrees)) {
+            return false;
+        }
+
+        value = Quaternion::from_euler_deg(degrees);
+        return true;
+    }
+
     bool field_color(const char* label, Color& value) {
         const ImVec4 colors[] = {COLOR_AXIS_X, COLOR_AXIS_Y, COLOR_AXIS_Z, COLOR_AXIS_W};
         float* components[] = {&value.r, &value.g, &value.b, &value.a};
@@ -843,6 +873,24 @@ namespace hob::editor {
         ImGui::Indent(INSPECTOR_NESTED_INDENT);
         bool changed = field_vector2("Center", value.center);
         changed |= field_vector2("Extents", value.extents);
+        ImGui::Unindent(INSPECTOR_NESTED_INDENT);
+
+        ImGui::EndGroup();
+        ImGui::PopID();
+
+        return changed;
+    }
+
+    bool field_aabb3(const char* label, AABB3& value) {
+        ImGui::PushID(label);
+        ImGui::BeginGroup();
+
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(label);
+
+        ImGui::Indent(INSPECTOR_NESTED_INDENT);
+        bool changed = field_vector3("Center", value.center);
+        changed |= field_vector3("Extents", value.extents);
         ImGui::Unindent(INSPECTOR_NESTED_INDENT);
 
         ImGui::EndGroup();

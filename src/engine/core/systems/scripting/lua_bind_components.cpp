@@ -8,17 +8,27 @@
 #include "engine/animation/animation_track.h"
 #include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
+#include "engine/components/camera_component_3d.h"
+#include "engine/components/directional_light_component.h"
 #include "engine/components/input_component.h"
+#include "engine/components/mesh_renderer_component.h"
 #include "engine/components/physics/box_collider_component.h"
 #include "engine/components/physics/capsule_collider_component.h"
 #include "engine/components/physics/character_body_component.h"
 #include "engine/components/physics/circle_collider_component.h"
 #include "engine/components/physics/collider_component.h"
 #include "engine/components/physics/rigidbody_component.h"
+#include "engine/components/physics_3d/box_collider_component_3d.h"
+#include "engine/components/physics_3d/capsule_collider_component_3d.h"
+#include "engine/components/physics_3d/character_body_component_3d.h"
+#include "engine/components/physics_3d/collider_component_3d.h"
+#include "engine/components/physics_3d/rigidbody_component_3d.h"
+#include "engine/components/physics_3d/sphere_collider_component_3d.h"
 #include "engine/components/sockets_component.h"
 #include "engine/components/sprite_animator_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/components/transform_component_3d.h"
 #include "engine/core/asset.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
@@ -171,6 +181,529 @@ namespace hob {
                  .reapply_on_hot_reload = false},
                 {"interpolate_physics", "get_interpolate_physics", "set_interpolate_physics"},
             });
+
+        // TransformComponent3D
+        bind_usertype<TransformComponent3D>(lua, meta, Bases<Component>{})
+            .method("get_position", &TransformComponent3D::get_position)
+            .method("set_position", &TransformComponent3D::set_position, {"position"})
+            .method("get_rotation", &TransformComponent3D::get_rotation)
+            .method("set_rotation", &TransformComponent3D::set_rotation, {"rotation"})
+            .method("get_euler_deg", &TransformComponent3D::get_euler_deg)
+            .method("set_euler_deg", &TransformComponent3D::set_euler_deg, {"euler_deg"})
+            .method("get_lossy_scale", &TransformComponent3D::get_lossy_scale)
+            .method("get_local_position", &TransformComponent3D::get_local_position)
+            .method("set_local_position", &TransformComponent3D::set_local_position, {"position"})
+            .method("get_local_rotation", &TransformComponent3D::get_local_rotation)
+            .method("set_local_rotation", &TransformComponent3D::set_local_rotation, {"rotation"})
+            .method("get_local_euler_deg", &TransformComponent3D::get_local_euler_deg)
+            .method("set_local_euler_deg", &TransformComponent3D::set_local_euler_deg, {"euler_deg"})
+            .method("get_local_scale", &TransformComponent3D::get_local_scale)
+            .method("set_local_scale", &TransformComponent3D::set_local_scale, {"scale"})
+            .method("get_forward", &TransformComponent3D::get_forward)
+            .method("get_right", &TransformComponent3D::get_right)
+            .method("get_up", &TransformComponent3D::get_up)
+            .method("get_parent", &TransformComponent3D::get_parent)
+            .method(
+                "set_parent",
+                [](TransformComponent3D& self, TransformComponent3D* parent, sol::optional<bool> keep_world_transform) {
+                    self.set_parent(parent, keep_world_transform.value_or(true));
+                },
+                {"parent", "keep_world_transform"})
+            .method("get_children", &TransformComponent3D::get_children)
+            .method("get_interpolate_physics", &TransformComponent3D::get_interpolate_physics)
+            .method("set_interpolate_physics", &TransformComponent3D::set_interpolate_physics, {"value"});
+
+        bind_component_schema<TransformComponent3D>(
+            schemas,
+            transform_3d_key::SECTION,
+            "get_transform_3d",
+            {
+                {.name = transform_key::POSITION,
+                 .get_method = "get_local_position",
+                 .set_method = "set_local_position",
+                 .type = field_type::VECTOR3,
+                 .reapply_on_hot_reload = false},
+                {.name = transform_key::ROTATION,
+                 .get_method = "get_local_euler_deg",
+                 .set_method = "set_local_euler_deg",
+                 .type = field_type::EULER_DEG,
+                 .reapply_on_hot_reload = false},
+                {.name = transform_key::SCALE,
+                 .get_method = "get_local_scale",
+                 .set_method = "set_local_scale",
+                 .type = field_type::VECTOR3,
+                 .reapply_on_hot_reload = false},
+                {"interpolate_physics", "get_interpolate_physics", "set_interpolate_physics"},
+            },
+            Space::Space3D);
+
+        // RigidbodyComponent3D
+        bind_usertype<RigidbodyComponent3D>(lua, meta, Bases<Component>{})
+            .method("has_body", &RigidbodyComponent3D::has_body)
+            .method("is_awake", &RigidbodyComponent3D::is_awake)
+            .method("get_body_type", &RigidbodyComponent3D::get_body_type)
+            .method("set_body_type", &RigidbodyComponent3D::set_body_type, {"body_type"})
+            .method("get_motion_locks",
+                    [](const RigidbodyComponent3D& self) {
+                        return static_cast<int64_t>(self.get_motion_locks());
+                    })
+            .method("set_motion_locks",
+                    [](RigidbodyComponent3D& self, int64_t locks) {
+                        self.set_motion_locks(static_cast<uint64_t>(locks));
+                    },
+                    {"locks"})
+            .method("get_gravity_scale", &RigidbodyComponent3D::get_gravity_scale)
+            .method("set_gravity_scale", &RigidbodyComponent3D::set_gravity_scale, {"value"})
+            .method("get_linear_damping", &RigidbodyComponent3D::get_linear_damping)
+            .method("set_linear_damping", &RigidbodyComponent3D::set_linear_damping, {"value"})
+            .method("get_angular_damping", &RigidbodyComponent3D::get_angular_damping)
+            .method("set_angular_damping", &RigidbodyComponent3D::set_angular_damping, {"value"})
+            .method("get_velocity", &RigidbodyComponent3D::get_velocity)
+            .method("set_velocity", &RigidbodyComponent3D::set_velocity, {"velocity"})
+            .method("get_angular_velocity", &RigidbodyComponent3D::get_angular_velocity)
+            .method("set_angular_velocity", &RigidbodyComponent3D::set_angular_velocity, {"angular_velocity"})
+            .method("get_position", &RigidbodyComponent3D::get_position)
+            .method("set_position", &RigidbodyComponent3D::set_position, {"position"})
+            .method("get_rotation", &RigidbodyComponent3D::get_rotation)
+            .method("set_rotation", &RigidbodyComponent3D::set_rotation, {"rotation"})
+            .method("apply_force", &RigidbodyComponent3D::apply_force, {"force"})
+            .method("apply_impulse", &RigidbodyComponent3D::apply_impulse, {"impulse"})
+            .method("apply_torque", &RigidbodyComponent3D::apply_torque, {"torque"});
+
+        bind_component_schema<RigidbodyComponent3D>(lua,
+                                                    meta,
+                                                    schemas,
+                                                    "rigidbody_3d",
+                                                    "add_rigidbody_3d",
+                                                    "get_rigidbody_3d",
+                                                    {
+                                                        {.name = "body_type",
+                                                         .get_method = "get_body_type",
+                                                         .set_method = "set_body_type",
+                                                         .type = field_type::ENUM,
+                                                         .enum_name = LuaTypeName<BodyType>::value},
+                                                        {.name = "motion_locks",
+                                                         .get_method = "get_motion_locks",
+                                                         .set_method = "set_motion_locks",
+                                                         .type = field_type::BITMASK,
+                                                         .enum_name = LuaTypeName<MotionLock>::value},
+                                                        {"gravity_scale", "get_gravity_scale", "set_gravity_scale"},
+                                                        {.name = "linear_damping",
+                                                         .get_method = "get_linear_damping",
+                                                         .set_method = "set_linear_damping",
+                                                         .min = 0.0f,
+                                                         .max = MAX_FLOAT},
+                                                        {.name = "angular_damping",
+                                                         .get_method = "get_angular_damping",
+                                                         .set_method = "set_angular_damping",
+                                                         .min = 0.0f,
+                                                         .max = MAX_FLOAT},
+                                                    },
+                                                    Space::Space3D);
+
+        // ColliderComponent3D
+        bind_usertype<ColliderComponent3D>(lua, meta, Bases<Component>{})
+            .method("get_density", &ColliderComponent3D::get_density)
+            .method("set_density", &ColliderComponent3D::set_density, {"density"})
+            .method("get_friction", &ColliderComponent3D::get_friction)
+            .method("set_friction", &ColliderComponent3D::set_friction, {"friction"})
+            .method("get_bounciness", &ColliderComponent3D::get_bounciness)
+            .method("set_bounciness", &ColliderComponent3D::set_bounciness, {"bounciness"})
+            .method("get_collision_layer",
+                    [](const ColliderComponent3D& self) {
+                        return static_cast<int64_t>(self.get_collision_layer());
+                    })
+            .method("set_collision_layer",
+                    [](ColliderComponent3D& self, int64_t layer) {
+                        self.set_collision_layer(static_cast<uint64_t>(layer));
+                    },
+                    {"layer"})
+            .method("get_collision_mask",
+                    [](const ColliderComponent3D& self) {
+                        return static_cast<int64_t>(self.get_collision_mask());
+                    })
+            .method("set_collision_mask",
+                    [](ColliderComponent3D& self, int64_t mask) {
+                        self.set_collision_mask(static_cast<uint64_t>(mask));
+                    },
+                    {"mask"})
+            .method("is_trigger", &ColliderComponent3D::is_trigger)
+            .method("set_trigger", &ColliderComponent3D::set_trigger, {"trigger"});
+
+        const LuaComponentSchemaField collider_density{
+            .name = "density", .get_method = "get_density", .set_method = "set_density", .min = 0.0f, .max = MAX_FLOAT};
+        const LuaComponentSchemaField collider_friction{
+            .name = "friction", .get_method = "get_friction", .set_method = "set_friction", .min = 0.0f, .max = 1.0f};
+        const LuaComponentSchemaField collider_bounciness{.name = "bounciness",
+                                                          .get_method = "get_bounciness",
+                                                          .set_method = "set_bounciness",
+                                                          .min = 0.0f,
+                                                          .max = 1.0f};
+        const LuaComponentSchemaField collider_layer{.name = "collision_layer",
+                                                     .get_method = "get_collision_layer",
+                                                     .set_method = "set_collision_layer",
+                                                     .type = field_type::BITMASK,
+                                                     .enum_name = LuaTypeName<CollisionLayer>::value};
+        const LuaComponentSchemaField collider_mask{.name = "collision_mask",
+                                                    .get_method = "get_collision_mask",
+                                                    .set_method = "set_collision_mask",
+                                                    .type = field_type::BITMASK,
+                                                    .enum_name = LuaTypeName<CollisionLayer>::value};
+        const LuaComponentSchemaField collider_trigger{"trigger", "is_trigger", "set_trigger"};
+
+        // BoxColliderComponent3D
+        bind_usertype<BoxColliderComponent3D>(lua, meta, Bases<ColliderComponent3D, Component>{})
+            .method("get_box", &BoxColliderComponent3D::get_box)
+            .method("set_box", &BoxColliderComponent3D::set_box, {"box"})
+            .method("get_scaled_box", &BoxColliderComponent3D::get_scaled_box);
+
+        bind_component_schema<BoxColliderComponent3D>(
+            lua,
+            meta,
+            schemas,
+            "box_collider_3d",
+            "add_box_collider_3d",
+            "get_box_collider_3d",
+            {
+                {.name = "box", .get_method = "get_box", .set_method = "set_box", .type = field_type::AABB3},
+                collider_density,
+                collider_friction,
+                collider_bounciness,
+                collider_layer,
+                collider_mask,
+                collider_trigger,
+            },
+            Space::Space3D);
+
+        // SphereColliderComponent3D
+        bind_usertype<SphereColliderComponent3D>(lua, meta, Bases<ColliderComponent3D, Component>{})
+            .method("get_center", &SphereColliderComponent3D::get_center)
+            .method("set_center", &SphereColliderComponent3D::set_center, {"center"})
+            .method("get_radius", &SphereColliderComponent3D::get_radius)
+            .method("set_radius", &SphereColliderComponent3D::set_radius, {"radius"})
+            .method("get_scaled_radius", &SphereColliderComponent3D::get_scaled_radius);
+
+        bind_component_schema<SphereColliderComponent3D>(
+            lua,
+            meta,
+            schemas,
+            "sphere_collider_3d",
+            "add_sphere_collider_3d",
+            "get_sphere_collider_3d",
+            {
+                {.name = "center", .get_method = "get_center", .set_method = "set_center", .type = field_type::VECTOR3},
+                {.name = "radius",
+                 .get_method = "get_radius",
+                 .set_method = "set_radius",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                collider_density,
+                collider_friction,
+                collider_bounciness,
+                collider_layer,
+                collider_mask,
+                collider_trigger,
+            },
+            Space::Space3D);
+
+        // CapsuleColliderComponent3D
+        bind_usertype<CapsuleColliderComponent3D>(lua, meta, Bases<ColliderComponent3D, Component>{})
+            .method("get_center", &CapsuleColliderComponent3D::get_center)
+            .method("set_center", &CapsuleColliderComponent3D::set_center, {"center"})
+            .method("get_radius", &CapsuleColliderComponent3D::get_radius)
+            .method("set_radius", &CapsuleColliderComponent3D::set_radius, {"radius"})
+            .method("get_height", &CapsuleColliderComponent3D::get_height)
+            .method("set_height", &CapsuleColliderComponent3D::set_height, {"height"});
+
+        bind_component_schema<CapsuleColliderComponent3D>(
+            lua,
+            meta,
+            schemas,
+            "capsule_collider_3d",
+            "add_capsule_collider_3d",
+            "get_capsule_collider_3d",
+            {
+                {.name = "center", .get_method = "get_center", .set_method = "set_center", .type = field_type::VECTOR3},
+                {.name = "radius",
+                 .get_method = "get_radius",
+                 .set_method = "set_radius",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                {.name = "height",
+                 .get_method = "get_height",
+                 .set_method = "set_height",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                collider_density,
+                collider_friction,
+                collider_bounciness,
+                collider_layer,
+                collider_mask,
+                collider_trigger,
+            },
+            Space::Space3D);
+
+        // CharacterBodyComponent3D
+        bind_usertype<CharacterBodyComponent3D>(lua, meta, Bases<Component>{})
+            .method("get_center", &CharacterBodyComponent3D::get_center)
+            .method("set_center", &CharacterBodyComponent3D::set_center, {"center"})
+            .method("get_radius", &CharacterBodyComponent3D::get_radius)
+            .method("set_radius", &CharacterBodyComponent3D::set_radius, {"radius"})
+            .method("get_height", &CharacterBodyComponent3D::get_height)
+            .method("set_height", &CharacterBodyComponent3D::set_height, {"height"})
+            .method("get_collision_layer",
+                    [](const CharacterBodyComponent3D& self) {
+                        return static_cast<int64_t>(self.get_collision_layer());
+                    })
+            .method("set_collision_layer",
+                    [](CharacterBodyComponent3D& self, int64_t layer) {
+                        self.set_collision_layer(static_cast<uint64_t>(layer));
+                    },
+                    {"layer"})
+            .method("get_collision_mask",
+                    [](const CharacterBodyComponent3D& self) {
+                        return static_cast<int64_t>(self.get_collision_mask());
+                    })
+            .method("set_collision_mask",
+                    [](CharacterBodyComponent3D& self, int64_t mask) {
+                        self.set_collision_mask(static_cast<uint64_t>(mask));
+                    },
+                    {"mask"})
+            .method("get_solver_ignore_mask",
+                    [](const CharacterBodyComponent3D& self) {
+                        return static_cast<int64_t>(self.get_solver_ignore_mask());
+                    })
+            .method("set_solver_ignore_mask",
+                    [](CharacterBodyComponent3D& self, int64_t mask) {
+                        self.set_solver_ignore_mask(static_cast<uint64_t>(mask));
+                    },
+                    {"mask"})
+            .method("get_max_slope_deg", &CharacterBodyComponent3D::get_max_slope_deg)
+            .method("set_max_slope_deg", &CharacterBodyComponent3D::set_max_slope_deg, {"degrees"})
+            .method("move_and_slide", &CharacterBodyComponent3D::move_and_slide, {"velocity", "fixed_dt"})
+            .method("is_on_floor", &CharacterBodyComponent3D::is_on_floor)
+            .method("get_floor_normal", &CharacterBodyComponent3D::get_floor_normal)
+            .method("get_velocity", &CharacterBodyComponent3D::get_velocity)
+            .method("set_velocity", &CharacterBodyComponent3D::set_velocity, {"velocity"})
+            .method("get_position", &CharacterBodyComponent3D::get_position)
+            .method("set_position", &CharacterBodyComponent3D::set_position, {"position"})
+            .method("get_rotation", &CharacterBodyComponent3D::get_rotation)
+            .method("set_rotation", &CharacterBodyComponent3D::set_rotation, {"rotation"});
+
+        bind_component_schema<CharacterBodyComponent3D>(
+            lua,
+            meta,
+            schemas,
+            "character_body_3d",
+            "add_character_body_3d",
+            "get_character_body_3d",
+            {
+                {.name = "center", .get_method = "get_center", .set_method = "set_center", .type = field_type::VECTOR3},
+                {.name = "radius",
+                 .get_method = "get_radius",
+                 .set_method = "set_radius",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                {.name = "height",
+                 .get_method = "get_height",
+                 .set_method = "set_height",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                {.name = "collision_layer",
+                 .get_method = "get_collision_layer",
+                 .set_method = "set_collision_layer",
+                 .type = field_type::BITMASK,
+                 .enum_name = LuaTypeName<CollisionLayer>::value},
+                {.name = "collision_mask",
+                 .get_method = "get_collision_mask",
+                 .set_method = "set_collision_mask",
+                 .type = field_type::BITMASK,
+                 .enum_name = LuaTypeName<CollisionLayer>::value},
+                {.name = "solver_ignore_mask",
+                 .get_method = "get_solver_ignore_mask",
+                 .set_method = "set_solver_ignore_mask",
+                 .type = field_type::BITMASK,
+                 .enum_name = LuaTypeName<CollisionLayer>::value},
+                {.name = "max_slope_deg",
+                 .get_method = "get_max_slope_deg",
+                 .set_method = "set_max_slope_deg",
+                 .min = 0.0f,
+                 .max = 89.0f},
+            },
+            Space::Space3D);
+
+        // DirectionalLightComponent
+        bind_usertype<DirectionalLightComponent>(lua, meta, Bases<Component>{})
+            .method("get_color", &DirectionalLightComponent::get_color)
+            .method("set_color", &DirectionalLightComponent::set_color, {"color"})
+            .method("get_intensity", &DirectionalLightComponent::get_intensity)
+            .method("set_intensity", &DirectionalLightComponent::set_intensity, {"intensity"})
+            .method("get_sky_color", &DirectionalLightComponent::get_sky_color)
+            .method("set_sky_color", &DirectionalLightComponent::set_sky_color, {"color"})
+            .method("get_ground_color", &DirectionalLightComponent::get_ground_color)
+            .method("set_ground_color", &DirectionalLightComponent::set_ground_color, {"color"})
+            .method("get_fog_density", &DirectionalLightComponent::get_fog_density)
+            .method("set_fog_density", &DirectionalLightComponent::set_fog_density, {"density"})
+            .method("get_fog_height", &DirectionalLightComponent::get_fog_height)
+            .method("set_fog_height", &DirectionalLightComponent::set_fog_height, {"height"})
+            .method("get_fog_falloff", &DirectionalLightComponent::get_fog_falloff)
+            .method("set_fog_falloff", &DirectionalLightComponent::set_fog_falloff, {"falloff"})
+            .method("get_fog_anisotropy", &DirectionalLightComponent::get_fog_anisotropy)
+            .method("set_fog_anisotropy", &DirectionalLightComponent::set_fog_anisotropy, {"anisotropy"})
+            .method("get_fog_color", &DirectionalLightComponent::get_fog_color)
+            .method("set_fog_color", &DirectionalLightComponent::set_fog_color, {"color"})
+            .method("get_direction", &DirectionalLightComponent::get_direction);
+
+        bind_component_schema<DirectionalLightComponent>(
+            lua,
+            meta,
+            schemas,
+            "directional_light",
+            "add_directional_light",
+            "get_directional_light",
+            {
+                {.name = "color", .get_method = "get_color", .set_method = "set_color", .type = field_type::COLOR},
+                {.name = "intensity",
+                 .get_method = "get_intensity",
+                 .set_method = "set_intensity",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                {.name = "sky_color",
+                 .get_method = "get_sky_color",
+                 .set_method = "set_sky_color",
+                 .type = field_type::COLOR},
+                {.name = "ground_color",
+                 .get_method = "get_ground_color",
+                 .set_method = "set_ground_color",
+                 .type = field_type::COLOR},
+                {.name = "fog_density",
+                 .get_method = "get_fog_density",
+                 .set_method = "set_fog_density",
+                 .min = 0.0f,
+                 .max = MAX_FLOAT},
+                {.name = "fog_height",
+                 .get_method = "get_fog_height",
+                 .set_method = "set_fog_height",
+                 .min = -MAX_FLOAT,
+                 .max = MAX_FLOAT},
+                {.name = "fog_falloff",
+                 .get_method = "get_fog_falloff",
+                 .set_method = "set_fog_falloff",
+                 .min = 0.01f,
+                 .max = MAX_FLOAT},
+                {.name = "fog_anisotropy",
+                 .get_method = "get_fog_anisotropy",
+                 .set_method = "set_fog_anisotropy",
+                 .min = -0.99f,
+                 .max = 0.99f},
+                {.name = "fog_color",
+                 .get_method = "get_fog_color",
+                 .set_method = "set_fog_color",
+                 .type = field_type::COLOR},
+            },
+            Space::Space3D);
+
+        // CameraComponent3D
+        bind_usertype<CameraComponent3D>(lua, meta, Bases<Component>{})
+            .method("get_fov_deg", &CameraComponent3D::get_fov_deg)
+            .method("set_fov_deg", &CameraComponent3D::set_fov_deg, {"value"})
+            .method("get_near_plane", &CameraComponent3D::get_near_plane)
+            .method("set_near_plane", &CameraComponent3D::set_near_plane, {"value"})
+            .method("get_far_plane", &CameraComponent3D::get_far_plane)
+            .method("set_far_plane", &CameraComponent3D::set_far_plane, {"value"})
+            .method_sig(
+                "world_to_screen",
+                [](const CameraComponent3D& self, const Vector3& world_pos) -> sol::optional<Vector2> {
+                    Vector2 screen_pos;
+                    if (!self.world_to_screen(world_pos, screen_pos)) {
+                        return sol::nullopt;
+                    }
+                    return screen_pos;
+                },
+                "(world_pos: Vector3): Vector2?")
+            .method("screen_to_ray", &CameraComponent3D::screen_to_ray, {"screen_pos"});
+
+        bind_component_schema<CameraComponent3D>(lua,
+                                                 meta,
+                                                 schemas,
+                                                 "camera_3d",
+                                                 "add_camera_3d",
+                                                 "get_camera_3d",
+                                                 {
+                                                     {.name = "fov_deg",
+                                                      .get_method = "get_fov_deg",
+                                                      .set_method = "set_fov_deg",
+                                                      .min = 1.0f,
+                                                      .max = 179.0f},
+                                                     {.name = "near_plane",
+                                                      .get_method = "get_near_plane",
+                                                      .set_method = "set_near_plane",
+                                                      .min = 0.001f,
+                                                      .max = MAX_FLOAT},
+                                                     {.name = "far_plane",
+                                                      .get_method = "get_far_plane",
+                                                      .set_method = "set_far_plane",
+                                                      .min = 0.001f,
+                                                      .max = MAX_FLOAT},
+                                                 },
+                                                 Space::Space3D);
+
+        // MeshRendererComponent
+        bind_usertype<MeshRendererComponent>(lua, meta, Bases<Component>{})
+            .method("get_mesh", &MeshRendererComponent::get_mesh)
+            .method_sig(
+                "set_mesh",
+                [](MeshRendererComponent& self, const sol::object& value) {
+                    if (!value.valid()) {
+                        self.set_mesh(nullptr);
+                    }
+                    else if (value.is<Mesh>()) {
+                        self.set_mesh(value.as<MeshRef>());
+                    }
+                    else {
+                        log::lua.error("MeshRendererComponent:set_mesh expects a Mesh or nil");
+                    }
+                },
+                "(mesh: Mesh|nil)")
+            .method("get_material", sol::resolve<MaterialRef()>(&MeshRendererComponent::get_material))
+            .method_sig(
+                "get_material_const",
+                [](const MeshRendererComponent& self) -> const MaterialRef& {
+                    return self.get_material();
+                },
+                "(): Material?")
+            .method_sig(
+                "set_material",
+                [](MeshRendererComponent& self, const sol::object& value) {
+                    if (!value.valid()) {
+                        self.set_material(nullptr);
+                    }
+                    else if (value.is<Material>()) {
+                        self.set_material(value.as<MaterialRef>());
+                    }
+                    else {
+                        log::lua.error("MeshRendererComponent:set_material expects a Material or nil");
+                    }
+                },
+                "(material: Material|nil)")
+            .method("get_local_bounds", &MeshRendererComponent::get_local_bounds)
+            .method("get_world_bounds", &MeshRendererComponent::get_world_bounds);
+
+        bind_component_schema<MeshRendererComponent>(
+            lua,
+            meta,
+            schemas,
+            "mesh_renderer",
+            "add_mesh_renderer",
+            "get_mesh_renderer",
+            {
+                {.name = "mesh", .get_method = "get_mesh", .set_method = "set_mesh", .type = field_type::MESH},
+                {.name = "material",
+                 .get_method = "get_material_const",
+                 .set_method = "set_material",
+                 .type = field_type::MATERIAL},
+            },
+            Space::Space3D);
 
         // RigidbodyComponent
         bind_enum<BodyType>(lua,
@@ -494,7 +1027,7 @@ namespace hob {
                 "(name: string, id: integer)")
             .method("clear_all_bindings", &InputComponent::clear_all_bindings);
 
-        bind_component_schema<InputComponent>(lua, meta, schemas, "input", "add_input", "get_input", {});
+        bind_component_schema<InputComponent>(lua, meta, schemas, "input", "add_input", "get_input", {}, std::nullopt);
 
         // SpriteComponent
         bind_usertype<SpriteComponent>(lua, meta, Bases<Component>{})

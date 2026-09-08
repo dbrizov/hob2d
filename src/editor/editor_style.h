@@ -171,6 +171,7 @@ namespace hob::editor {
     constexpr const char* ASSETS_READ_ONLY_LABEL = "read-only";
 
     constexpr ImVec4 COLOR_ASSETS_READ_ONLY = COLOR_TEXT_DIM;
+    constexpr ImVec4 COLOR_ASSETS_OTHER_SPACE = with_alpha(COLOR_TEXT_DIM, 0.55f);
 
     // Inspector
     constexpr float INSPECTOR_LABEL_WIDTH = 180.0f;
@@ -206,11 +207,13 @@ namespace hob::editor {
 
     constexpr ImVec4 COLOR_SCENE_VIEW_GRID_AXIS_X = with_alpha(COLOR_AXIS_X, 0.70f);
     constexpr ImVec4 COLOR_SCENE_VIEW_GRID_AXIS_Y = with_alpha(COLOR_AXIS_Y, 0.70f);
+    constexpr ImVec4 COLOR_SCENE_VIEW_GRID_AXIS_Z = with_alpha(COLOR_AXIS_Z, 0.70f);
     constexpr ImVec4 COLOR_SCENE_VIEW_GRID_MINOR{1.0f, 1.0f, 1.0f, 0.094f};
     constexpr ImVec4 COLOR_SCENE_VIEW_GRID_MAJOR{1.0f, 1.0f, 1.0f, 0.20f};
     constexpr ImVec4 COLOR_SCENE_VIEW_SELECTION_PRIMARY{1.00f, 0.63f, 0.12f, 1.0f};
     constexpr ImVec4 COLOR_SCENE_VIEW_SELECTION = with_alpha(COLOR_SCENE_VIEW_SELECTION_PRIMARY, 0.55f);
     constexpr ImVec4 COLOR_SCENE_VIEW_CAMERA_RECT = with_alpha(COLOR_AXIS_Z, 0.70f);
+    constexpr ImVec4 COLOR_SCENE_VIEW_LIGHT = ImVec4(1.0f, 0.85f, 0.3f, 0.9f);
 
     // Gizmo
     constexpr float GIZMO_AXIS_LENGTH_PX = 110.0f;

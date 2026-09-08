@@ -5,11 +5,15 @@
 #include <utility>
 
 #include "engine/core/logging.h"
+#include "engine/math/aabb3.h"
 #include "engine/math/color.h"
+#include "engine/math/matrix4x4.h"
 #include "engine/math/vector2.h"
+#include "engine/math/vector3.h"
 
 namespace hob {
     class CameraComponent;
+    class CameraComponent3D;
     class Renderer;
 
     namespace debug {
@@ -43,6 +47,14 @@ namespace hob {
             int32_t segments = DEFAULT_CIRCLE_SEGMENTS;
         };
 
+        struct DebugLine3D {
+            Vector3 start;
+            Vector3 end;
+            Color color = DEFAULT_DRAW_COLOR;
+            float duration = DEFAULT_DRAW_DURATION;
+            float thickness = DEFAULT_LINE_THICKNESS;
+        };
+
         struct DebugMessage {
             std::string text;
             Color color = DEFAULT_MESSAGE_COLOR;
@@ -51,8 +63,36 @@ namespace hob {
 
         void flush_draws_to_renderer(Renderer& renderer,
                                      const CameraComponent* camera,
+                                     const CameraComponent3D* camera_3d,
                                      const Vector2& window_size,
                                      float delta_time);
+
+        void draw_line_3d(const Vector3& start,
+                          const Vector3& end,
+                          const Color& color = DEFAULT_DRAW_COLOR,
+                          float duration = DEFAULT_DRAW_DURATION,
+                          float thickness = DEFAULT_LINE_THICKNESS);
+
+        void draw_aabb3(const AABB3& box,
+                        const Matrix4x4& world,
+                        const Color& color = DEFAULT_DRAW_COLOR,
+                        float duration = DEFAULT_DRAW_DURATION,
+                        float thickness = DEFAULT_LINE_THICKNESS);
+
+        void draw_sphere_3d(const Vector3& center,
+                            float radius,
+                            const Color& color = DEFAULT_DRAW_COLOR,
+                            float duration = DEFAULT_DRAW_DURATION,
+                            float thickness = DEFAULT_LINE_THICKNESS,
+                            int32_t segments = DEFAULT_CIRCLE_SEGMENTS);
+
+        void draw_capsule_3d(const Vector3& center_a,
+                             const Vector3& center_b,
+                             float radius,
+                             const Color& color = DEFAULT_DRAW_COLOR,
+                             float duration = DEFAULT_DRAW_DURATION,
+                             float thickness = DEFAULT_LINE_THICKNESS,
+                             int32_t segments = DEFAULT_CIRCLE_SEGMENTS);
 
         void draw_line(const Vector2& start,
                        const Vector2& end,

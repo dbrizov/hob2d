@@ -25,6 +25,15 @@ namespace hob {
         TexelSize,
         GameTime,
         RealTime,
+        LightDirection,
+        LightColor,
+        AmbientColor,
+        CameraPosition,
+        SkyColor,
+        GroundColor,
+        LightViewProj,
+        ShadowParams,
+        ScreenParams,
         Count,
     };
 
@@ -48,6 +57,14 @@ namespace hob {
         Back,
         Front,
     };
+
+    // Which engine-owned vertex stream a shader consumes, inferred from its vertex inputs at build time.
+    enum class VertexLayout {
+        Sprite,
+        Mesh,
+    };
+
+    const char* vertex_layout_to_string(VertexLayout layout);
 
     const char* blend_mode_to_string(BlendMode mode);
     bool blend_mode_from_string(std::string_view str, BlendMode& out);
@@ -74,11 +91,14 @@ namespace hob {
         std::string m_path;
         BlendMode m_blend_mode = BlendMode::Alpha;
         CullMode m_cull_mode = CullMode::None;
+        VertexLayout m_vertex_layout = VertexLayout::Sprite;
 
         uint32_t m_engine_slot = INVALID_SHADER_SLOT; // engine-filled cbuffer
         uint32_t m_engine_size = 0;
         std::array<int32_t, ENGINE_BUILTIN_COUNT> m_engine_offsets{}; // per-built-in byte offset, -1 if not declared
 
+        uint32_t m_shadow_map_slot = INVALID_SHADER_SLOT; // engine-bound sun shadow map, never a material slot
+        uint32_t m_ssao_slot = INVALID_SHADER_SLOT; // engine-bound ambient occlusion, never a material slot
         uint32_t m_material_slot = INVALID_SHADER_SLOT; // user-facing "Material" cbuffer
         uint32_t m_material_size = 0;
         ShaderParamMap m_params;
@@ -87,7 +107,7 @@ namespace hob {
 
     public:
         // clang-format off
-        Shader(SDL_GPUDevice* device, SDL_GPUGraphicsPipeline* pipeline, std::string relative_path, BlendMode blend, CullMode cull);
+        Shader(SDL_GPUDevice* device, SDL_GPUGraphicsPipeline* pipeline, std::string relative_path, BlendMode blend, CullMode cull, VertexLayout vertex_layout);
         ~Shader() override;
         // clang-format on
 
@@ -100,12 +120,21 @@ namespace hob {
         const std::string& get_path() const;
         BlendMode get_blend_mode() const;
         CullMode get_cull_mode() const;
+        VertexLayout get_vertex_layout() const;
         SDL_GPUGraphicsPipeline* get_pipeline() const;
+        void replace_pipeline(SDL_GPUGraphicsPipeline* pipeline);
+        SDL_GPUGraphicsPipeline* detach_pipeline();
 
         uint32_t get_engine_slot() const;
         uint32_t get_engine_size() const;
         int32_t get_engine_offset(EngineBuiltin builtin) const;
         void set_engine_layout(uint32_t slot, uint32_t size, const std::array<int32_t, ENGINE_BUILTIN_COUNT>& offsets);
+
+        uint32_t get_shadow_map_slot() const;
+        void set_shadow_map_slot(uint32_t slot);
+
+        uint32_t get_ssao_slot() const;
+        void set_ssao_slot(uint32_t slot);
 
         uint32_t get_material_slot() const;
         uint32_t get_material_size() const;

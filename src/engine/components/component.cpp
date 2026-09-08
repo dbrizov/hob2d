@@ -32,6 +32,14 @@ namespace hob {
     void Component::on_collision_exit(const ColliderComponent* other_collider) {}
     void Component::on_trigger_enter(const ColliderComponent* other_collider) {}
     void Component::on_trigger_exit(const ColliderComponent* other_collider) {}
+
+    void Component::on_collision_enter_3d(const ColliderComponent3D* other_collider) {}
+
+    void Component::on_collision_exit_3d(const ColliderComponent3D* other_collider) {}
+
+    void Component::on_trigger_enter_3d(const ColliderComponent3D* other_collider) {}
+
+    void Component::on_trigger_exit_3d(const ColliderComponent3D* other_collider) {}
     // clang-format on
 
     std::string Component::to_string() const {

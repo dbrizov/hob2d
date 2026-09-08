@@ -25,11 +25,13 @@
 #include "engine/core/systems/scripting/lua_script_system.h"
 #include "engine/entity/entity.h"
 #include "engine/math/aabb.h"
+#include "engine/math/aabb3.h"
 #include "engine/math/capsule.h"
 #include "engine/math/circle.h"
 #include "engine/math/color.h"
 #include "engine/math/constants.h"
 #include "engine/math/vector2.h"
+#include "engine/math/vector3.h"
 
 namespace hob::editor {
     struct EditorDockInspectorPendingEdit {
@@ -166,6 +168,34 @@ namespace hob::editor {
                 Vector2 vector = value_or<Vector2>(value, Vector2());
                 if (field_vector2(label.c_str(), vector)) {
                     new_value = sol::make_object(lua, vector);
+                    changed = true;
+                }
+            }
+            else if (type == field_type::VECTOR3) {
+                Vector3 vector = value_or<Vector3>(value, Vector3());
+                if (field_vector3(label.c_str(), vector)) {
+                    new_value = sol::make_object(lua, vector);
+                    changed = true;
+                }
+            }
+            else if (type == field_type::QUATERNION) {
+                Quaternion rotation = value_or<Quaternion>(value, Quaternion::identity());
+                if (field_quaternion(label.c_str(), rotation)) {
+                    new_value = sol::make_object(lua, rotation);
+                    changed = true;
+                }
+            }
+            else if (type == field_type::EULER_DEG) {
+                Vector3 degrees = value_or<Vector3>(value, Vector3());
+                if (field_euler_deg(label.c_str(), degrees)) {
+                    new_value = sol::make_object(lua, degrees);
+                    changed = true;
+                }
+            }
+            else if (type == field_type::AABB3) {
+                AABB3 box = value_or<AABB3>(value, AABB3());
+                if (field_aabb3(label.c_str(), box)) {
+                    new_value = sol::make_object(lua, box);
                     changed = true;
                 }
             }

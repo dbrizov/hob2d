@@ -50,6 +50,18 @@ DefineMaterial = {}
 ---@class Materials
 Materials = {}
 
+--- Assigning `DefineMesh.Foo = { ... }` registers a
+--- named Mesh configuration. Reference it as `Meshes.Foo` in prefabs and config; the actual Mesh
+--- is built lazily on first unwrap, so DefineMesh calls can live in any file in any load order.
+--- When passing `Meshes.Foo` directly to a C++ setter, unwrap with `unwrap_def(...)`.
+---@class DefineMesh
+DefineMesh = {}
+
+--- Factory of Mesh configs declared via `DefineMesh`. `Meshes.Foo` returns a deferred reference
+--- that resolves to the built Mesh via unwrap_def (see content/engine/scripts/unwrap.lua).
+---@class Meshes
+Meshes = {}
+
 --- Assigning `DefineAudioClip.Foo = { ... }` registers a
 --- named AudioClip configuration. Reference it as `AudioClips.Foo` in prefabs and config; the actual AudioClip
 --- is built lazily on first unwrap, so DefineAudioClip calls can live in any file in any load order.

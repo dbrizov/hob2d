@@ -11,6 +11,7 @@
 #include "editor/commands/editor_command_set_field.h"
 #include "editor/editor.h"
 #include "editor/editor_field_target.h"
+#include "editor/editor_gizmo_fields.h"
 #include "editor/editor_gui_utils.h"
 #include "editor/editor_lua.h"
 #include "editor/editor_style.h"
@@ -86,21 +87,7 @@ namespace hob::editor {
         }
 
         EditorFieldTarget make_target(EntityId entity_id, EditorInstanceId instance_id, const char* field) {
-            return EditorFieldTarget{
-                .entity_id = entity_id,
-                .instance_id = instance_id,
-                .is_lua = false,
-                .component_key = transform_key::SECTION,
-                .field = field,
-            };
-        }
-
-        bool is_changed(float a, float b) {
-            return !math::approx_equal(a, b);
-        }
-
-        bool is_changed(const Vector2& a, const Vector2& b) {
-            return a != b;
+            return make_transform_target(entity_id, instance_id, transform_key::SECTION, field);
         }
 
         template<typename T>
@@ -111,13 +98,8 @@ namespace hob::editor {
                            const char* field,
                            const T& current_value,
                            const T& value) {
-            if (!is_changed(current_value, value)) {
-                return false;
-            }
-
-            EditorCommandSetField::apply(
-                editor, make_target(entity_id, instance_id, field), sol::make_object(lua, value));
-            return true;
+            return try_set_transform_field(
+                editor, lua, make_target(entity_id, instance_id, field), current_value, value);
         }
 
         template<typename T>
@@ -129,14 +111,8 @@ namespace hob::editor {
                              const char* field,
                              const T& old_value,
                              const T& new_value) {
-            if (!is_changed(old_value, new_value)) {
-                return;
-            }
-
-            commands.push_back(std::make_unique<EditorCommandSetField>(label,
-                                                                       make_target(entity_id, instance_id, field),
-                                                                       sol::make_object(lua, old_value),
-                                                                       sol::make_object(lua, new_value)));
+            push_transform_command_if_changed(
+                commands, lua, label, make_target(entity_id, instance_id, field), old_value, new_value);
         }
 
         void draw_arrow(ImDrawList* draw_list, const Vector2& origin, const Vector2& direction, ImU32 color) {

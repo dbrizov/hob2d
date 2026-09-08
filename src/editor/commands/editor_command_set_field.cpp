@@ -6,7 +6,9 @@
 #include "editor/editor.h"
 #include "editor/editor_lua.h"
 #include "engine/components/physics/rigidbody_component.h"
+#include "engine/components/physics_3d/rigidbody_component_3d.h"
 #include "engine/components/transform_component.h"
+#include "engine/components/transform_component_3d.h"
 #include "engine/core/engine.h"
 #include "engine/core/systems/entity_spawner.h"
 #include "engine/core/systems/scripting/lua_schema_keys.h"
@@ -16,6 +18,15 @@ namespace hob::editor {
         void sync_transform_to_physics(Engine& engine, EntityId entity_id) {
             Entity* entity = engine.get_entity_spawner().get_entity(entity_id);
             if (entity == nullptr) {
+                return;
+            }
+
+            if (const TransformComponent3D* transform_3d = entity->get_transform_3d()) {
+                RigidbodyComponent3D* rigidbody_3d = entity->get_rigidbody_3d();
+                if (rigidbody_3d != nullptr && rigidbody_3d->get_body_type() != BodyType::Static) {
+                    rigidbody_3d->set_position(transform_3d->get_position());
+                    rigidbody_3d->set_rotation(transform_3d->get_rotation());
+                }
                 return;
             }
 
@@ -91,7 +102,8 @@ namespace hob::editor {
             editor_call(engine, set_instance_field, entity_id, target.component_key, target.field, value);
         }
 
-        if (!target.is_lua && target.component_key == transform_key::SECTION) {
+        if (!target.is_lua &&
+            (target.component_key == transform_key::SECTION || target.component_key == transform_3d_key::SECTION)) {
             sync_transform_to_physics(engine, entity_id);
         }
     }

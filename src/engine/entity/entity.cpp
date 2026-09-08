@@ -5,7 +5,9 @@
 
 #include "engine/components/lua_script_component.h"
 #include "engine/components/physics/rigidbody_component.h"
+#include "engine/components/physics_3d/rigidbody_component_3d.h"
 #include "engine/components/transform_component.h"
+#include "engine/components/transform_component_3d.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
 #include "engine/core/systems/entity_spawner.h"
@@ -114,6 +116,30 @@ namespace hob {
         }
     }
 
+    void Entity::on_collision_enter_3d(const ColliderComponent3D* other_collider) {
+        for (auto& component : m_components) {
+            component->on_collision_enter_3d(other_collider);
+        }
+    }
+
+    void Entity::on_collision_exit_3d(const ColliderComponent3D* other_collider) {
+        for (auto& component : m_components) {
+            component->on_collision_exit_3d(other_collider);
+        }
+    }
+
+    void Entity::on_trigger_enter_3d(const ColliderComponent3D* other_collider) {
+        for (auto& component : m_components) {
+            component->on_trigger_enter_3d(other_collider);
+        }
+    }
+
+    void Entity::on_trigger_exit_3d(const ColliderComponent3D* other_collider) {
+        for (auto& component : m_components) {
+            component->on_trigger_exit_3d(other_collider);
+        }
+    }
+
     std::string Entity::to_string() const {
         std::string result = std::format("Entity(name = {}, id = {}, in_play = {}, ticking = {})",
                                          get_display_name(),
@@ -126,6 +152,12 @@ namespace hob {
                                   transform->get_position().to_string(),
                                   transform->get_rotation(),
                                   transform->get_scale().to_string());
+        }
+        else if (const TransformComponent3D* transform_3d = get_transform_3d()) {
+            result += std::format("\n  position = {}, rotation_deg = {}, scale = {}",
+                                  transform_3d->get_position().to_string(),
+                                  transform_3d->get_euler_deg().to_string(),
+                                  transform_3d->get_local_scale().to_string());
         }
 
         result += std::format("\n  components ({}):", m_components.size());
@@ -201,12 +233,53 @@ namespace hob {
         }
     }
 
+    Space Entity::get_space() const {
+        return m_space;
+    }
+
     TransformComponent* Entity::get_transform() const {
-        if (m_transform == nullptr) {
+        if (m_transform == nullptr && m_space == Space::Space2D) {
             m_transform = get_component<TransformComponent>();
         }
 
         return m_transform;
+    }
+
+    TransformComponent3D* Entity::get_transform_3d() const {
+        if (m_transform_3d == nullptr && m_space == Space::Space3D) {
+            m_transform_3d = get_component<TransformComponent3D>();
+        }
+
+        return m_transform_3d;
+    }
+
+    Entity* Entity::get_parent_entity() const {
+        if (const TransformComponent* transform = get_transform()) {
+            return transform->get_parent() != nullptr ? &transform->get_parent()->get_entity() : nullptr;
+        }
+
+        if (const TransformComponent3D* transform_3d = get_transform_3d()) {
+            return transform_3d->get_parent() != nullptr ? &transform_3d->get_parent()->get_entity() : nullptr;
+        }
+
+        return nullptr;
+    }
+
+    void Entity::get_child_entities(std::vector<Entity*>& out_children) const {
+        out_children.clear();
+
+        if (const TransformComponent* transform = get_transform()) {
+            for (const TransformComponent* child : transform->get_children()) {
+                out_children.push_back(&child->get_entity());
+            }
+            return;
+        }
+
+        if (const TransformComponent3D* transform_3d = get_transform_3d()) {
+            for (const TransformComponent3D* child : transform_3d->get_children()) {
+                out_children.push_back(&child->get_entity());
+            }
+        }
     }
 
     RigidbodyComponent* Entity::get_rigidbody() const {
@@ -216,6 +289,15 @@ namespace hob {
         }
 
         return m_rigidbody;
+    }
+
+    RigidbodyComponent3D* Entity::get_rigidbody_3d() const {
+        if (!m_rigidbody_3d_resolved) {
+            m_rigidbody_3d = get_component<RigidbodyComponent3D>();
+            m_rigidbody_3d_resolved = true;
+        }
+
+        return m_rigidbody_3d;
     }
 
     LuaScriptComponent* Entity::add_lua_component(std::string class_name) {

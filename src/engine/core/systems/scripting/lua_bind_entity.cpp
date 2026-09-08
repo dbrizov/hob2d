@@ -5,18 +5,27 @@
 
 #include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
+#include "engine/components/camera_component_3d.h"
+#include "engine/components/directional_light_component.h"
 #include "engine/components/input_component.h"
 #include "engine/components/lua_script_component.h"
 #include "engine/components/lua_script_component_impl.h"
+#include "engine/components/mesh_renderer_component.h"
 #include "engine/components/physics/box_collider_component.h"
 #include "engine/components/physics/capsule_collider_component.h"
 #include "engine/components/physics/character_body_component.h"
 #include "engine/components/physics/circle_collider_component.h"
 #include "engine/components/physics/rigidbody_component.h"
+#include "engine/components/physics_3d/box_collider_component_3d.h"
+#include "engine/components/physics_3d/capsule_collider_component_3d.h"
+#include "engine/components/physics_3d/character_body_component_3d.h"
+#include "engine/components/physics_3d/rigidbody_component_3d.h"
+#include "engine/components/physics_3d/sphere_collider_component_3d.h"
 #include "engine/components/sockets_component.h"
 #include "engine/components/sprite_animator_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/components/transform_component_3d.h"
 #include "engine/core/logging.h"
 #include "engine/entity/entity.h"
 #include "engine/entity/entity_ref.h"
@@ -95,6 +104,16 @@ namespace hob {
                         Entity* e = r.resolve();
                         return e ? e->get_transform() : nullptr;
                     })
+            .method("get_transform_3d",
+                    [](const EntityRef& r) -> TransformComponent3D* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_transform_3d() : nullptr;
+                    })
+            .method("get_space",
+                    [](const EntityRef& r) -> const char* {
+                        Entity* e = r.resolve();
+                        return e ? space_to_key(e->get_space()) : space_key::SPACE_2D;
+                    })
             .method("get_rigidbody",
                     [](const EntityRef& r) -> RigidbodyComponent* {
                         Entity* e = r.resolve();
@@ -109,6 +128,31 @@ namespace hob {
                     [](const EntityRef& r) -> BoxColliderComponent* {
                         Entity* e = r.resolve();
                         return e ? e->get_component<BoxColliderComponent>() : nullptr;
+                    })
+            .method("get_character_body_3d",
+                    [](const EntityRef& r) -> CharacterBodyComponent3D* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_component<CharacterBodyComponent3D>() : nullptr;
+                    })
+            .method("get_rigidbody_3d",
+                    [](const EntityRef& r) -> RigidbodyComponent3D* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_rigidbody_3d() : nullptr;
+                    })
+            .method("get_box_collider_3d",
+                    [](const EntityRef& r) -> BoxColliderComponent3D* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_component<BoxColliderComponent3D>() : nullptr;
+                    })
+            .method("get_sphere_collider_3d",
+                    [](const EntityRef& r) -> SphereColliderComponent3D* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_component<SphereColliderComponent3D>() : nullptr;
+                    })
+            .method("get_capsule_collider_3d",
+                    [](const EntityRef& r) -> CapsuleColliderComponent3D* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_component<CapsuleColliderComponent3D>() : nullptr;
                     })
             .method("get_capsule_collider",
                     [](const EntityRef& r) -> CapsuleColliderComponent* {
@@ -144,6 +188,21 @@ namespace hob {
                     [](const EntityRef& r) -> CameraComponent* {
                         Entity* e = r.resolve();
                         return e ? e->get_component<CameraComponent>() : nullptr;
+                    })
+            .method("get_camera_3d",
+                    [](const EntityRef& r) -> CameraComponent3D* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_component<CameraComponent3D>() : nullptr;
+                    })
+            .method("get_directional_light",
+                    [](const EntityRef& r) -> DirectionalLightComponent* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_component<DirectionalLightComponent>() : nullptr;
+                    })
+            .method("get_mesh_renderer",
+                    [](const EntityRef& r) -> MeshRendererComponent* {
+                        Entity* e = r.resolve();
+                        return e ? e->get_component<MeshRendererComponent>() : nullptr;
                     })
             .method("get_audio",
                     [](const EntityRef& r) -> AudioComponent* {

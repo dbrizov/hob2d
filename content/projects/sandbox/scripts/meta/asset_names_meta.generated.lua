@@ -44,6 +44,8 @@
 ---@field tint_green Material
 ---@field tint_orange Material
 
+---@class Meshes
+
 ---@class AudioClips
 ---@field whoosh_single AudioClip
 

@@ -40,6 +40,14 @@ _G.__asset_factory_schemas = {
             { name = "textures" },
         },
     },
+    Meshes = {
+        define = "DefineMesh",
+        lua_type = "Mesh",
+        fields = {
+            { name = "primitive" },
+            { name = "path" },
+        },
+    },
     AudioClips = {
         define = "DefineAudioClip",
         lua_type = "AudioClip",

@@ -22,6 +22,7 @@
 #include "editor_modal.h"
 #include "editor_selection.h"
 #include "engine/core/engine_hooks.h"
+#include "engine/core/space.h"
 #include "engine/core/world_state.h"
 
 namespace hob {
@@ -38,6 +39,7 @@ namespace hob::editor {
 
         std::string m_window_title;
         std::string m_current_scene;
+        Space m_scene_space = Space::Space2D;
         std::string m_pending_scene_open;
         std::string m_pending_prefab_delete;
 
@@ -85,6 +87,7 @@ namespace hob::editor {
 
         std::vector<std::string> get_scene_names() const;
         const std::string& get_current_scene() const;
+        Space get_scene_space() const;
         void open_pending_scene();
 
         std::vector<std::string> get_dirty_prefab_names() const;
@@ -159,6 +162,7 @@ namespace hob::editor {
         void restore_selection(const EditorSelectionInstanceIds& captured);
 
         void reset_edit_session();
+        void refresh_scene_space();
         void clear_world();
         void load_scene();
 

@@ -133,6 +133,14 @@ namespace hob::editor {
         : EditorDock("Scene", EditorActionContext::SceneView) {}
 
     void EditorDockSceneView::update_input(Editor& editor) {
+        if (editor.get_scene_space() == Space::Space3D) {
+            m_gizmo.clear_hover();
+            update_input_3d(editor);
+            return;
+        }
+
+        m_flying = false;
+
         const bool dragging = m_gizmo.is_dragging();
         if (!dragging && (!m_rect_valid || !m_hovered)) {
             m_gizmo.clear_hover();
@@ -199,15 +207,21 @@ namespace hob::editor {
                     m_rect_valid = true;
                     m_hovered = ImGui::IsItemHovered();
 
-                    handle_prefab_drop(editor, scene_rect);
-
                     ImDrawList* draw_list = ImGui::GetWindowDrawList();
                     draw_list->PushClipRect(
                         item_min, ImVec2(item_min.x + image_size.x, item_min.y + image_size.y), true);
-                    draw_grid(draw_list, scene_rect);
-                    draw_camera_view_rect(editor, draw_list, scene_rect);
-                    draw_selection_overlay(editor, draw_list, scene_rect);
-                    m_gizmo.draw(editor, draw_list, m_camera, scene_rect);
+
+                    if (editor.get_scene_space() == Space::Space3D) {
+                        draw_3d(editor, draw_list, scene_rect);
+                    }
+                    else {
+                        handle_prefab_drop(editor, scene_rect);
+                        draw_grid(draw_list, scene_rect);
+                        draw_camera_view_rect(editor, draw_list, scene_rect);
+                        draw_selection_overlay(editor, draw_list, scene_rect);
+                        m_gizmo.draw(editor, draw_list, m_camera, scene_rect);
+                    }
+
                     draw_list->PopClipRect();
                 }
             }
@@ -217,6 +231,11 @@ namespace hob::editor {
 
     void EditorDockSceneView::render_pass(Editor& editor) {
         if (m_color_target == nullptr) {
+            return;
+        }
+
+        if (editor.get_scene_space() == Space::Space3D) {
+            render_pass_3d(editor);
             return;
         }
 
@@ -231,7 +250,9 @@ namespace hob::editor {
             return;
         }
 
-        SDL_ReleaseGPUTexture(editor.get_engine().get_renderer().get_gpu_device(), m_color_target);
+        const Renderer& renderer = editor.get_engine().get_renderer();
+        SDL_ReleaseGPUTexture(renderer.get_gpu_device(), m_color_target);
+        renderer.release_targets_3d(m_targets_3d);
         m_color_target = nullptr;
         m_color_target_width = 0;
         m_color_target_height = 0;
@@ -243,6 +264,7 @@ namespace hob::editor {
 
     void EditorDockSceneView::set_gizmo_mode(EditorGizmoMode mode) {
         m_gizmo.set_mode(mode);
+        m_gizmo_3d.set_mode(mode);
     }
 
     EditorGizmoSpace EditorDockSceneView::get_gizmo_space() const {
@@ -251,14 +273,21 @@ namespace hob::editor {
 
     void EditorDockSceneView::toggle_gizmo_space() {
         m_gizmo.toggle_space();
+        m_gizmo_3d.toggle_space();
     }
 
     void EditorDockSceneView::reset_gizmo() {
         m_gizmo.reset();
+        m_gizmo_3d.reset();
     }
 
     void EditorDockSceneView::focus_on_selection(const Editor& editor) {
         if (!m_rect_valid) {
+            return;
+        }
+
+        if (editor.get_scene_space() == Space::Space3D) {
+            focus_on_selection_3d(editor);
             return;
         }
 
@@ -288,16 +317,21 @@ namespace hob::editor {
         width = std::max(width, MIN_COLOR_TARGET_SIZE_PX);
         height = std::max(height, MIN_COLOR_TARGET_SIZE_PX);
 
-        if (m_color_target && width == m_color_target_width && height == m_color_target_height) {
+        const Renderer& renderer = editor.get_engine().get_renderer();
+        const bool size_matches = width == m_color_target_width && height == m_color_target_height;
+        const bool msaa_matches = m_targets_3d.sample_count == renderer.get_msaa_sample_count();
+        if (m_color_target && size_matches && msaa_matches) {
             return;
         }
 
         release_color_target(editor);
 
-        m_color_target = editor.get_engine().get_renderer().create_color_target(width, height);
+        m_color_target = renderer.create_color_target(width, height);
         if (m_color_target == nullptr) {
             return;
         }
+
+        renderer.create_targets_3d(m_targets_3d, width, height);
 
         m_color_target_width = width;
         m_color_target_height = height;

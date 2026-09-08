@@ -85,6 +85,21 @@ namespace hob {
                 p.value("interpolation_enabled", physics_config.interpolation_enabled);
         }
 
+        if (json.contains("physics_3d")) {
+            const auto& p = json["physics_3d"];
+            if (p.contains("gravity")) {
+                const auto& gravity = p["gravity"];
+                physics_config_3d.gravity.x = gravity.value("x", physics_config_3d.gravity.x);
+                physics_config_3d.gravity.y = gravity.value("y", physics_config_3d.gravity.y);
+                physics_config_3d.gravity.z = gravity.value("z", physics_config_3d.gravity.z);
+            }
+
+            physics_config_3d.ticks_per_second = p.value("ticks_per_second", physics_config_3d.ticks_per_second);
+            physics_config_3d.sub_steps_per_tick = p.value("sub_steps_per_tick", physics_config_3d.sub_steps_per_tick);
+            physics_config_3d.interpolation_enabled =
+                p.value("interpolation_enabled", physics_config_3d.interpolation_enabled);
+        }
+
         if (json.contains("audio")) {
             const auto& a = json["audio"];
             audio_config.master_volume = a.value("master_volume", audio_config.master_volume);

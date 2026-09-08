@@ -5,9 +5,12 @@
 #include <imgui.h>
 
 #include "engine/components/audio_component.h"
+#include "engine/components/mesh_renderer_component.h"
 #include "engine/components/physics/rigidbody_component.h"
+#include "engine/components/physics_3d/rigidbody_component_3d.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
+#include "engine/components/transform_component_3d.h"
 #include "engine/core/assert.h"
 #include "engine/core/engine.h"
 #include "engine/core/logging.h"
@@ -38,13 +41,19 @@ namespace hob {
         m_entities_cleared_handler = std::move(callback);
     }
 
-    Entity& EntitySpawner::spawn_entity() {
+    Entity& EntitySpawner::spawn_entity(Space space) {
         std::unique_ptr<Entity> entity = std::unique_ptr<Entity>(new Entity(m_engine));
 
         const EntityId entity_id = m_next_entity_id;
         m_next_entity_id += 1;
         entity->set_id(entity_id);
-        entity->add_component<TransformComponent>();
+        entity->m_space = space;
+        if (space == Space::Space3D) {
+            entity->add_component<TransformComponent3D>();
+        }
+        else {
+            entity->add_component<TransformComponent>();
+        }
 
         Entity* entity_ptr = entity.get();
         m_entity_spawn_requests.push_back(std::move(entity));
@@ -63,16 +72,21 @@ namespace hob {
         const bool was_pending = record_it->second.live_index == INVALID_ENTITY_INDEX;
 
         // Destroy the whole subtree. Snapshot the children because each recursive call mutates this list.
-        TransformComponent* transform = entity->get_transform();
-        const std::vector<TransformComponent*> children = transform->get_children();
-        for (const TransformComponent* child : children) {
-            destroy_entity(child->get_entity().get_id());
+        std::vector<Entity*> children;
+        entity->get_child_entities(children);
+        for (const Entity* child : children) {
+            destroy_entity(child->get_id());
         }
 
         if (was_pending) {
             // Pending entities never enter the world, so exit_world()/detach won't run. Detach synchronously to
             // avoid leaving a dangling pointer in a surviving parent (or in a still-in-play child).
-            transform->detach_from_hierarchy();
+            if (TransformComponent* transform = entity->get_transform()) {
+                transform->detach_from_hierarchy();
+            }
+            else if (TransformComponent3D* transform_3d = entity->get_transform_3d()) {
+                transform_3d->detach_from_hierarchy();
+            }
 
             // Drop the pending spawn request, which frees the Entity's unique_ptr.
             std::erase_if(m_entity_spawn_requests, [&](const std::unique_ptr<Entity>& e) {
@@ -133,6 +147,29 @@ namespace hob {
         return m_ticking_entities;
     }
 
+    void EntitySpawner::register_mesh_renderer(MeshRendererComponent* mesh_renderer) {
+        mesh_renderer->m_mesh_renderer_index = static_cast<MeshRendererIndex>(m_mesh_renderers.size());
+        m_mesh_renderers.push_back(mesh_renderer);
+    }
+
+    void EntitySpawner::unregister_mesh_renderer(MeshRendererComponent* mesh_renderer) {
+        const MeshRendererIndex index = mesh_renderer->m_mesh_renderer_index;
+        HOB_ASSERT(index != INVALID_MESH_RENDERER_INDEX && index < m_mesh_renderers.size(),
+                   "Unregistering a mesh renderer that isn't registered");
+        const MeshRendererIndex last_index = static_cast<MeshRendererIndex>(m_mesh_renderers.size() - 1);
+        if (index != last_index) {
+            m_mesh_renderers[index] = m_mesh_renderers[last_index];
+            m_mesh_renderers[index]->m_mesh_renderer_index = index;
+        }
+
+        m_mesh_renderers.pop_back();
+        mesh_renderer->m_mesh_renderer_index = INVALID_MESH_RENDERER_INDEX;
+    }
+
+    const std::vector<MeshRendererComponent*>& EntitySpawner::get_mesh_renderers() const {
+        return m_mesh_renderers;
+    }
+
     void EntitySpawner::register_sprite(SpriteComponent* sprite) {
         sprite->m_sprite_index = static_cast<SpriteIndex>(m_sprites.size());
         m_sprites.push_back(sprite);
@@ -179,6 +216,29 @@ namespace hob {
 
     const std::vector<RigidbodyComponent*>& EntitySpawner::get_simulated_rigidbodies() const {
         return m_simulated_rigidbodies;
+    }
+
+    void EntitySpawner::register_simulated_rigidbody_3d(RigidbodyComponent3D* rigidbody) {
+        rigidbody->m_rigidbody_index = static_cast<RigidbodyIndex3D>(m_simulated_rigidbodies_3d.size());
+        m_simulated_rigidbodies_3d.push_back(rigidbody);
+    }
+
+    void EntitySpawner::unregister_simulated_rigidbody_3d(RigidbodyComponent3D* rigidbody) {
+        const RigidbodyIndex3D index = rigidbody->m_rigidbody_index;
+        HOB_ASSERT(index != INVALID_RIGIDBODY_INDEX_3D && index < m_simulated_rigidbodies_3d.size(),
+                   "Unregistering a 3D rigidbody that isn't registered");
+        const RigidbodyIndex3D last_index = static_cast<RigidbodyIndex3D>(m_simulated_rigidbodies_3d.size() - 1);
+        if (index != last_index) {
+            m_simulated_rigidbodies_3d[index] = m_simulated_rigidbodies_3d[last_index];
+            m_simulated_rigidbodies_3d[index]->m_rigidbody_index = index;
+        }
+
+        m_simulated_rigidbodies_3d.pop_back();
+        rigidbody->m_rigidbody_index = INVALID_RIGIDBODY_INDEX_3D;
+    }
+
+    const std::vector<RigidbodyComponent3D*>& EntitySpawner::get_simulated_rigidbodies_3d() const {
+        return m_simulated_rigidbodies_3d;
     }
 
     void EntitySpawner::register_audio(AudioComponent* audio) {
@@ -256,12 +316,11 @@ namespace hob {
                         continue;
                     }
 
-                    const TransformComponent* transform = entity->get_transform();
-                    if (transform && transform->get_parent() != nullptr) {
+                    if (entity->get_parent_entity() != nullptr) {
                         continue; // Reached via its parent instead.
                     }
 
-                    debug_hierarchy_node(transform);
+                    debug_hierarchy_node(*entity);
                 }
             }
             ImGui::EndChild();
@@ -275,13 +334,9 @@ namespace hob {
         ImGui::End();
     }
 
-    void EntitySpawner::debug_hierarchy_node(const TransformComponent* transform) {
-        if (transform == nullptr) {
-            return;
-        }
-
-        const Entity& entity = transform->get_entity();
-        const std::vector<TransformComponent*>& children = transform->get_children();
+    void EntitySpawner::debug_hierarchy_node(const Entity& entity) {
+        std::vector<Entity*> children;
+        entity.get_child_entities(children);
 
         ImGuiTreeNodeFlags flags =
             ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth;
@@ -303,8 +358,8 @@ namespace hob {
         }
 
         if (open) {
-            for (TransformComponent* child : children) {
-                debug_hierarchy_node(child);
+            for (const Entity* child : children) {
+                debug_hierarchy_node(*child);
             }
             ImGui::TreePop();
         }
@@ -361,6 +416,21 @@ namespace hob {
             ImGui::InputFloat("##rotation", &local_rot, 0.0f, 0.0f, "%.2f", field_flags);
 
             vec2_field("Scale", "##scale", local_scale);
+        }
+        else if (const TransformComponent3D* transform_3d = entity->get_transform_3d()) {
+            ImGui::SeparatorText("Transform 3D");
+
+            const auto vec3_field = [&](const char* label, const char* id, const Vector3& v) {
+                float xyz[3] = {v.x, v.y, v.z};
+                ImGui::TextUnformatted(label);
+                ImGui::SameLine(label_width);
+                ImGui::SetNextItemWidth(-EPSILON);
+                ImGui::InputFloat3(id, xyz, "%.2f", field_flags);
+            };
+
+            vec3_field("Position", "##position", transform_3d->get_local_position());
+            vec3_field("Rotation", "##rotation", transform_3d->get_local_euler_deg());
+            vec3_field("Scale", "##scale", transform_3d->get_local_scale());
         }
 
         ImGui::SeparatorText("Components");

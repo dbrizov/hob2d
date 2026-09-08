@@ -9,6 +9,7 @@
 #include "editor/editor_gui_utils.h"
 #include "editor/editor_instances.h"
 #include "engine/core/assert.h"
+#include "engine/core/space.h"
 
 namespace hob::editor {
     namespace {
@@ -286,7 +287,22 @@ namespace hob::editor {
                 .format_label = nullptr,
                 .run =
                     [](Editor& editor) {
-                        show_new_scene_dialog(editor);
+                        show_new_scene_dialog(editor, Space::Space2D);
+                    },
+            },
+            {
+                .id = EditorActionId::NewScene3D,
+                .label = "New 3D Scene...",
+                .chord = ImGuiKey_None,
+                .context = EditorActionContext::Global,
+                .is_enabled =
+                    [](const Editor& editor) {
+                        return can_new_scene(editor);
+                    },
+                .format_label = nullptr,
+                .run =
+                    [](Editor& editor) {
+                        show_new_scene_dialog(editor, Space::Space3D);
                     },
             },
             {

@@ -63,6 +63,12 @@ end
 
 ---@param name string
 ---@return string|nil
+---@param name string
+---@return string "2d" or "3d"
+function Editor.get_prefab_space(name)
+    return EntitySpawner.get_prefab_space(name)
+end
+
 function Editor.get_prefab_file(name)
     return __get_def_source(DefRegistry.ENTITIES, name)
 end
@@ -350,8 +356,11 @@ function Editor.get_addable_prefab_sections(name)
 
     local rows = {}
     local schemas = _G.__component_schemas
+    local prefab_space = __resolve_def_space(def)
     for _, key in ipairs(schemas.__order) do
-        if schemas[key].map_setter == nil and def[key] == nil and not present[key] then
+        local schema = schemas[key]
+        local fits_space = schema.space == nil or schema.space == prefab_space
+        if fits_space and schema.map_setter == nil and def[key] == nil and not present[key] then
             rows[#rows + 1] = { name = key, is_lua = false }
         end
     end
