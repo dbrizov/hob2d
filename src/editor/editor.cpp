@@ -449,7 +449,16 @@ namespace hob::editor {
     }
 
     std::array<EditorDock*, Editor::DOCK_COUNT> Editor::get_docks() {
-        return {&m_scene_view, &m_hierarchy, &m_inspector, &m_assets, &m_output};
+        return {&m_scene_view,
+                &m_hierarchy,
+                &m_inspector,
+                &m_assets,
+                &m_output,
+                &m_sprite_queue,
+                &m_textures,
+                &m_shaders,
+                &m_materials,
+                &m_audio_clips};
     }
 
     void Editor::update_input() {

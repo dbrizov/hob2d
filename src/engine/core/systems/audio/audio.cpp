@@ -115,6 +115,10 @@ namespace hob {
         return m_mixer;
     }
 
+    const std::unordered_map<std::string, AudioClipWeakRef, StringHash, std::equal_to<>>& Audio::get_clips() const {
+        return m_clips;
+    }
+
     AudioClipRef Audio::get_cached_clip(std::string_view key) const {
         const auto it = m_clips.find(key);
         if (it == m_clips.end()) {

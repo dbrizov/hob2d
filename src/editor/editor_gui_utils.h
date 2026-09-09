@@ -58,6 +58,8 @@ namespace hob::editor {
 
     float get_bar_height();
 
+    void center_next_window(const ImVec2& size);
+
     ImGuiID dock_space_over_viewport(ImGuiDockNodeFlags flags);
 
     bool begin_dock(const char* name, bool* p_open, ImGuiWindowFlags flags = 0);

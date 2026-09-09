@@ -42,6 +42,8 @@ namespace hob {
 
         MIX_Mixer* get_mixer() const;
 
+        const std::unordered_map<std::string, AudioClipWeakRef, StringHash, std::equal_to<>>& get_clips() const;
+
         AudioClipRef get_cached_clip(std::string_view key) const;
         AudioClipRef get_or_load_clip(std::string_view relative_path);
 

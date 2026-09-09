@@ -50,5 +50,6 @@ namespace hob::editor {
 
     private:
         void update_name();
+        void draw_dock_menu();
     };
 } // namespace hob::editor

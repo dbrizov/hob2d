@@ -160,6 +160,12 @@ namespace hob::editor {
         return ImGui::GetCurrentWindow()->MenuBarRect().GetHeight();
     }
 
+    void center_next_window(const ImVec2& size) {
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->GetCenter(), ImGuiCond_FirstUseEver, ImVec2(0.5f, 0.5f));
+        ImGui::SetNextWindowSize(size, ImGuiCond_FirstUseEver);
+    }
+
     ImGuiID dock_space_over_viewport(ImGuiDockNodeFlags flags) {
         EditorStyleVarStack vars;
         vars.push(ImGuiStyleVar_ItemInnerSpacing, DOCK_TAB_SPACING);
@@ -184,7 +190,7 @@ namespace hob::editor {
         EditorStyleVarStack vars;
         vars.push(ImGuiStyleVar_WindowBorderSize, is_floating ? DOCK_BORDER_SIZE_FLOATING : DOCK_BORDER_SIZE);
 
-        const bool visible = ImGui::Begin(name, p_open, flags);
+        const bool visible = ImGui::Begin(name, is_floating ? p_open : nullptr, flags);
 
         vars.pop();
         colors.pop();

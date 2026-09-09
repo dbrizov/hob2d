@@ -10,6 +10,18 @@
 #include "renderer.h"
 
 namespace hob {
+    const std::unordered_map<std::string, TextureWeakRef, StringHash, std::equal_to<>>& Renderer::get_textures() const {
+        return m_textures;
+    }
+
+    const std::unordered_map<std::string, ShaderRef>& Renderer::get_shaders() const {
+        return m_shaders;
+    }
+
+    const std::vector<MaterialWeakRef>& Renderer::get_materials() const {
+        return m_materials;
+    }
+
     TextureRef Renderer::get_cached_texture(std::string_view key) const {
         const auto it = m_textures.find(key);
         if (it == m_textures.end()) {

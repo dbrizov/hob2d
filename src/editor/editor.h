@@ -12,10 +12,15 @@
 #include "bars/editor_toolbar.h"
 #include "commands/editor_command_stack.h"
 #include "docks/editor_dock_assets.h"
+#include "docks/editor_dock_audio_clips.h"
 #include "docks/editor_dock_hierarchy.h"
 #include "docks/editor_dock_inspector.h"
+#include "docks/editor_dock_materials.h"
 #include "docks/editor_dock_output.h"
 #include "docks/editor_dock_scene_view.h"
+#include "docks/editor_dock_shaders.h"
+#include "docks/editor_dock_sprite_queue.h"
+#include "docks/editor_dock_textures.h"
 #include "editor_config.h"
 #include "editor_file_dialog.h"
 #include "editor_icons.h"
@@ -30,7 +35,7 @@ namespace hob {
 
 namespace hob::editor {
     class Editor : public EngineHooks {
-        static constexpr size_t DOCK_COUNT = 5;
+        static constexpr size_t DOCK_COUNT = 10;
 
         Engine& m_engine;
 
@@ -62,6 +67,11 @@ namespace hob::editor {
         EditorDockInspector m_inspector;
         EditorDockAssets m_assets;
         EditorDockOutput m_output;
+        EditorDockSpriteQueue m_sprite_queue;
+        EditorDockTextures m_textures;
+        EditorDockShaders m_shaders;
+        EditorDockMaterials m_materials;
+        EditorDockAudioClips m_audio_clips;
 
     public:
         explicit Editor(Engine& engine);

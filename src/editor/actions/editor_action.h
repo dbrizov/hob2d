@@ -45,6 +45,7 @@ namespace hob::editor {
         Inspector,
         Assets,
         Output,
+        Debug,
         Count,
     };
 

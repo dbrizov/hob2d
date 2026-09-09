@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstring>
+#include <format>
 
 #include "engine/core/logging.h"
 
@@ -82,6 +83,10 @@ namespace hob {
         if (m_pipeline) {
             SDL_ReleaseGPUGraphicsPipeline(m_device, m_pipeline);
         }
+    }
+
+    std::string Shader::get_debug_label() const {
+        return std::format("{} [{}, {}]", m_path, blend_mode_to_string(m_blend_mode), cull_mode_to_string(m_cull_mode));
     }
 
     const std::string& Shader::get_path() const {

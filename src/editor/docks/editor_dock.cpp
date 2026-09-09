@@ -5,6 +5,11 @@
 #include "editor/editor_gui_utils.h"
 
 namespace hob::editor {
+    namespace {
+        constexpr const char* DOCK_MENU_POPUP_ID = "DockMenu";
+        constexpr const char* HIDE_LABEL = "Hide";
+    } // namespace
+
     EditorDock::EditorDock(std::string_view id, EditorActionContext context, bool visible)
         : m_id(id)
         , m_label(id)
@@ -26,9 +31,22 @@ namespace hob::editor {
         if (visible) {
             m_hovered = ImGui::IsWindowHovered();
             m_focused = ImGui::IsWindowFocused();
+            draw_dock_menu();
         }
 
         return visible;
+    }
+
+    void EditorDock::draw_dock_menu() {
+        // Begin() leaves the title bar (the tab, when docked) as the last item, which is what this targets.
+        ImGui::OpenPopupOnItemClick(DOCK_MENU_POPUP_ID, ImGuiPopupFlags_MouseButtonRight);
+
+        if (begin_context_menu(DOCK_MENU_POPUP_ID)) {
+            if (menu_item(HIDE_LABEL)) {
+                m_visible = false;
+            }
+            end_context_menu();
+        }
     }
 
     void EditorDock::end() {

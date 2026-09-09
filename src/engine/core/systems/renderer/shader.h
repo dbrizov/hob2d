@@ -97,6 +97,8 @@ namespace hob {
         Shader(Shader&&) = delete;
         Shader& operator=(Shader&&) = delete;
 
+        std::string get_debug_label() const;
+
         const std::string& get_path() const;
         BlendMode get_blend_mode() const;
         CullMode get_cull_mode() const;

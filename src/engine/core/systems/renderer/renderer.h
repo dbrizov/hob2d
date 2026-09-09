@@ -207,6 +207,9 @@ namespace hob {
         void unregister_sprite_draw(SpriteDrawId draw_id);
         void update_sprite_draw(SpriteDrawId draw_id, SpriteDrawData draw_data);
         const SpriteDrawData* get_sprite_draw(SpriteDrawId draw_id) const;
+        const std::vector<SpriteDrawData>& get_sprite_draws() const;
+        const std::vector<uint32_t>& get_sprite_draw_order() const;
+        void sort_sprite_draws();
 
         void draw_debug_line(const Vector2& screen_start,
                              const Vector2& screen_end,
@@ -241,6 +244,10 @@ namespace hob {
 
         SDL_GPUSampler* get_or_create_sampler(const SamplerDesc& desc);
         const SamplerDesc& get_default_sampler_desc() const;
+
+        const std::unordered_map<std::string, TextureWeakRef, StringHash, std::equal_to<>>& get_textures() const;
+        const std::unordered_map<std::string, ShaderRef>& get_shaders() const;
+        const std::vector<MaterialWeakRef>& get_materials() const;
 
         bool upload_texture_rgba(SDL_GPUTexture* dst_texture, const void* pixels, uint32_t width, uint32_t height);
         bool upload_buffer(SDL_GPUBuffer* dst_buffer, const void* data, uint32_t size);
