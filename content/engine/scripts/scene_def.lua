@@ -59,8 +59,6 @@ function Scene.apply_cpp_overrides(entity, cpp_overrides)
             local component = entity[schema.get](entity)
             if component == nil then
                 Log.error("Scene override: entity has no '" .. key .. "' component")
-            elseif schema.map_setter then
-                call_setter(component, schema.map_setter, unwrap_def(section))
             else
                 for field, value in pairs(section) do
                     local setter = schema.setters[field]

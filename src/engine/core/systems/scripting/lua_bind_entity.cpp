@@ -13,7 +13,6 @@
 #include "engine/components/physics/character_body_component.h"
 #include "engine/components/physics/circle_collider_component.h"
 #include "engine/components/physics/rigidbody_component.h"
-#include "engine/components/sockets_component.h"
 #include "engine/components/sprite_animator_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
@@ -134,11 +133,6 @@ namespace hob {
                     [](const EntityRef& r) -> SpriteAnimatorComponent* {
                         Entity* e = r.resolve();
                         return e ? e->get_component<SpriteAnimatorComponent>() : nullptr;
-                    })
-            .method("get_sockets",
-                    [](const EntityRef& r) -> SocketsComponent* {
-                        Entity* e = r.resolve();
-                        return e ? e->get_component<SocketsComponent>() : nullptr;
                     })
             .method("get_camera",
                     [](const EntityRef& r) -> CameraComponent* {

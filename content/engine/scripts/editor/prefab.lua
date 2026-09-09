@@ -211,8 +211,8 @@ function Editor.set_prefab_field(name, component_key, field, value)
         return set_root_field(name, def, field, value)
     end
 
-    if schema == nil or schema.map_setter then
-        Log.error("Editor.set_prefab_field: '" .. tostring(component_key) .. "' has no per-field setters")
+    if schema == nil then
+        Log.error("Editor.set_prefab_field: unknown component '" .. tostring(component_key) .. "'")
         return false
     end
 
@@ -351,7 +351,7 @@ function Editor.get_addable_prefab_sections(name)
     local rows = {}
     local schemas = _G.__component_schemas
     for _, key in ipairs(schemas.__order) do
-        if schemas[key].map_setter == nil and def[key] == nil and not present[key] then
+        if def[key] == nil and not present[key] then
             rows[#rows + 1] = { name = key, is_lua = false }
         end
     end
@@ -397,7 +397,7 @@ function Editor.add_prefab_section(name, key, is_lua, removed)
         end
     else
         local schema = _G.__component_schemas[key]
-        if schema == nil or schema.map_setter then
+        if schema == nil then
             Log.error("Editor.add_prefab_section: '" .. tostring(key) .. "' is not an addable component")
             return false
         end

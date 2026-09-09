@@ -9,7 +9,6 @@
 #include "engine/components/audio_component.h"
 #include "engine/components/camera_component.h"
 #include "engine/components/physics/rigidbody_component.h"
-#include "engine/components/sockets_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
 #include "engine/core/assert.h"
@@ -53,7 +52,6 @@ namespace hob {
         m_renderer.register_cvars(m_console);
         m_physics.register_cvars(m_console);
         m_lua_script_system.register_cvars(m_console);
-        SocketsComponent::register_cvars(m_console);
 
         if (config.host_config.main_window_hosts_game) {
             m_renderer.set_game_window(&m_main_window);

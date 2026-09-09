@@ -612,9 +612,6 @@ function Entity:get_sprite() end
 ---@return SpriteAnimatorComponent?
 function Entity:get_sprite_animator() end
 
----@return SocketsComponent?
-function Entity:get_sockets() end
-
 ---@return CameraComponent?
 function Entity:get_camera() end
 
@@ -658,9 +655,6 @@ function Entity:add_sprite() end
 
 ---@return SpriteAnimatorComponent?
 function Entity:add_sprite_animator() end
-
----@return SocketsComponent?
-function Entity:add_sockets() end
 
 ---@return CameraComponent?
 function Entity:add_camera() end
@@ -1037,23 +1031,6 @@ function SpriteAnimatorComponent:get_clips() end
 function SpriteAnimatorComponent:set_clips(clips) end
 
 _G.SpriteAnimatorComponent = SpriteAnimatorComponent
-
--- SocketsComponent
----@class SocketsComponent : Component
-local SocketsComponent = {}
-
----@param name string
----@return TransformComponent?
-function SocketsComponent:get_socket(name) end
-
----@param name string
----@return boolean
-function SocketsComponent:has_socket(name) end
-
----@param sockets table<string, { position: Vector2, rotation: number }>
-function SocketsComponent:set_sockets(sockets) end
-
-_G.SocketsComponent = SocketsComponent
 
 -- CameraComponent
 ---@class CameraComponent : Component

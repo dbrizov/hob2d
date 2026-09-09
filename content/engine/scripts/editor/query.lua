@@ -709,17 +709,15 @@ function Editor.get_components(entity_id)
 
     for _, key in ipairs(schemas.__order) do
         local schema = schemas[key]
-        if not schema.map_setter then
-            local component = entity[schema.get](entity)
-            if component ~= nil then
-                local fields = {}
-                append_schema_fields(fields, component, schema)
-                out[#out + 1] = mark_overridden({
-                    name = key,
-                    is_lua = false,
-                    fields = fields
-                })
-            end
+        local component = entity[schema.get](entity)
+        if component ~= nil then
+            local fields = {}
+            append_schema_fields(fields, component, schema)
+            out[#out + 1] = mark_overridden({
+                name = key,
+                is_lua = false,
+                fields = fields
+            })
         end
     end
 

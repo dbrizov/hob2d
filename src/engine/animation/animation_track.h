@@ -1,11 +1,9 @@
 #pragma once
 
 #include <memory>
-#include <string>
 #include <vector>
 
 #include "engine/core/systems/renderer/texture.h"
-#include "engine/math/vector2.h"
 
 namespace hob {
     class Entity;
@@ -30,24 +28,6 @@ namespace hob {
     public:
         std::vector<Keyframe<TextureRef>> keys;
         float length = 0.0f;
-
-        void apply_key_values(Entity& entity, float time) const override;
-        float get_duration() const override;
-    };
-
-    class SocketPositionTrack : public AnimationTrack {
-    public:
-        std::vector<Keyframe<Vector2>> keys;
-        std::string socket;
-
-        void apply_key_values(Entity& entity, float time) const override;
-        float get_duration() const override;
-    };
-
-    class SocketRotationTrack : public AnimationTrack {
-    public:
-        std::vector<Keyframe<float>> keys;
-        std::string socket;
 
         void apply_key_values(Entity& entity, float time) const override;
         float get_duration() const override;

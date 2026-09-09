@@ -9,7 +9,6 @@ namespace hob {
 
     namespace component_priority {
         constexpr int32_t CP_INPUT = -100;
-        constexpr int32_t CP_SOCKETS = -50;
         constexpr int32_t CP_DEFAULT = 0;
     } // namespace component_priority
 

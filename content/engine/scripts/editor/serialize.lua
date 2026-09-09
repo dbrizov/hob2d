@@ -389,9 +389,8 @@ local function serialize_cpp_sections(sections_by_key, path, depth, prefix, pref
     for _, key in ipairs(ordered_keys(sections_by_key, schemas.__order)) do
         local schema = schemas[key]
 
-        local has_elidable_fields = schema ~= nil and schema.map_setter == nil
-        local prefab_section = has_elidable_fields and get_prefab_section(prefab_name, key) or nil
-        local defaults = has_elidable_fields and __get_component_defaults(key) or nil
+        local prefab_section = schema ~= nil and get_prefab_section(prefab_name, key) or nil
+        local defaults = schema ~= nil and __get_component_defaults(key) or nil
 
         local section = serialize_cpp_section(sections_by_key[key], schema, path .. "." .. key,
             depth + 1, field_prefix(key), prefab_section, defaults)
@@ -500,7 +499,7 @@ end
 
 local function serialize_prefab_section(section, key, path, depth, prefix)
     local schema = _G.__component_schemas[key]
-    if schema == nil or schema.map_setter then
+    if schema == nil then
         return serialize_value(section, nil, path, depth, prefix)
     end
 

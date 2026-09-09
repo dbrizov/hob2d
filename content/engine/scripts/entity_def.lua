@@ -129,11 +129,7 @@ local function apply_prefab(entity, prefab)
     end
 
     for_each_section(entity, prefab, "add", function(_, schema, section, component)
-        if schema.map_setter then
-            call_setter(component, schema.map_setter, unwrap_def(section))
-        else
-            apply_setters(component, section, schema.setters)
-        end
+        apply_setters(component, section, schema.setters)
     end)
 
     local lua_components = prefab[PrefabKey.LUA_COMPONENTS]
@@ -174,8 +170,7 @@ function _G.__get_component_defaults(key)
     local defaults = {}
     local schema = _G.__component_schemas[key]
 
-    -- A map_setter section (sockets) has no getters to read.
-    if schema ~= nil and schema.getters ~= nil then
+    if schema ~= nil then
         local probe = spawn_entity_c()
         local component = probe[schema.add](probe)
         if component ~= nil then
@@ -200,14 +195,10 @@ local function reapply_prefab(entity, prefab)
     entity:set_ticking(resolve_ticking(prefab))
 
     for_each_section(entity, prefab, "get", function(key, schema, section, component)
-        if schema.map_setter then
-            call_setter(component, schema.map_setter, unwrap_def(section))
-        else
-            local defaults = __get_component_defaults(key)
-            for field, setter in pairs(schema.setters) do
-                if should_reapply_field(schema, field) then
-                    call_setter(component, setter, resolve_field_value(section, field, defaults))
-                end
+        local defaults = __get_component_defaults(key)
+        for field, setter in pairs(schema.setters) do
+            if should_reapply_field(schema, field) then
+                call_setter(component, setter, resolve_field_value(section, field, defaults))
             end
         end
     end)

@@ -255,11 +255,6 @@ local schemas = {
             clips = { hidden = true, },
         },
     },
-    sockets = {
-        add = "add_sockets",
-        get = "get_sockets",
-        map_setter = "set_sockets",
-    },
     camera = {
         add = "add_camera",
         get = "get_camera",
@@ -321,7 +316,6 @@ schemas.__order = {
     "input",
     "sprite",
     "sprite_animator",
-    "sockets",
     "camera",
     "audio",
 }

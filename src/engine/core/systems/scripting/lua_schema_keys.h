@@ -32,7 +32,6 @@ namespace hob {
         constexpr const char* GETTERS = "getters";
         constexpr const char* SETTERS = "setters";
         constexpr const char* ORDER = "__order";
-        constexpr const char* MAP_SETTER = "map_setter";
         constexpr const char* TYPES = "types";
         constexpr const char* REAPPLY_ON_HOT_RELOAD = "reapply_on_hot_reload";
 

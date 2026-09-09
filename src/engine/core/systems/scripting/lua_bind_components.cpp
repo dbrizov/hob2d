@@ -2,7 +2,6 @@
 #include <memory>
 #include <string>
 #include <string_view>
-#include <unordered_set>
 
 #include "engine/animation/animation_clip.h"
 #include "engine/animation/animation_track.h"
@@ -15,7 +14,6 @@
 #include "engine/components/physics/circle_collider_component.h"
 #include "engine/components/physics/collider_component.h"
 #include "engine/components/physics/rigidbody_component.h"
-#include "engine/components/sockets_component.h"
 #include "engine/components/sprite_animator_component.h"
 #include "engine/components/sprite_component.h"
 #include "engine/components/transform_component.h"
@@ -74,41 +72,6 @@ namespace hob {
 
             sort_keys(track->keys);
             return track;
-        }
-
-        void build_track(const sol::table& t, AnimationClip& clip) {
-            const std::string type = t.get<sol::optional<std::string>>("type").value_or("");
-
-            if (type == "socket_position") {
-                auto track = std::make_unique<SocketPositionTrack>();
-                track->socket = t.get<sol::optional<std::string>>("socket").value_or("");
-                if (auto keys = t.get<sol::optional<sol::table>>("keys")) {
-                    for (int32_t i = 1; i <= keys->size(); ++i) {
-                        if (auto k = keys->get<sol::optional<sol::table>>(i)) {
-                            const Vector2 value = k->get<sol::optional<Vector2>>(2).value_or(Vector2());
-                            track->keys.emplace_back(k->get_or(1, 0.0f), value);
-                        }
-                    }
-                }
-                sort_keys(track->keys);
-                clip.add_track(std::move(track));
-            }
-            else if (type == "socket_rotation") {
-                auto track = std::make_unique<SocketRotationTrack>();
-                track->socket = t.get<sol::optional<std::string>>("socket").value_or("");
-                if (auto keys = t.get<sol::optional<sol::table>>("keys")) {
-                    for (int32_t i = 1; i <= keys->size(); ++i) {
-                        if (auto k = keys->get<sol::optional<sol::table>>(i)) {
-                            track->keys.emplace_back(k->get_or(1, 0.0f), k->get_or(2, 0.0f) * DEG_TO_RAD);
-                        }
-                    }
-                }
-                sort_keys(track->keys);
-                clip.add_track(std::move(track));
-            }
-            else {
-                log::lua.error("Unknown animation track type '{}'", type);
-            }
         }
     } // namespace
 
@@ -592,14 +555,6 @@ namespace hob {
                         clip->add_track(build_texture_track(renderer, animclip_t));
                     }
 
-                    if (auto tracks = animclip_t.get<sol::optional<sol::table>>("tracks")) {
-                        for (int32_t i = 1; i <= tracks->size(); ++i) {
-                            if (auto track_t = tracks->get<sol::optional<sol::table>>(i)) {
-                                build_track(*track_t, *clip);
-                            }
-                        }
-                    }
-
                     float duration = animclip_t.get_or("duration", 0.0f);
                     for (const AnimationTrackRef& track : clip->get_tracks()) {
                         duration = std::max(duration, track->get_duration());
@@ -668,39 +623,6 @@ namespace hob {
                 {.name = "clips", .get_method = "get_clips", .set_method = "set_clips", .hide_in_inspector = true},
                 {"default_clip", "get_default_clip", "set_default_clip"},
             });
-
-        // SocketsComponent
-        bind_usertype<SocketsComponent>(lua, meta, Bases<Component>{})
-            .method("get_socket", &SocketsComponent::get_socket, {"name"})
-            .method("has_socket", &SocketsComponent::has_socket, {"name"})
-            .method_sig(
-                "set_sockets",
-                [](SocketsComponent& self, const sol::table& sockets_t) {
-                    std::unordered_set<std::string> names;
-                    for (auto& kv : sockets_t) {
-                        if (!kv.first.is<std::string>()) {
-                            continue;
-                        }
-
-                        const std::string name = kv.first.as<std::string>();
-                        names.insert(name);
-                        if (!kv.second.is<sol::table>()) {
-                            log::lua.error("SocketsComponent:set_sockets expects {{position, rotation}} for '{}'",
-                                           name);
-                            continue;
-                        }
-
-                        const sol::table pose = kv.second.as<sol::table>();
-                        const Vector2 position = pose.get<sol::optional<Vector2>>("position").value_or(Vector2());
-                        const float rotation_deg = pose.get_or("rotation", 0.0f);
-                        self.add_socket(name, position, rotation_deg * DEG_TO_RAD);
-                    }
-                    self.retain_sockets(names);
-                },
-                "(sockets: table<string, { position: Vector2, rotation: number }>)");
-
-        bind_component_schema_map<SocketsComponent>(
-            lua, meta, schemas, "sockets", "add_sockets", "get_sockets", "set_sockets");
 
         // CameraComponent
         bind_usertype<CameraComponent>(lua, meta, Bases<Component>{})

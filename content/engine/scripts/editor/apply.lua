@@ -24,8 +24,8 @@ function Editor.set_component_field(entity_id, component_key, field, value)
     end
 
     local schema = _G.__component_schemas[component_key]
-    if schema == nil or schema.map_setter then
-        Log.error("Editor.set_component_field: '" .. tostring(component_key) .. "' has no per-field setters")
+    if schema == nil then
+        Log.error("Editor.set_component_field: unknown component '" .. tostring(component_key) .. "'")
         return false
     end
 

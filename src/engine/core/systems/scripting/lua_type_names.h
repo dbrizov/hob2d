@@ -34,7 +34,6 @@ namespace hob {
     class InputComponent;
     class SpriteComponent;
     class SpriteAnimatorComponent;
-    class SocketsComponent;
     class CameraComponent;
     class AudioComponent;
 
@@ -66,7 +65,6 @@ namespace hob {
     HOB_LUA_TYPE(InputComponent, "InputComponent")
     HOB_LUA_TYPE(SpriteComponent, "SpriteComponent")
     HOB_LUA_TYPE(SpriteAnimatorComponent, "SpriteAnimatorComponent")
-    HOB_LUA_TYPE(SocketsComponent, "SocketsComponent")
     HOB_LUA_TYPE(CameraComponent, "CameraComponent")
     HOB_LUA_TYPE(AudioComponent, "AudioComponent")
     // clang-format on
