@@ -1,12 +1,12 @@
 -- Generic asset factory.
 
-_G.__asset_names = {}
-_G.__asset_defs = {}
+__asset_names = {}
+__asset_defs = {}
 
 -- One entry per installed factory: these four tables are closure locals, so only a closure can reset them.
 local asset_def_clearers = {}
 
-function _G.__clear_asset_factory_defs()
+function __clear_asset_factory_defs()
     for _, clear in ipairs(asset_def_clearers) do
         clear()
     end
@@ -17,16 +17,16 @@ local function install_asset_factory(factory_name, schema)
     local asset_names = {}
     local built_assets = {}
     local seen = {}
-    _G.__asset_names[factory_name] = asset_names
-    _G.__asset_defs[factory_name] = asset_defs
+    __asset_names[factory_name] = asset_names
+    __asset_defs[factory_name] = asset_defs
 
     asset_def_clearers[#asset_def_clearers + 1] = function()
         asset_defs = {}
         asset_names = {}
         built_assets = {}
         seen = {}
-        _G.__asset_names[factory_name] = asset_names
-        _G.__asset_defs[factory_name] = asset_defs
+        __asset_names[factory_name] = asset_names
+        __asset_defs[factory_name] = asset_defs
     end
 
     local function build(asset_name)
@@ -103,8 +103,8 @@ end
 
 -- Eagerly build every declared shader so its GPU pipeline compiles at load, not on the gameplay hot path.
 -- Only shaders are warmed: materials are a cheap CPU param buffer (no compile).
-function _G.__warmup_shaders()
-    local asset_names = _G.__asset_names["Shaders"]
+function __warmup_shaders()
+    local asset_names = __asset_names["Shaders"]
     if asset_names ~= nil and Shaders ~= nil then
         for _, asset_name in ipairs(asset_names) do
             unwrap_def(Shaders[asset_name])
@@ -112,8 +112,8 @@ function _G.__warmup_shaders()
     end
 end
 
-function _G.__install_asset_factories()
-    local schemas = _G.__asset_factory_schemas
+function __install_asset_factories()
+    local schemas = __asset_factory_schemas
     if schemas == nil then
         Log.error(
             "__install_asset_factories: __asset_factory_schemas is missing (did asset_factory_schemas.generated.lua run?)")

@@ -320,4 +320,4 @@ schemas.__order = {
     "audio",
 }
 
-_G.__component_schemas = schemas
+__component_schemas = schemas

@@ -1,5 +1,5 @@
 ---@class Editor
-_G.Editor = _G.Editor or {}
+Editor = Editor or {}
 
 -- Shares userdata leaves and asset refs rather than cloning them: a definition is written by assigning
 -- a fresh value into a table, never by mutating the one already there, and cloning an asset ref would

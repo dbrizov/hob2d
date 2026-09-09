@@ -1,13 +1,13 @@
 ---@class Editor
-_G.Editor = _G.Editor or {}
+Editor = Editor or {}
 
-local prefab_state = _G.__editor_prefab_state or {
+local prefab_state = __editor_prefab_state or {
     dirty = {},
 }
-_G.__editor_prefab_state = prefab_state
+__editor_prefab_state = prefab_state
 
 local function get_prefab_def(name)
-    local def = _G.__entity_prefab_registry[name]
+    local def = __entity_prefab_registry[name]
     if def == nil then
         Log.error("Editor: prefab '" .. tostring(name) .. "' is not registered")
     end
@@ -70,20 +70,20 @@ end
 ---@param name string
 ---@return string|nil reason, nil when the prefab can be written back to its file
 function Editor.get_prefab_save_error(name)
-    return Editor.get_definition_save_error(DefRegistry.ENTITIES, name, _G.__entity_prefab_registry[name] ~= nil)
+    return Editor.get_definition_save_error(DefRegistry.ENTITIES, name, __entity_prefab_registry[name] ~= nil)
 end
 
 local function for_each_instance_of_prefab(name, fn)
     EntitySpawner.for_each_entity(function(entity)
         local entity_id = entity:get_id()
-        if _G.__entity_prefab_name_by_id[entity_id] == name then
-            fn(entity, _G.__scene_instance_by_entity_id[entity_id])
+        if __entity_prefab_name_by_id[entity_id] == name then
+            fn(entity, __scene_instance_by_entity_id[entity_id])
         end
     end)
 end
 
 local function apply_cpp_field_to_entity(entity, def, component_key, field)
-    local schema = _G.__component_schemas[component_key]
+    local schema = __component_schemas[component_key]
     local component = entity[schema.get](entity)
     if component == nil then
         return
@@ -148,8 +148,8 @@ function Editor.apply_prefab_field_to_entity(entity_id, component_key, field, is
         return
     end
 
-    local name = _G.__entity_prefab_name_by_id[entity_id]
-    local def = name ~= nil and _G.__entity_prefab_registry[name] or nil
+    local name = __entity_prefab_name_by_id[entity_id]
+    local def = name ~= nil and __entity_prefab_registry[name] or nil
     if def == nil then
         return
     end
@@ -206,7 +206,7 @@ function Editor.set_prefab_field(name, component_key, field, value)
         return false
     end
 
-    local schema = _G.__component_schemas[component_key]
+    local schema = __component_schemas[component_key]
     if schema == nil and component_key == name then
         return set_root_field(name, def, field, value)
     end
@@ -301,7 +301,7 @@ function Editor.set_prefab_lua_field(name, class_name, field, value)
         return false
     end
 
-    if not Editor.is_editable_lua_field(_G.__component_registry[class_name], field, value) then
+    if not Editor.is_editable_lua_field(__component_registry[class_name], field, value) then
         Log.error("Editor.set_prefab_lua_field: '" .. tostring(field) .. "' is not an editable field")
         return false
     end
@@ -349,14 +349,14 @@ function Editor.get_addable_prefab_sections(name)
     end
 
     local rows = {}
-    local schemas = _G.__component_schemas
+    local schemas = __component_schemas
     for _, key in ipairs(schemas.__order) do
         if def[key] == nil and not present[key] then
             rows[#rows + 1] = { name = key, is_lua = false }
         end
     end
 
-    for _, class_name in ipairs(sorted_string_keys(_G.__component_registry)) do
+    for _, class_name in ipairs(sorted_string_keys(__component_registry)) do
         if find_lua_component_index(def, class_name) == nil then
             rows[#rows + 1] = { name = class_name, is_lua = true }
         end
@@ -379,7 +379,7 @@ function Editor.add_prefab_section(name, key, is_lua, removed)
     removed = removed or {}
 
     if is_lua then
-        if _G.__component_registry[key] == nil then
+        if __component_registry[key] == nil then
             Log.error("Editor.add_prefab_section: '" .. tostring(key) .. "' is not a component class")
             return false
         end
@@ -396,7 +396,7 @@ function Editor.add_prefab_section(name, key, is_lua, removed)
             get_or_create(def, PrefabKey.LUA_FIELDS)[key] = removed.lua_fields
         end
     else
-        local schema = _G.__component_schemas[key]
+        local schema = __component_schemas[key]
         if schema == nil then
             Log.error("Editor.add_prefab_section: '" .. tostring(key) .. "' is not an addable component")
             return false
@@ -451,7 +451,7 @@ function Editor.remove_prefab_section(name, key, is_lua)
 
         removed = { index = index, lua_fields = fields }
     else
-        if key == TransformKey.SECTION or def[key] == nil or _G.__component_schemas[key] == nil then
+        if key == TransformKey.SECTION or def[key] == nil or __component_schemas[key] == nil then
             Log.error("Editor.remove_prefab_section: '" .. tostring(key) .. "' is not removable from '" .. name .. "'")
             return nil
         end
@@ -475,7 +475,7 @@ end
 ---@return string|nil reason, nil when a prefab may be created at this path
 function Editor.get_prefab_create_error(path)
     local name = Editor.get_prefab_name_for_file(path)
-    local is_registered = name ~= nil and _G.__entity_prefab_registry[name] ~= nil
+    local is_registered = name ~= nil and __entity_prefab_registry[name] ~= nil
 
     return Editor.get_definition_create_error(DefRegistry.ENTITIES, path, FileExtension.PREFAB, is_registered)
 end
@@ -493,7 +493,7 @@ end
 ---@param entity_id integer
 ---@return table|nil the source prefab's definition with the instance's overrides folded in
 function Editor.create_prefab_def_from_entity(entity_id)
-    local inst = _G.__scene_instance_by_entity_id[entity_id]
+    local inst = __scene_instance_by_entity_id[entity_id]
     if inst == nil then
         Log.error("Editor.create_prefab_def_from_entity: entity " .. tostring(entity_id) .. " is not a scene instance")
         return nil
@@ -532,7 +532,7 @@ end
 ---@return table rows of { scene, count }, sorted by scene
 function Editor.get_prefab_referrers(name)
     local rows = {}
-    for scene_name, scene_def in pairs(_G.__scene_registry) do
+    for scene_name, scene_def in pairs(__scene_registry) do
         local count = count_prefab_instances(scene_def, name)
         if count > 0 then
             rows[#rows + 1] = { scene = scene_name, count = count }
@@ -556,7 +556,7 @@ function Editor.get_unique_prefab_name(base)
 
     local candidate = name
     local suffix = 2
-    while _G.__entity_prefab_registry[candidate] ~= nil or __get_def_source(DefRegistry.ENTITIES, candidate) ~= nil do
+    while __entity_prefab_registry[candidate] ~= nil or __get_def_source(DefRegistry.ENTITIES, candidate) ~= nil do
         candidate = name .. "_" .. suffix
         suffix = suffix + 1
     end
@@ -568,8 +568,8 @@ function Editor.rebind_prefab_defs()
     local rebound = false
 
     for name, def in pairs(prefab_state.dirty) do
-        if _G.__entity_prefab_registry[name] ~= nil then
-            _G.__entity_prefab_registry[name] = def
+        if __entity_prefab_registry[name] ~= nil then
+            __entity_prefab_registry[name] = def
             rebound = true
         else
             prefab_state.dirty[name] = nil

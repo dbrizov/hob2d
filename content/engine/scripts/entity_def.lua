@@ -1,28 +1,28 @@
 -- DefineEntity: Prefab declaration for entities.
 
-_G.__entity_prefab_registry = {}
-_G.__entity_prefab_name_by_id = {}
+__entity_prefab_registry = {}
+__entity_prefab_name_by_id = {}
 
 on_entity_destroyed(function(entity_id)
-    _G.__entity_prefab_name_by_id[entity_id] = nil
+    __entity_prefab_name_by_id[entity_id] = nil
 end)
 
 on_entities_cleared(function()
-    _G.__entity_prefab_name_by_id = {}
+    __entity_prefab_name_by_id = {}
 end)
 
-function _G.__clear_entity_defs()
-    _G.__entity_prefab_registry = {}
+function __clear_entity_defs()
+    __entity_prefab_registry = {}
 end
 
 local component_defaults_cache = {}
 
-function _G.__clear_component_defaults()
+function __clear_component_defaults()
     component_defaults_cache = {}
 end
 
 ---@class DefineEntity
-_G.DefineEntity = setmetatable({}, {
+DefineEntity = setmetatable({}, {
     __newindex = function(_, name, def)
         if type(def) ~= "table" then
             Log.error("DefineEntity." .. tostring(name) .. " must be assigned a table")
@@ -33,20 +33,20 @@ _G.DefineEntity = setmetatable({}, {
             return
         end
 
-        _G.__entity_prefab_registry[name] = def
+        __entity_prefab_registry[name] = def
     end,
     __index = function(_, name)
-        return _G.__entity_prefab_registry[name]
+        return __entity_prefab_registry[name]
     end,
 })
 
 -- `Entities.Foo` evaluates to the prefab name string `"Foo"`.
 ---@class Entities
-_G.Entities = setmetatable({}, {
+Entities = setmetatable({}, {
     __index = function(_, name) return name end,
 })
 
-function _G.__call_component_setter(component, setter, value)
+function __call_component_setter(component, setter, value)
     if type(setter) == "string" then
         component[setter](component, value)
     else
@@ -54,7 +54,7 @@ function _G.__call_component_setter(component, setter, value)
     end
 end
 
-local call_setter = _G.__call_component_setter
+local call_setter = __call_component_setter
 
 ---@type fun(): Entity
 local spawn_entity_c = EntitySpawner.spawn_entity
@@ -76,7 +76,7 @@ end
 ---@param entity Entity
 ---@param fields_by_class table
 ---@param context string
-function _G.__apply_lua_fields(entity, fields_by_class, context)
+function __apply_lua_fields(entity, fields_by_class, context)
     for class_name, fields in pairs(fields_by_class) do
         local instance = entity:get_lua_component(class_name)
         if instance == nil then
@@ -97,7 +97,7 @@ local function apply_lua_fields(entity, prefab)
 end
 
 local function for_each_section(entity, prefab, accessor, fn)
-    local schemas = _G.__component_schemas
+    local schemas = __component_schemas
     for _, key in ipairs(schemas.__order) do
         local section = prefab[key]
         if section ~= nil then
@@ -146,7 +146,7 @@ end
 ---@param field string
 ---@param defaults table
 ---@return any
-function _G.__resolve_prefab_field_value(section, field, defaults)
+function __resolve_prefab_field_value(section, field, defaults)
     local value = section ~= nil and section[field] or nil
     if value ~= nil then
         return unwrap_def(value)
@@ -155,20 +155,20 @@ function _G.__resolve_prefab_field_value(section, field, defaults)
     return unwrap_def(defaults[field])
 end
 
-local resolve_field_value = _G.__resolve_prefab_field_value
+local resolve_field_value = __resolve_prefab_field_value
 
 -- The probe never enters play, so its spawn and destroy both resolve synchronously
 -- and leave the live entity list untouched, which is what makes this callable from inside for_each_entity.
 ---@param key string
 ---@return table
-function _G.__get_component_defaults(key)
+function __get_component_defaults(key)
     local cached = component_defaults_cache[key]
     if cached ~= nil then
         return cached
     end
 
     local defaults = {}
-    local schema = _G.__component_schemas[key]
+    local schema = __component_schemas[key]
 
     if schema ~= nil then
         local probe = spawn_entity_c()
@@ -206,22 +206,22 @@ local function reapply_prefab(entity, prefab)
     apply_lua_fields(entity, prefab)
 end
 
-function _G.__reapply_prefabs_to_spawned_entities()
+function __reapply_prefabs_to_spawned_entities()
     local live = {}
 
     EntitySpawner.for_each_entity(function(entity)
         local id = entity:get_id()
-        local name = _G.__entity_prefab_name_by_id[id]
+        local name = __entity_prefab_name_by_id[id]
         if name ~= nil then
             live[id] = name
-            local prefab = _G.__entity_prefab_registry[name]
+            local prefab = __entity_prefab_registry[name]
             if prefab ~= nil then
                 reapply_prefab(entity, prefab)
             end
         end
     end)
 
-    _G.__entity_prefab_name_by_id = live
+    __entity_prefab_name_by_id = live
 end
 
 ---@param prefab_name string
@@ -230,7 +230,7 @@ end
 ---@param scale? Vector2
 ---@return Entity|nil
 EntitySpawner.spawn_entity = function(prefab_name, position, rotation_deg, scale)
-    local prefab = _G.__entity_prefab_registry[prefab_name]
+    local prefab = __entity_prefab_registry[prefab_name]
     if prefab == nil then
         Log.error("EntitySpawner.spawn_entity: prefab '" .. prefab_name .. "' is not registered")
         return nil
@@ -240,7 +240,7 @@ EntitySpawner.spawn_entity = function(prefab_name, position, rotation_deg, scale
     entity:set_prefab_name(prefab_name)
 
     apply_prefab(entity, prefab)
-    _G.__entity_prefab_name_by_id[entity:get_id()] = prefab_name
+    __entity_prefab_name_by_id[entity:get_id()] = prefab_name
 
     local transform = entity:get_transform()
     if position ~= nil then

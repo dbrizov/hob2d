@@ -2,31 +2,31 @@ local spawned_listeners = {}
 local destroyed_listeners = {}
 local cleared_listeners = {}
 
-function _G.on_entity_spawned(listener)
+function on_entity_spawned(listener)
     spawned_listeners[#spawned_listeners + 1] = listener
 end
 
-function _G.on_entity_destroyed(listener)
+function on_entity_destroyed(listener)
     destroyed_listeners[#destroyed_listeners + 1] = listener
 end
 
-function _G.on_entities_cleared(listener)
+function on_entities_cleared(listener)
     cleared_listeners[#cleared_listeners + 1] = listener
 end
 
-function _G.__on_entity_spawned(entity_id)
+function __on_entity_spawned(entity_id)
     for _, listener in ipairs(spawned_listeners) do
         listener(entity_id)
     end
 end
 
-function _G.__on_entity_destroyed(entity_id)
+function __on_entity_destroyed(entity_id)
     for _, listener in ipairs(destroyed_listeners) do
         listener(entity_id)
     end
 end
 
-function _G.__on_entities_cleared()
+function __on_entities_cleared()
     for _, listener in ipairs(cleared_listeners) do
         listener()
     end

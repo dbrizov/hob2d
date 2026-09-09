@@ -1,6 +1,6 @@
-_G.Editor = _G.Editor or {}
+Editor = Editor or {}
 
-local scene_state = _G.__editor_scene_state or {
+local scene_state = __editor_scene_state or {
     name = nil,
     is_dirty = false,
     instance_count = 0,
@@ -10,7 +10,7 @@ local scene_state = _G.__editor_scene_state or {
     entity_id_by_instance_id = {},
     entity_def_by_instance_id = {},
 }
-_G.__editor_scene_state = scene_state
+__editor_scene_state = scene_state
 
 local function alloc_instance_id()
     local instance_id = scene_state.next_instance_id
@@ -22,7 +22,7 @@ end
 ---@return string[]
 function Editor.get_scene_names()
     local names = {}
-    for name in pairs(_G.__scene_registry) do
+    for name in pairs(__scene_registry) do
         names[#names + 1] = name
     end
 
@@ -58,7 +58,7 @@ end
 ---@param name string
 ---@return string|nil reason, nil when the scene can be written back to its file
 function Editor.get_scene_save_error(name)
-    return Editor.get_definition_save_error(DefRegistry.SCENES, name, _G.__scene_registry[name] ~= nil)
+    return Editor.get_definition_save_error(DefRegistry.SCENES, name, __scene_registry[name] ~= nil)
 end
 
 ---@param path string
@@ -71,7 +71,7 @@ end
 ---@return string|nil reason, nil when a scene may be created at this path
 function Editor.get_scene_create_error(path)
     local name = __scene_name_from_file(path)
-    local is_registered = name ~= nil and _G.__scene_registry[name] ~= nil
+    local is_registered = name ~= nil and __scene_registry[name] ~= nil
 
     return Editor.get_definition_create_error(DefRegistry.SCENES, path, FileExtension.SCENE, is_registered)
 end
@@ -263,7 +263,7 @@ function Editor.load_scene()
         return
     end
 
-    local scene_def = _G.__scene_registry[name]
+    local scene_def = __scene_registry[name]
     if scene_def == nil then
         Log.error("Editor.load_scene: scene '" .. tostring(name) .. "' is no longer registered")
         scene_state.name = nil
@@ -293,7 +293,7 @@ end
 ---@param name string
 ---@return boolean
 function Editor.open_scene(name)
-    if _G.__scene_registry[name] == nil then
+    if __scene_registry[name] == nil then
         Log.error("Editor.open_scene: scene '" .. tostring(name) .. "' is not registered")
         scene_state.name = nil
         return false
@@ -332,7 +332,7 @@ end
 
 local function get_open_scene_def()
     local name = scene_state.name
-    return name ~= nil and _G.__scene_registry[name] or nil
+    return name ~= nil and __scene_registry[name] or nil
 end
 
 local function reindex_instances(scene_def)
@@ -363,7 +363,7 @@ local function destroy_instance_entity(instance_id)
         return
     end
 
-    _G.__scene_instance_by_entity_id[entity_id] = nil
+    __scene_instance_by_entity_id[entity_id] = nil
     EntitySpawner.destroy_entity(EntitySpawner.get_entity(entity_id))
     scene_state.instance_id_by_entity_id[entity_id] = nil
     scene_state.entity_id_by_instance_id[instance_id] = nil
@@ -500,7 +500,7 @@ function Editor.rebind_instance_defs()
         return true
     end
 
-    local scene_def = _G.__scene_registry[name]
+    local scene_def = __scene_registry[name]
     if scene_def == nil then
         return false
     end
@@ -533,7 +533,7 @@ function Editor.rebind_instance_defs()
 
         local entity_id = scene_state.entity_id_by_instance_id[instance_id]
         if entity_id ~= nil then
-            _G.__scene_instance_by_entity_id[entity_id] = inst
+            __scene_instance_by_entity_id[entity_id] = inst
         end
     end
 

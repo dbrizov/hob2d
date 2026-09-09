@@ -137,7 +137,7 @@ namespace hob {
         }
         out << "}\n\n";
 
-        out << "_G.__component_schemas = schemas\n";
+        out << "__component_schemas = schemas\n";
 
         std::error_code ec;
         std::filesystem::create_directories(full_path.parent_path(), ec);

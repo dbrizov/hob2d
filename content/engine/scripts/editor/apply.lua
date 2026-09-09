@@ -1,7 +1,7 @@
 -- Editor apply: the write side of the Editor.* contract.
 
 ---@class Editor
-_G.Editor = _G.Editor or {}
+Editor = Editor or {}
 
 local function resolve_entity(entity_id)
     local entity = EntitySpawner.get_entity(entity_id)
@@ -23,7 +23,7 @@ function Editor.set_component_field(entity_id, component_key, field, value)
         return false
     end
 
-    local schema = _G.__component_schemas[component_key]
+    local schema = __component_schemas[component_key]
     if schema == nil then
         Log.error("Editor.set_component_field: unknown component '" .. tostring(component_key) .. "'")
         return false
@@ -40,7 +40,7 @@ function Editor.set_component_field(entity_id, component_key, field, value)
         return false
     end
 
-    _G.__call_component_setter(component, setter, unwrap_def(value))
+    __call_component_setter(component, setter, unwrap_def(value))
     return true
 end
 

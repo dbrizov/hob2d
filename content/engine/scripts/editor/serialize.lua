@@ -1,7 +1,7 @@
 -- Editor serialize: the definition-table-to-Lua-source side of the Editor.* contract.
 
 ---@class Editor
-_G.Editor = _G.Editor or {}
+Editor = Editor or {}
 
 local INDENT = "    "
 local LINE_BUDGET = 120
@@ -71,7 +71,7 @@ local function is_baseline(value, baseline)
 end
 
 local function get_prefab_section(prefab_name, key)
-    local prefab = _G.__entity_prefab_registry[prefab_name]
+    local prefab = __entity_prefab_registry[prefab_name]
     if prefab == nil then
         return nil
     end
@@ -383,7 +383,7 @@ local function serialize_cpp_section(section, schema, path, depth, prefix, prefa
 end
 
 local function serialize_cpp_sections(sections_by_key, path, depth, prefix, prefab_name)
-    local schemas = _G.__component_schemas
+    local schemas = __component_schemas
 
     local parts = {}
     for _, key in ipairs(ordered_keys(sections_by_key, schemas.__order)) do
@@ -498,7 +498,7 @@ local function serialize_lua_component_list(class_names, path, depth, prefix)
 end
 
 local function serialize_prefab_section(section, key, path, depth, prefix)
-    local schema = _G.__component_schemas[key]
+    local schema = __component_schemas[key]
     if schema == nil then
         return serialize_value(section, nil, path, depth, prefix)
     end
@@ -528,7 +528,7 @@ local function serialize_prefab_def(def, name)
         end
     end
 
-    for _, key in ipairs(_G.__component_schemas.__order) do
+    for _, key in ipairs(__component_schemas.__order) do
         local section = def[key]
         if section ~= nil then
             append(key, serialize_prefab_section(section, key, path .. "." .. key, 1, field_prefix(key)))
@@ -564,7 +564,7 @@ end
 ---@param as_name string|nil the name to declare it under; defaults to `name`
 ---@return string
 function Editor.serialize_scene(name, as_name)
-    local def = _G.__scene_registry[name]
+    local def = __scene_registry[name]
     if def == nil then
         error("Editor.serialize_scene: scene '" .. tostring(name) .. "' is not registered", 0)
     end
@@ -582,7 +582,7 @@ end
 ---@param as_name string|nil the name to declare it under; defaults to `name`
 ---@return string
 function Editor.serialize_prefab(name, as_name)
-    local def = _G.__entity_prefab_registry[name]
+    local def = __entity_prefab_registry[name]
     if def == nil then
         error("Editor.serialize_prefab: prefab '" .. tostring(name) .. "' is not registered", 0)
     end

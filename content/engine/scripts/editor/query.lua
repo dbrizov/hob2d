@@ -1,7 +1,7 @@
 -- Editor query: the read side of the Editor.* contract.
 
 ---@class Editor
-_G.Editor = _G.Editor or {}
+Editor = Editor or {}
 
 -- ---------------------------------------------------------------------------------------------
 -- Editor field types
@@ -18,7 +18,7 @@ local ASSET_FACTORY_TYPES = {
 local usertype_types = nil
 
 local function get_asset_factory_metatable(factory_name)
-    local asset_names = _G.__asset_names[factory_name]
+    local asset_names = __asset_names[factory_name]
     if asset_names == nil or asset_names[1] == nil then
         return nil
     end
@@ -178,7 +178,7 @@ end
 ---@param field string
 ---@return table|nil
 function Editor.get_lua_field_annotation(class_name, field)
-    return get_editor_annotations(_G.__component_registry[class_name]).by_name[field]
+    return get_editor_annotations(__component_registry[class_name]).by_name[field]
 end
 
 local is_lua_component_field = Editor.is_editable_lua_field
@@ -355,8 +355,8 @@ end
 ---@param factory_name string
 ---@return table|nil
 function Editor.get_asset_entries(factory_name)
-    local asset_names = _G.__asset_names[factory_name]
-    local asset_defs = _G.__asset_defs[factory_name]
+    local asset_names = __asset_names[factory_name]
+    local asset_defs = __asset_defs[factory_name]
     if asset_names == nil or asset_defs == nil then
         return nil
     end
@@ -379,7 +379,7 @@ function Editor.get_asset_name(factory_name, object)
         return nil
     end
 
-    local asset_defs = _G.__asset_defs[factory_name]
+    local asset_defs = __asset_defs[factory_name]
     if asset_defs == nil then
         return nil
     end
@@ -419,8 +419,8 @@ local CATALOGUE_REGISTRIES = {
 }
 
 local DEFINITION_REGISTRY_TABLE = {
-    [DefRegistry.SCENES] = function() return _G.__scene_registry end,
-    [DefRegistry.ENTITIES] = function() return _G.__entity_prefab_registry end,
+    [DefRegistry.SCENES] = function() return __scene_registry end,
+    [DefRegistry.ENTITIES] = function() return __entity_prefab_registry end,
 }
 
 local function sorted_string_keys(source)
@@ -437,14 +437,14 @@ end
 
 local function get_definition_names(registry)
     local get_table = DEFINITION_REGISTRY_TABLE[registry]
-    local source = get_table ~= nil and get_table() or _G.__asset_defs[registry]
+    local source = get_table ~= nil and get_table() or __asset_defs[registry]
 
     return source ~= nil and sorted_string_keys(source) or {}
 end
 
 local function count_defs_per_file()
     local counts = {}
-    for _, by_name in pairs(_G.__def_sources) do
+    for _, by_name in pairs(__def_sources) do
         for _, path in pairs(by_name) do
             counts[path] = (counts[path] or 0) + 1
         end
@@ -495,7 +495,7 @@ local function get_definition_table(registry, name)
         return get_table()[name]
     end
 
-    local asset_defs = _G.__asset_defs[registry]
+    local asset_defs = __asset_defs[registry]
     return asset_defs ~= nil and asset_defs[name] or nil
 end
 
@@ -615,7 +615,7 @@ local function build_prefab_sections(name, def)
         section.removable = is_removable_prefab_section(def, section)
     end
 
-    local schemas = _G.__component_schemas
+    local schemas = __component_schemas
     local root_fields = {}
 
     for _, key in ipairs(sorted_string_keys(def)) do
@@ -693,8 +693,8 @@ function Editor.get_components(entity_id)
         return nil
     end
 
-    local schemas = _G.__component_schemas
-    local inst = _G.__scene_instance_by_entity_id[entity_id]
+    local schemas = __component_schemas
+    local inst = __scene_instance_by_entity_id[entity_id]
     local out = {}
 
     local function mark_overridden(section)

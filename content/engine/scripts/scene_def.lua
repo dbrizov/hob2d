@@ -1,26 +1,26 @@
 -- DefineScene: a level as data.
 
-_G.__scene_registry = {}
-_G.__scene_instance_by_entity_id = {}
+__scene_registry = {}
+__scene_instance_by_entity_id = {}
 
 on_entity_destroyed(function(entity_id)
-    _G.__scene_instance_by_entity_id[entity_id] = nil
+    __scene_instance_by_entity_id[entity_id] = nil
 end)
 
 on_entities_cleared(function()
-    _G.__scene_instance_by_entity_id = {}
+    __scene_instance_by_entity_id = {}
 end)
 
-function _G.__clear_scene_defs()
-    _G.__scene_registry = {}
+function __clear_scene_defs()
+    __scene_registry = {}
 end
 
-function _G.__scene_name_from_file(path)
+function __scene_name_from_file(path)
     return __def_name_from_file(path, FileExtension.SCENE)
 end
 
 ---@class DefineScene
-_G.DefineScene = setmetatable({}, {
+DefineScene = setmetatable({}, {
     __newindex = function(_, name, def)
         if type(def) ~= "table" or type(def.entities) ~= "table" then
             Log.error("DefineScene." .. tostring(name) .. " must be assigned a table with an 'entities' list")
@@ -31,26 +31,26 @@ _G.DefineScene = setmetatable({}, {
             return
         end
 
-        _G.__scene_registry[name] = def
+        __scene_registry[name] = def
     end,
     __index = function(_, name)
-        return _G.__scene_registry[name]
+        return __scene_registry[name]
     end,
 })
 
 -- `Scenes.Foo` evaluates to the scene name string `"Foo"`.
 ---@class Scenes
-_G.Scenes = setmetatable({}, {
+Scenes = setmetatable({}, {
     __index = function(_, name) return name end,
 })
 
-_G.Scene = {}
+Scene = {}
 
 ---@param entity Entity
 ---@param cpp_overrides table
 function Scene.apply_cpp_overrides(entity, cpp_overrides)
-    local schemas = _G.__component_schemas
-    local call_setter = _G.__call_component_setter
+    local schemas = __component_schemas
+    local call_setter = __call_component_setter
 
     for _, key in ipairs(schemas.__order) do
         local section = cpp_overrides[key]
@@ -105,7 +105,7 @@ function Scene.spawn_instance(inst)
     end
 
     apply_overrides(entity, inst)
-    _G.__scene_instance_by_entity_id[entity:get_id()] = inst
+    __scene_instance_by_entity_id[entity:get_id()] = inst
 
     return entity
 end
@@ -113,7 +113,7 @@ end
 ---@param name string
 ---@return { index: integer, entity: Entity }[]|nil
 function Scene.load(name)
-    local def = _G.__scene_registry[name]
+    local def = __scene_registry[name]
     if def == nil then
         Log.error("Scene.load: scene '" .. tostring(name) .. "' is not registered")
         return nil
@@ -130,17 +130,17 @@ function Scene.load(name)
     return spawned
 end
 
-function _G.__reapply_scene_overrides_to_spawned_entities()
+function __reapply_scene_overrides_to_spawned_entities()
     local live = {}
 
     EntitySpawner.for_each_entity(function(entity)
         local id = entity:get_id()
-        local inst = _G.__scene_instance_by_entity_id[id]
+        local inst = __scene_instance_by_entity_id[id]
         if inst ~= nil then
             live[id] = inst
             apply_overrides(entity, inst)
         end
     end)
 
-    _G.__scene_instance_by_entity_id = live
+    __scene_instance_by_entity_id = live
 end

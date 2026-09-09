@@ -1,13 +1,13 @@
 -- DefineComponent: Class declaration for Lua components.
 
-_G.__component_registry = {}
-_G.__component_pending = {}
+__component_registry = {}
+__component_pending = {}
 
-_G.__live_component_instances = setmetatable({}, { __mode = "k" })
+__live_component_instances = setmetatable({}, { __mode = "k" })
 
-function _G.__clear_component_defs()
-    _G.__component_registry = {}
-    _G.__component_pending = {}
+function __clear_component_defs()
+    __component_registry = {}
+    __component_pending = {}
 end
 
 local function is_valid_editor_annotation(name, annotations)
@@ -28,7 +28,7 @@ local function is_valid_editor_annotation(name, annotations)
 end
 
 ---@class DefineComponent
-_G.DefineComponent = setmetatable({}, {
+DefineComponent = setmetatable({}, {
     __newindex = function(_, name, def)
         if type(def) ~= "table" then
             Log.error("DefineComponent." .. tostring(name) .. " must be assigned a table")
@@ -50,30 +50,30 @@ _G.DefineComponent = setmetatable({}, {
             class.__editor = nil
         end
 
-        _G.__component_pending[name] = { class = class, def = def }
+        __component_pending[name] = { class = class, def = def }
         _G[name] = class
     end,
     __index = function(_, name)
-        local class = _G.__component_registry[name]
+        local class = __component_registry[name]
         if class ~= nil then return class end
 
-        local pending = _G.__component_pending[name]
+        local pending = __component_pending[name]
         return pending and pending.class or nil
     end,
 })
 
 -- `Components.Foo` evaluates to the component name string `"Foo"`.
 ---@class Components
-_G.Components = setmetatable({}, {
+Components = setmetatable({}, {
     __index = function(_, name) return name end,
 })
 
 local function build_class(name)
-    if _G.__component_registry[name] ~= nil then
-        return _G.__component_registry[name]
+    if __component_registry[name] ~= nil then
+        return __component_registry[name]
     end
 
-    local pending = _G.__component_pending[name]
+    local pending = __component_pending[name]
     if pending == nil then
         return nil
     end
@@ -92,7 +92,7 @@ local function build_class(name)
             Log.error("DefineComponent." .. name .. ": __parent must be a string component name")
         else
             build_class(def.__parent)
-            local parent = _G.__component_registry[def.__parent]
+            local parent = __component_registry[def.__parent]
             if parent == nil then
                 Log.error("DefineComponent." .. name .. ": parent '" .. def.__parent .. "' is not registered")
             else
@@ -112,20 +112,20 @@ local function build_class(name)
     -- C++ sets self.entity and calls init() after this returns; do not invoke init() here.
     function class.new()
         local inst = setmetatable({}, class)
-        _G.__live_component_instances[inst] = true -- track for hot reload; weak-keyed, self-prunes on GC
+        __live_component_instances[inst] = true -- track for hot reload; weak-keyed, self-prunes on GC
         return inst
     end
 
-    _G.__component_registry[name] = class
+    __component_registry[name] = class
     pending.building = false
 
     return class
 end
 
-function _G.__finalize_components()
+function __finalize_components()
     local names = {}
     local n = 0
-    for name in pairs(_G.__component_pending) do
+    for name in pairs(__component_pending) do
         n = n + 1
         names[n] = name
     end
@@ -134,5 +134,5 @@ function _G.__finalize_components()
         build_class(name)
     end
 
-    _G.__component_pending = {}
+    __component_pending = {}
 end
