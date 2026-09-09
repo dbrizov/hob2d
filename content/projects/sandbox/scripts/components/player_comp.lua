@@ -73,7 +73,7 @@ function PlayerComponent:enter_play()
         local hit = Physics.raycast(player_pos, direction, distance)
         if hit.hit then
             local health_comp = hit.entity:get_lua_component(Components.EnemyHealthComponent)
-            if health_comp then
+            if health_comp ~= nil then
                 local new_health = health_comp.health - self.fire_damage
                 if new_health <= 0 then
                     EntitySpawner.destroy_entity(hit.entity)

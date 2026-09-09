@@ -81,12 +81,12 @@ end
 
 local function apply_overrides(entity, inst)
     local cpp_overrides = inst[SceneKey.CPP_OVERRIDES]
-    if cpp_overrides then
+    if cpp_overrides ~= nil then
         Scene.apply_cpp_overrides(entity, cpp_overrides)
     end
 
     local lua_overrides = inst[SceneKey.LUA_OVERRIDES]
-    if lua_overrides then
+    if lua_overrides ~= nil then
         Scene.apply_lua_overrides(entity, lua_overrides)
     end
 end
@@ -114,7 +114,7 @@ end
 ---@return { index: integer, entity: Entity }[]|nil
 function Scene.load(name)
     local def = _G.__scene_registry[name]
-    if not def then
+    if def == nil then
         Log.error("Scene.load: scene '" .. tostring(name) .. "' is not registered")
         return nil
     end
@@ -122,7 +122,7 @@ function Scene.load(name)
     local spawned = {}
     for index, inst in ipairs(def.entities) do
         local entity = Scene.spawn_instance(inst)
-        if entity then
+        if entity ~= nil then
             spawned[#spawned + 1] = { index = index, entity = entity }
         end
     end
@@ -136,7 +136,7 @@ function _G.__reapply_scene_overrides_to_spawned_entities()
     EntitySpawner.for_each_entity(function(entity)
         local id = entity:get_id()
         local inst = _G.__scene_instance_by_entity_id[id]
-        if inst then
+        if inst ~= nil then
             live[id] = inst
             apply_overrides(entity, inst)
         end

@@ -24,7 +24,7 @@ __warmup_shaders()
 -- 3. Re-point every live component instance at its rebuilt class.
 for inst in pairs(_G.__live_component_instances) do
     local class = _G.__component_registry[inst.class_name]
-    if class then
+    if class ~= nil then
         setmetatable(inst, class)
         if type(inst.on_hot_reload) == "function" then
             inst:on_hot_reload()

@@ -31,7 +31,7 @@ local function install_asset_factory(factory_name, schema)
 
     local function build(asset_name)
         local asset_def = asset_defs[asset_name]
-        if not asset_def then
+        if asset_def == nil then
             Log.error(schema.lua_type .. " '" .. asset_name .. "' is not defined")
             return nil
         end
@@ -48,8 +48,8 @@ local function install_asset_factory(factory_name, schema)
         end
 
         local obj = ctor(cfg)
-        if obj then
-            if obj.set_name then
+        if obj ~= nil then
+            if obj.set_name ~= nil then
                 obj:set_name(asset_name)
             else
                 Log.error(schema.lua_type .. " does not derive from Asset, so '" .. asset_name ..
@@ -85,7 +85,7 @@ local function install_asset_factory(factory_name, schema)
 
             asset_defs[asset_name] = asset_def
 
-            if not seen[asset_name] then
+            if seen[asset_name] == nil then
                 seen[asset_name] = true
                 asset_names[#asset_names + 1] = asset_name
             end
@@ -105,7 +105,7 @@ end
 -- Only shaders are warmed: materials are a cheap CPU param buffer (no compile).
 function _G.__warmup_shaders()
     local asset_names = _G.__asset_names["Shaders"]
-    if asset_names and Shaders then
+    if asset_names ~= nil and Shaders ~= nil then
         for _, asset_name in ipairs(asset_names) do
             unwrap_def(Shaders[asset_name])
         end

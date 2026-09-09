@@ -91,7 +91,7 @@ end
 
 local function apply_lua_fields(entity, prefab)
     local lua_fields = prefab[PrefabKey.LUA_FIELDS]
-    if lua_fields then
+    if lua_fields ~= nil then
         __apply_lua_fields(entity, lua_fields, "Prefab lua_fields")
     end
 end
@@ -124,7 +124,7 @@ end
 local function apply_prefab(entity, prefab)
     entity:set_ticking(resolve_ticking(prefab))
 
-    if prefab.name then
+    if prefab.name ~= nil then
         entity:set_name(prefab.name)
     end
 
@@ -133,7 +133,7 @@ local function apply_prefab(entity, prefab)
     end)
 
     local lua_components = prefab[PrefabKey.LUA_COMPONENTS]
-    if lua_components then
+    if lua_components ~= nil then
         for _, entry in ipairs(lua_components) do
             entity:add_lua_component(entry)
         end
@@ -163,7 +163,7 @@ local resolve_field_value = _G.__resolve_prefab_field_value
 ---@return table
 function _G.__get_component_defaults(key)
     local cached = component_defaults_cache[key]
-    if cached then
+    if cached ~= nil then
         return cached
     end
 
@@ -212,10 +212,10 @@ function _G.__reapply_prefabs_to_spawned_entities()
     EntitySpawner.for_each_entity(function(entity)
         local id = entity:get_id()
         local name = _G.__entity_prefab_name_by_id[id]
-        if name then
+        if name ~= nil then
             live[id] = name
             local prefab = _G.__entity_prefab_registry[name]
-            if prefab then
+            if prefab ~= nil then
                 reapply_prefab(entity, prefab)
             end
         end
@@ -231,7 +231,7 @@ end
 ---@return Entity|nil
 EntitySpawner.spawn_entity = function(prefab_name, position, rotation_deg, scale)
     local prefab = _G.__entity_prefab_registry[prefab_name]
-    if not prefab then
+    if prefab == nil then
         Log.error("EntitySpawner.spawn_entity: prefab '" .. prefab_name .. "' is not registered")
         return nil
     end

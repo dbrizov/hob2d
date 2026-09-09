@@ -532,7 +532,7 @@ function Editor.rebind_instance_defs()
         scene_state.entity_def_by_instance_id[instance_id] = inst
 
         local entity_id = scene_state.entity_id_by_instance_id[instance_id]
-        if entity_id then
+        if entity_id ~= nil then
             _G.__scene_instance_by_entity_id[entity_id] = inst
         end
     end

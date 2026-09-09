@@ -9,7 +9,7 @@ _G.None = setmetatable({}, {
 ---@return any
 function _G.unwrap_def(value)
     local mt = getmetatable(value)
-    if mt and mt.__unwrap then
+    if mt ~= nil and mt.__unwrap ~= nil then
         return mt.__unwrap(value)
     end
 

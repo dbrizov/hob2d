@@ -267,7 +267,7 @@ local function get_lua_component_fields(comp_instance)
 
     local function gather(source)
         for key, value in pairs(source) do
-            if not present[key] and is_lua_component_field(class, key, value) then
+            if present[key] == nil and is_lua_component_field(class, key, value) then
                 present[key] = true
                 names[#names + 1] = key
             end
@@ -287,7 +287,7 @@ local function get_lua_component_fields(comp_instance)
 
     for _, entry in ipairs(annotations.entries) do
         local name = entry.name
-        if not taken[name] and is_lua_component_field(class, name, comp_instance[name]) then
+        if taken[name] == nil and is_lua_component_field(class, name, comp_instance[name]) then
             taken[name] = true
             ordered[#ordered + 1] = name
         end
@@ -295,7 +295,7 @@ local function get_lua_component_fields(comp_instance)
 
     if class ~= nil then
         for _, name in ipairs(get_declared_field_order(class)) do
-            if present[name] and not taken[name] then
+            if present[name] ~= nil and taken[name] == nil then
                 taken[name] = true
                 ordered[#ordered + 1] = name
             end
@@ -303,7 +303,7 @@ local function get_lua_component_fields(comp_instance)
     end
 
     for _, name in ipairs(names) do
-        if not taken[name] then
+        if taken[name] == nil then
             ordered[#ordered + 1] = name
         end
     end
