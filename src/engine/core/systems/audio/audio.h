@@ -13,7 +13,6 @@ struct MIX_Track;
 
 namespace hob {
     struct AudioConfig;
-    class Console;
 
     class Audio {
         bool m_enabled;
@@ -21,8 +20,6 @@ namespace hob {
 
         std::unordered_map<std::string, AudioClipWeakRef, StringHash, std::equal_to<>> m_clips;
         std::vector<MIX_Track*> m_oneshot_tracks;
-
-        bool m_cvar_show_clips = false;
 
     public:
         explicit Audio(const AudioConfig& audio_config);
@@ -33,9 +30,6 @@ namespace hob {
 
         Audio(Audio&&) = delete;
         Audio& operator=(Audio&&) = delete;
-
-        void register_cvars(Console& console);
-        void debug_clips();
 
         bool is_enabled() const;
         void set_enabled(bool enabled);

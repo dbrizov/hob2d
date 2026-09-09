@@ -150,18 +150,10 @@ namespace hob {
 
         // -- CVars --
         bool m_cvar_log_textures = false;
-        bool m_cvar_show_textures = false;
-
         bool m_cvar_log_materials = false;
-        bool m_cvar_show_materials = false;
-
         bool m_cvar_log_shaders = false;
-        bool m_cvar_show_shaders = false;
-
         bool m_cvar_log_shader_reflection = false;
-
         bool m_cvar_log_sprite_queue = false;
-        bool m_cvar_show_sprite_queue = false;
 
     public:
         Renderer(const GraphicsConfig& graphics_config, SDL_GPUDevice* gpu_device, const Window& main_window);
@@ -281,9 +273,6 @@ namespace hob {
                                 const Shader*& bound_shader);
         void push_sprite_fragment_uniforms(const Texture& texture, const Material& material);
 
-        void debug_textures();
-        void debug_shaders();
-        void debug_materials();
-        void debug_sprite_queue();
+        void log_sprite_queue();
     };
 } // namespace hob

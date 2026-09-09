@@ -27,10 +27,7 @@ namespace hob {
     void Renderer::render_world_pass(const Matrix4x4& view_proj) {
         render_world_pass_to(m_offscreen_color_target, view_proj);
 
-        debug_textures();
-        debug_shaders();
-        debug_materials();
-        debug_sprite_queue();
+        log_sprite_queue();
     }
 
     void Renderer::render_world_pass_to(SDL_GPUTexture* target, const Matrix4x4& view_proj) {
