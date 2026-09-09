@@ -24,7 +24,7 @@ namespace hob {
         HOB_CHECK(mixer_initialized, "MIX_Init failed: {}", SDL_GetError());
 
         m_mixer = MIX_CreateMixerDevice(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK, nullptr);
-        HOB_CHECK(m_mixer, "MIX_CreateMixerDevice failed: {}", SDL_GetError());
+        HOB_CHECK(m_mixer != nullptr, "MIX_CreateMixerDevice failed: {}", SDL_GetError());
 
         MIX_SetMixerGain(m_mixer, audio_config.master_volume);
         log::audio.info("Audio::Initialise (master volume {})", audio_config.master_volume);
@@ -87,7 +87,7 @@ namespace hob {
 
         const std::filesystem::path full_path = PathUtils::resolve_asset_path(relative_path);
         MIX_Audio* handle = MIX_LoadAudio(m_mixer, full_path.string().c_str(), true);
-        if (!handle) {
+        if (handle == nullptr) {
             log::audio.error("MIX_LoadAudio failed for '{}': {}", key, SDL_GetError());
             return nullptr;
         }
@@ -103,7 +103,7 @@ namespace hob {
         }
 
         MIX_Track* track = acquire_oneshot_track();
-        if (!track) {
+        if (track == nullptr) {
             return;
         }
 
@@ -136,7 +136,7 @@ namespace hob {
         }
 
         MIX_Track* track = MIX_CreateTrack(m_mixer);
-        if (!track) {
+        if (track == nullptr) {
             log::audio.error("MIX_CreateTrack failed: {}", SDL_GetError());
         }
 
@@ -144,13 +144,13 @@ namespace hob {
     }
 
     void Audio::destroy_track(MIX_Track* track) {
-        if (track) {
+        if (track != nullptr) {
             MIX_DestroyTrack(track);
         }
     }
 
     void Audio::play_track(MIX_Track* track, const AudioClipRef& clip, float volume, bool loop) {
-        if (!m_enabled || !track || !clip) {
+        if (!m_enabled || track == nullptr || !clip) {
             return;
         }
 
@@ -173,7 +173,7 @@ namespace hob {
     }
 
     void Audio::stop_track(MIX_Track* track) {
-        if (!m_enabled || !track) {
+        if (!m_enabled || track == nullptr) {
             return;
         }
 
@@ -181,7 +181,7 @@ namespace hob {
     }
 
     bool Audio::is_track_playing(MIX_Track* track) const {
-        if (!m_enabled || !track) {
+        if (!m_enabled || track == nullptr) {
             return false;
         }
 
@@ -189,7 +189,7 @@ namespace hob {
     }
 
     void Audio::set_track_gain(MIX_Track* track, float volume) {
-        if (!m_enabled || !track) {
+        if (!m_enabled || track == nullptr) {
             return;
         }
 
@@ -197,7 +197,7 @@ namespace hob {
     }
 
     void Audio::set_track_pan(MIX_Track* track, float pan) {
-        if (!m_enabled || !track) {
+        if (!m_enabled || track == nullptr) {
             return;
         }
 
@@ -210,7 +210,7 @@ namespace hob {
     }
 
     void Audio::reset_track_pan(MIX_Track* track) {
-        if (!m_enabled || !track) {
+        if (!m_enabled || track == nullptr) {
             return;
         }
 
@@ -226,7 +226,7 @@ namespace hob {
         }
 
         MIX_Track* track = MIX_CreateTrack(m_mixer);
-        if (!track) {
+        if (track == nullptr) {
             log::audio.error("MIX_CreateTrack failed: {}", SDL_GetError());
             return nullptr;
         }

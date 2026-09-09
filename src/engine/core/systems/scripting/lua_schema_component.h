@@ -64,7 +64,7 @@ namespace hob {
         sol::table entity_ut = lua[entity_lua_name];
         entity_ut[add_method] = [](const EntityRef& r) -> T* {
             Entity* e = r.resolve();
-            return e ? e->add_component<T>() : nullptr;
+            return e != nullptr ? e->add_component<T>() : nullptr;
         };
 
         if (LuaUsertypeInfo* entity_info = meta.find_usertype(entity_lua_name)) {

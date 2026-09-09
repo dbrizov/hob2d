@@ -159,7 +159,7 @@ namespace hob::editor {
         void draw_thumbnail(
             Editor& editor, const EditorFileNode& node, float gutter_x, const ImVec2& row_min, const ImVec2& row_max) {
             const TextureRef texture = get_texture(editor.get_engine(), node.texture_name);
-            if (texture == nullptr) {
+            if (!texture) {
                 return;
             }
 

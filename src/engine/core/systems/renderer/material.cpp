@@ -49,7 +49,7 @@ namespace hob {
         }
 
         const ShaderTexture* binding = m_shader->find_texture(name);
-        return binding ? m_textures[binding->slot] : none;
+        return binding != nullptr ? m_textures[binding->slot] : none;
     }
 
     const TextureRef& Material::get_texture(uint32_t slot) const {
@@ -63,7 +63,7 @@ namespace hob {
         }
 
         const ShaderTexture* binding = m_shader->find_texture(name);
-        if (!binding) {
+        if (binding == nullptr) {
             log::renderer.error("Material::set_texture: shader '{}' has no texture '{}'", m_shader->get_path(), name);
             return false;
         }
@@ -83,7 +83,7 @@ namespace hob {
         }
 
         const ShaderParam* param = m_shader->find_param(name);
-        if (!param) {
+        if (param == nullptr) {
             log::renderer.error("Material::{}: shader '{}' has no param '{}'", op, m_shader->get_path(), name);
             return false;
         }

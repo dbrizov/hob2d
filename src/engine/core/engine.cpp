@@ -286,7 +286,7 @@ namespace hob {
     }
 
     const Window& Engine::get_play_window() const {
-        return m_game_window != nullptr ? *m_game_window : m_main_window;
+        return m_game_window ? *m_game_window : m_main_window;
     }
 
     const Window* Engine::get_game_window() const {
@@ -294,7 +294,7 @@ namespace hob {
     }
 
     WindowConfig Engine::get_game_window_config() const {
-        if (m_game_window == nullptr) {
+        if (!m_game_window) {
             return m_game_window_config;
         }
 
@@ -310,7 +310,7 @@ namespace hob {
     }
 
     void Engine::open_game_window() {
-        if (m_game_window != nullptr) {
+        if (m_game_window) {
             return;
         }
 
@@ -321,7 +321,7 @@ namespace hob {
     }
 
     void Engine::close_game_window() {
-        if (m_game_window == nullptr) {
+        if (!m_game_window) {
             return;
         }
 
@@ -386,7 +386,7 @@ namespace hob {
     }
 
     void Engine::sync_game_window_size() {
-        if (m_game_window == nullptr) {
+        if (!m_game_window) {
             return;
         }
 

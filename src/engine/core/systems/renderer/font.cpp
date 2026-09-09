@@ -40,7 +40,7 @@ namespace hob {
         }
 
         TTF_Font* font = TTF_OpenFont(ttf_path.string().c_str(), size_px);
-        if (!font) {
+        if (font == nullptr) {
             log::renderer.error("TTF_OpenFont('{}') failed: {}", ttf_path.string(), SDL_GetError());
             TTF_Quit();
             return false;
@@ -57,7 +57,7 @@ namespace hob {
         const SDL_Color white{255, 255, 255, 255};
         for (uint32_t cp = FIRST_GLYPH; cp <= LAST_GLYPH; ++cp) {
             SDL_Surface* surf = TTF_RenderGlyph_Blended(font, cp, white);
-            if (!surf) {
+            if (surf == nullptr) {
                 continue;
             }
 
@@ -94,7 +94,7 @@ namespace hob {
                 free_converted = true;
             }
 
-            if (converted) {
+            if (converted != nullptr) {
                 const uint8_t* src = static_cast<const uint8_t*>(converted->pixels);
                 for (int32_t y = 0; y < converted->h; ++y) {
                     uint8_t* dst_row = atlas_pixels.data() + (static_cast<size_t>(y) * m_atlas_width + pen_x) * 4;
@@ -140,7 +140,7 @@ namespace hob {
         tci.sample_count = SDL_GPU_SAMPLECOUNT_1;
 
         m_atlas = SDL_CreateGPUTexture(m_gpu_device, &tci);
-        if (!m_atlas) {
+        if (m_atlas == nullptr) {
             log::renderer.error("SDL_CreateGPUTexture (font atlas) failed: {}", SDL_GetError());
             m_gpu_device = nullptr;
             m_glyphs.clear();
@@ -163,11 +163,11 @@ namespace hob {
     }
 
     void Font::shutdown() {
-        if (!m_initialized && !m_atlas) {
+        if (!m_initialized && m_atlas == nullptr) {
             return;
         }
 
-        if (m_atlas && m_gpu_device) {
+        if (m_atlas != nullptr && m_gpu_device != nullptr) {
             SDL_ReleaseGPUTexture(m_gpu_device, m_atlas);
         }
         m_atlas = nullptr;

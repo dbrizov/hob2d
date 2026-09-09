@@ -83,7 +83,7 @@ namespace hob {
             else if constexpr (std::is_pointer_v<no_cv_ref>) {
                 using pointee = strip_t<no_cv_ref>;
                 static const std::string s =
-                    std::string(LuaTypeName<pointee>::value ? LuaTypeName<pointee>::value : "any") + "?";
+                    std::string(LuaTypeName<pointee>::value != nullptr ? LuaTypeName<pointee>::value : "any") + "?";
                 return s.c_str();
             }
             else if constexpr (is_sol_optional<no_cv_ref>::value) {
@@ -515,12 +515,12 @@ namespace hob {
         template<typename B>
         void inherit_metamethods_from(LuaMetaRegistry& reg) {
             const char* base_type_name = LuaTypeName<B>::value;
-            if (!base_type_name) {
+            if (base_type_name == nullptr) {
                 return;
             }
 
             LuaUsertypeInfo* base_info = reg.find_usertype(base_type_name);
-            if (!base_info) {
+            if (base_info == nullptr) {
                 return;
             }
 
@@ -578,7 +578,7 @@ namespace hob {
             if constexpr (sizeof...(B) > 0) {
                 using first = std::tuple_element_t<0, std::tuple<B...>>;
                 const char* n = LuaTypeName<first>::value;
-                return n ? n : "";
+                return n != nullptr ? n : "";
             }
             else {
                 return {};

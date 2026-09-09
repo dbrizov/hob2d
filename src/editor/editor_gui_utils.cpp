@@ -180,8 +180,8 @@ namespace hob::editor {
 
     bool begin_dock(const char* name, bool* p_open, ImGuiWindowFlags flags) {
         const ImGuiWindow* window = ImGui::FindWindowByName(name);
-        const bool is_tab_selected = window && window->DockTabIsVisible;
-        const bool is_floating = window && window->DockNode == nullptr;
+        const bool is_tab_selected = window != nullptr && window->DockTabIsVisible;
+        const bool is_floating = window != nullptr && window->DockNode == nullptr;
 
         EditorStyleColorStack colors;
         colors.push(ImGuiCol_TabHovered, is_tab_selected ? COLOR_BG_BASE : COLOR_BG_HOVER);
@@ -324,7 +324,7 @@ namespace hob::editor {
         const bool pressed = ImGui::MenuItem(label, shortcut, selected, enabled);
         colors.pop();
 
-        if (shortcut && shortcut[0]) {
+        if (shortcut != nullptr && shortcut[0]) {
             const ImGuiStyle& style = ImGui::GetStyle();
             ImVec4 color = style.Colors[ImGuiCol_TextDisabled];
             color.w *= enabled ? 1.0f : style.DisabledAlpha;

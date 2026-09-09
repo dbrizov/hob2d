@@ -6,7 +6,7 @@ namespace hob {
     namespace {
         // Flatten SPIR-V's (base scalar + vector/matrix traits) into one composite ShaderParamType.
         ShaderParamType to_param_type(const SpvReflectTypeDescription* type) {
-            if (!type) {
+            if (type == nullptr) {
                 return ShaderParamType::Unknown;
             }
 
@@ -109,17 +109,18 @@ namespace hob {
             spvReflectEnumerateDescriptorBindings(&module, &binding_count, bindings.data());
 
             for (const SpvReflectDescriptorBinding* binding : bindings) {
-                if (!binding) {
+                if (binding == nullptr) {
                     continue;
                 }
 
                 switch (binding->descriptor_type) {
                     case SPV_REFLECT_DESCRIPTOR_TYPE_UNIFORM_BUFFER: {
                         ShaderUniformBlock block;
-                        block.name = binding->name ? binding->name : "";
-                        block.type_name = (binding->type_description && binding->type_description->type_name)
-                                              ? binding->type_description->type_name
-                                              : "";
+                        block.name = binding->name != nullptr ? binding->name : "";
+                        block.type_name =
+                            (binding->type_description != nullptr && binding->type_description->type_name != nullptr)
+                                ? binding->type_description->type_name
+                                : "";
                         block.set = binding->set;
                         block.binding = binding->binding;
                         block.size = binding->block.size;
@@ -127,7 +128,7 @@ namespace hob {
                         for (uint32_t i = 0; i < binding->block.member_count; ++i) {
                             const SpvReflectBlockVariable& m = binding->block.members[i];
                             ShaderUniformMember member;
-                            member.name = m.name ? m.name : "";
+                            member.name = m.name != nullptr ? m.name : "";
                             member.type = to_param_type(m.type_description);
                             member.offset = m.offset;
                             member.size = m.size;
@@ -140,7 +141,7 @@ namespace hob {
                     case SPV_REFLECT_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
                     case SPV_REFLECT_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER: {
                         ShaderTextureBinding tex;
-                        tex.name = binding->name ? binding->name : "";
+                        tex.name = binding->name != nullptr ? binding->name : "";
                         tex.set = binding->set;
                         tex.binding = binding->binding;
                         out.textures.push_back(std::move(tex));
@@ -162,7 +163,7 @@ namespace hob {
             spvReflectEnumerateInputVariables(&module, &input_count, inputs.data());
 
             for (const SpvReflectInterfaceVariable* input : inputs) {
-                if (!input) {
+                if (input == nullptr) {
                     continue;
                 }
                 // Skip built-ins (SV_VertexID, etc.) — they have no location.
@@ -170,7 +171,7 @@ namespace hob {
                     continue;
                 }
                 ShaderVertexInput vi;
-                vi.name = input->name ? input->name : "";
+                vi.name = input->name != nullptr ? input->name : "";
                 vi.type = to_param_type(input->type_description);
                 vi.location = input->location;
                 out.vertex_inputs.push_back(std::move(vi));

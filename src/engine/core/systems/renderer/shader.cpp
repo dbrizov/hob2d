@@ -80,7 +80,7 @@ namespace hob {
         , m_cull_mode(cull) {}
 
     Shader::~Shader() {
-        if (m_pipeline) {
+        if (m_pipeline != nullptr) {
             SDL_ReleaseGPUGraphicsPipeline(m_device, m_pipeline);
         }
     }
@@ -153,7 +153,7 @@ namespace hob {
 
     bool Shader::set_default_param(std::string_view name, const float* values, uint32_t count) {
         const ShaderParam* param = find_param(name);
-        if (!param) {
+        if (param == nullptr) {
             log::renderer.error("Shader::set_default_param: shader '{}' has no param '{}'", m_path, name);
             return false;
         }

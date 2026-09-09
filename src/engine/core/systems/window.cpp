@@ -10,14 +10,14 @@
 namespace hob {
     Window::Window(SDL_GPUDevice* gpu_device, const WindowConfig& config)
         : m_gpu_device(gpu_device) {
-        HOB_CHECK(m_gpu_device, "Window init failed: GPU device is null");
+        HOB_CHECK(m_gpu_device != nullptr, "Window init failed: GPU device is null");
 
         // Created hidden so the window can be placed before it is maximized - a maximized window
         // cannot be moved, so maximizing first would pin it to whichever display SDL picked.
         const SDL_WindowFlags window_flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_HIDDEN;
 
         m_window = SDL_CreateWindow(config.title.c_str(), config.width, config.height, window_flags);
-        HOB_CHECK(m_window, "Window SDL_CreateWindow failed: {}", SDL_GetError());
+        HOB_CHECK(m_window != nullptr, "Window SDL_CreateWindow failed: {}", SDL_GetError());
 
         set_icon(config.icon);
 
@@ -54,13 +54,13 @@ namespace hob {
     }
 
     Window::~Window() {
-        const std::string title = m_window ? SDL_GetWindowTitle(m_window) : "";
+        const std::string title = m_window != nullptr ? SDL_GetWindowTitle(m_window) : "";
 
-        if (m_gpu_device && m_window) {
+        if (m_gpu_device != nullptr && m_window != nullptr) {
             SDL_ReleaseWindowFromGPUDevice(m_gpu_device, m_window);
         }
 
-        if (m_window) {
+        if (m_window != nullptr) {
             SDL_DestroyWindow(m_window);
             m_window = nullptr;
         }
@@ -119,7 +119,7 @@ namespace hob {
 
         const std::filesystem::path path = PathUtils::resolve_asset_path(relative_path);
         SDL_Surface* icon = IMG_Load(path.string().c_str());
-        if (!icon) {
+        if (icon == nullptr) {
             log::sdl.error("Window icon failed to load '{}': {}", path.string(), SDL_GetError());
             return;
         }

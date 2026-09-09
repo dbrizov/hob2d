@@ -17,12 +17,13 @@ namespace hob {
     ImGuiSystem::ImGuiSystem(const Renderer& renderer)
         : m_renderer(renderer) {
         SDL_Window* window = m_renderer.get_main_window()->get_window();
-        HOB_CHECK(window && renderer.get_gpu_device(), "ImGuiSystem init failed: window/GPU device is null");
+        HOB_CHECK(window != nullptr && renderer.get_gpu_device() != nullptr,
+                  "ImGuiSystem init failed: window/GPU device is null");
 
         IMGUI_CHECKVERSION();
 
         m_context = ImGui::CreateContext();
-        HOB_CHECK(m_context, "ImGui::CreateContext failed");
+        HOB_CHECK(m_context != nullptr, "ImGui::CreateContext failed");
 
         log::imgui.info("ImGui_CreateContext()");
 
@@ -36,7 +37,7 @@ namespace hob {
             PathUtils::get_engine_assets_root() / "fonts" / "jetbrains_mono_bold.ttf";
         const std::string font_path_str = font_path.string();
         ImFont* font = io.Fonts->AddFontFromFileTTF(font_path_str.c_str());
-        HOB_CHECK(font, "Failed to load ImGui font: {}", font_path_str);
+        HOB_CHECK(font != nullptr, "Failed to load ImGui font: {}", font_path_str);
 
         ImGui::StyleColorsDark();
 
@@ -100,7 +101,7 @@ namespace hob {
         // Render pass
         {
             SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(m_renderer.get_command_buffer(), &ct, 1, nullptr);
-            if (!pass) {
+            if (pass == nullptr) {
                 return;
             }
 

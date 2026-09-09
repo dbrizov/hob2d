@@ -25,7 +25,7 @@ namespace hob {
         , m_game_window(&main_window)
         , m_default_sampler_desc{graphics_config.default_texture_filter, graphics_config.default_texture_wrap} {
         // clang-format off
-        HOB_CHECK(m_gpu_device, "Renderer init failed: GPU device is null");
+        HOB_CHECK(m_gpu_device != nullptr, "Renderer init failed: GPU device is null");
 
         m_swapchain_format = SDL_GetGPUSwapchainTextureFormat(m_gpu_device, m_main_window->get_window());
 
@@ -65,26 +65,26 @@ namespace hob {
         // Debug font owns its atlas texture; release before the GPU device goes away.
         m_debug_font.shutdown();
 
-        if (m_debug_text_sampler)
+        if (m_debug_text_sampler != nullptr)
             SDL_ReleaseGPUSampler(m_gpu_device, m_debug_text_sampler);
-        if (m_debug_text_ibo_transfer)
+        if (m_debug_text_ibo_transfer != nullptr)
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, m_debug_text_ibo_transfer);
-        if (m_debug_text_vbo_transfer)
+        if (m_debug_text_vbo_transfer != nullptr)
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, m_debug_text_vbo_transfer);
-        if (m_debug_text_ibo)
+        if (m_debug_text_ibo != nullptr)
             SDL_ReleaseGPUBuffer(m_gpu_device, m_debug_text_ibo);
-        if (m_debug_text_vbo)
+        if (m_debug_text_vbo != nullptr)
             SDL_ReleaseGPUBuffer(m_gpu_device, m_debug_text_vbo);
-        if (m_debug_text_pipeline)
+        if (m_debug_text_pipeline != nullptr)
             SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_debug_text_pipeline);
 
-        if (m_debug_line_transfer_buffer)
+        if (m_debug_line_transfer_buffer != nullptr)
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, m_debug_line_transfer_buffer);
-        if (m_debug_line_vbo)
+        if (m_debug_line_vbo != nullptr)
             SDL_ReleaseGPUBuffer(m_gpu_device, m_debug_line_vbo);
-        if (m_debug_line_pipeline)
+        if (m_debug_line_pipeline != nullptr)
             SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_debug_line_pipeline);
-        if (m_blit_pipeline)
+        if (m_blit_pipeline != nullptr)
             SDL_ReleaseGPUGraphicsPipeline(m_gpu_device, m_blit_pipeline);
 
         // Materials first: they hold shader/texture refs the leak checks below would otherwise miscount.
@@ -92,16 +92,16 @@ namespace hob {
         release_shaders();
         release_textures();
 
-        if (m_upload_transfer_buffer)
+        if (m_upload_transfer_buffer != nullptr)
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, m_upload_transfer_buffer);
-        if (m_quad_vbo)
+        if (m_quad_vbo != nullptr)
             SDL_ReleaseGPUBuffer(m_gpu_device, m_quad_vbo);
-        if (m_blit_sampler)
+        if (m_blit_sampler != nullptr)
             SDL_ReleaseGPUSampler(m_gpu_device, m_blit_sampler);
         for (auto& [key, sampler] : m_samplers) {
             SDL_ReleaseGPUSampler(m_gpu_device, sampler);
         }
-        if (m_offscreen_color_target)
+        if (m_offscreen_color_target != nullptr)
             SDL_ReleaseGPUTexture(m_gpu_device, m_offscreen_color_target);
 
         if (m_shadercross_initialized) {
@@ -421,7 +421,7 @@ namespace hob {
             for (const char c : text) {
                 const uint32_t cp = static_cast<unsigned char>(c);
                 const Glyph* g = m_debug_font.get_glyph(cp);
-                if (!g) {
+                if (g == nullptr) {
                     continue;
                 }
 

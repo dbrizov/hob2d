@@ -122,7 +122,7 @@ namespace hob {
         }
 
         CameraComponent* camera = get_engine().get_active_camera();
-        if (!camera) {
+        if (camera == nullptr) {
             return;
         }
 

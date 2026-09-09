@@ -80,8 +80,8 @@ namespace hob {
             log::renderer.info("  [{}] z={} shader={} texture={}",
                                i,
                                draw.z_index,
-                               shader ? shader->get_debug_label() : "<none>",
-                               draw.texture ? draw.texture->get_path() : "<unknown>");
+                               shader != nullptr ? shader->get_debug_label() : "<none>",
+                               draw.texture != nullptr ? draw.texture->get_path() : "<unknown>");
         }
     }
 } // namespace hob

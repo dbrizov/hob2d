@@ -36,11 +36,11 @@ namespace hob {
     UiRenderInterface::~UiRenderInterface() {
         SDL_GPUDevice* gpu_device = m_renderer.get_gpu_device();
 
-        if (m_sampler) {
+        if (m_sampler != nullptr) {
             SDL_ReleaseGPUSampler(gpu_device, m_sampler);
         }
 
-        if (m_pipeline) {
+        if (m_pipeline != nullptr) {
             SDL_ReleaseGPUGraphicsPipeline(gpu_device, m_pipeline);
         }
     }
@@ -50,10 +50,10 @@ namespace hob {
         const std::filesystem::path shader_dir = PathUtils::get_engine_assets_root() / "shaders";
 
         SDL_GPUShader* vs = m_renderer.load_shader(shader_dir / "ui.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
-        HOB_CHECK(vs, "UiRenderInterface init failed: could not load ui.vert.hlsl");
+        HOB_CHECK(vs != nullptr, "UiRenderInterface init failed: could not load ui.vert.hlsl");
 
         SDL_GPUShader* fs = m_renderer.load_shader(shader_dir / "ui.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
-        HOB_CHECK(fs, "UiRenderInterface init failed: could not load ui.frag.hlsl");
+        HOB_CHECK(fs != nullptr, "UiRenderInterface init failed: could not load ui.frag.hlsl");
 
         SDL_GPUVertexBufferDescription vbd{};
         vbd.slot = 0;
@@ -102,7 +102,7 @@ namespace hob {
         gci.target_info.has_depth_stencil_target = false;
 
         m_pipeline = SDL_CreateGPUGraphicsPipeline(gpu_device, &gci);
-        HOB_CHECK(m_pipeline, "SDL_CreateGPUGraphicsPipeline (ui) failed: {}", SDL_GetError());
+        HOB_CHECK(m_pipeline != nullptr, "SDL_CreateGPUGraphicsPipeline (ui) failed: {}", SDL_GetError());
 
         SDL_ReleaseGPUShader(gpu_device, vs);
         SDL_ReleaseGPUShader(gpu_device, fs);
@@ -115,7 +115,7 @@ namespace hob {
         sci.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         sci.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         m_sampler = SDL_CreateGPUSampler(gpu_device, &sci);
-        HOB_CHECK(m_sampler, "SDL_CreateGPUSampler (ui) failed: {}", SDL_GetError());
+        HOB_CHECK(m_sampler != nullptr, "SDL_CreateGPUSampler (ui) failed: {}", SDL_GetError());
 
         const uint32_t white = 0xFFFFFFFFu;
         m_white_texture = m_renderer.create_texture_from_rgba(&white, 1, 1);
@@ -141,13 +141,13 @@ namespace hob {
         ct.store_op = SDL_GPU_STOREOP_STORE;
 
         m_active_pass = SDL_BeginGPURenderPass(m_active_cmd, &ct, 1, nullptr);
-        if (m_active_pass) {
+        if (m_active_pass != nullptr) {
             SDL_BindGPUGraphicsPipeline(m_active_pass, m_pipeline);
         }
     }
 
     void UiRenderInterface::end_frame() {
-        if (m_active_pass) {
+        if (m_active_pass != nullptr) {
             SDL_EndGPURenderPass(m_active_pass);
             m_active_pass = nullptr;
         }
@@ -170,13 +170,13 @@ namespace hob {
         ibci.size = ibytes;
         SDL_GPUBuffer* ibo = SDL_CreateGPUBuffer(gpu_device, &ibci);
 
-        if (!vbo || !ibo) {
+        if (vbo == nullptr || ibo == nullptr) {
             log::ui.error("SDL_CreateGPUBuffer (ui geometry) failed: {}", SDL_GetError());
-            if (vbo) {
+            if (vbo != nullptr) {
                 SDL_ReleaseGPUBuffer(gpu_device, vbo);
             }
 
-            if (ibo) {
+            if (ibo != nullptr) {
                 SDL_ReleaseGPUBuffer(gpu_device, ibo);
             }
 
@@ -193,7 +193,7 @@ namespace hob {
     void UiRenderInterface::RenderGeometry(Rml::CompiledGeometryHandle geometry,
                                            Rml::Vector2f translation,
                                            Rml::TextureHandle texture) {
-        if (!m_active_pass) {
+        if (m_active_pass == nullptr) {
             return;
         }
 
@@ -243,7 +243,7 @@ namespace hob {
 
     void UiRenderInterface::ReleaseGeometry(Rml::CompiledGeometryHandle geometry) {
         auto* g = reinterpret_cast<UiCompiledGeometry*>(geometry);
-        if (!g) {
+        if (g == nullptr) {
             return;
         }
 

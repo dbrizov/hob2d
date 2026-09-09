@@ -116,7 +116,7 @@ namespace hob {
     }
 
     Vector2 SpriteComponent::get_local_size() const {
-        if (m_texture == nullptr) {
+        if (!m_texture) {
             return Vector2::zero();
         }
 

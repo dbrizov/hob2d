@@ -32,7 +32,7 @@ namespace hob {
             .func("get_pixels_per_meter",
                   [&engine]() {
                       CameraComponent* cam = engine.get_active_camera();
-                      return cam ? cam->get_pixels_per_meter() : 0u;
+                      return cam != nullptr ? cam->get_pixels_per_meter() : 0u;
                   })
             .func("set_pixels_per_meter",
                   [&engine](int64_t value) {
@@ -45,7 +45,7 @@ namespace hob {
             .func("get_zoom",
                   [&engine]() {
                       CameraComponent* cam = engine.get_active_camera();
-                      return cam ? cam->get_zoom() : 1.0f;
+                      return cam != nullptr ? cam->get_zoom() : 1.0f;
                   })
             .func("set_zoom",
                   [&engine](float multiplier) {
@@ -58,19 +58,19 @@ namespace hob {
             .func("world_to_screen",
                   [&engine](const Vector2& world_pos) {
                       CameraComponent* cam = engine.get_active_camera();
-                      return cam ? cam->world_to_screen(world_pos) : Vector2();
+                      return cam != nullptr ? cam->world_to_screen(world_pos) : Vector2();
                   },
                   {"world_pos"})
             .func("screen_to_world",
                   [&engine](const Vector2& screen_pos) {
                       CameraComponent* cam = engine.get_active_camera();
-                      return cam ? cam->screen_to_world(screen_pos) : Vector2();
+                      return cam != nullptr ? cam->screen_to_world(screen_pos) : Vector2();
                   },
                   {"screen_pos"})
             .func("get_position",
                   [&engine]() {
                       CameraComponent* cam = engine.get_active_camera();
-                      return cam ? cam->get_entity().get_transform()->get_position() : Vector2();
+                      return cam != nullptr ? cam->get_entity().get_transform()->get_position() : Vector2();
                   })
             .func("set_position",
                   [&engine](const Vector2& p) {

@@ -34,7 +34,7 @@ namespace hob {
             .method("get_name",
                     [](const EntityRef& r) -> std::string_view {
                         Entity* e = r.resolve();
-                        return e ? std::string_view(e->get_name()) : std::string_view();
+                        return e != nullptr ? std::string_view(e->get_name()) : std::string_view();
                     })
             .method("set_name",
                     [](const EntityRef& r, std::string name) {
@@ -46,7 +46,7 @@ namespace hob {
             .method("get_prefab_name",
                     [](const EntityRef& r) -> std::string_view {
                         Entity* e = r.resolve();
-                        return e ? std::string_view(e->get_prefab_name()) : std::string_view();
+                        return e != nullptr ? std::string_view(e->get_prefab_name()) : std::string_view();
                     })
             .method("set_prefab_name",
                     [](const EntityRef& r, std::string name) {

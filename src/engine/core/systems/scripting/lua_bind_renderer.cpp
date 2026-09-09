@@ -181,8 +181,8 @@ namespace hob {
             .method("get_param",
                     [&lua](const Material& self, std::string_view name) -> sol::object {
                         const Shader* shader = self.get_shader();
-                        const ShaderParam* param = shader ? shader->find_param(name) : nullptr;
-                        if (!param) {
+                        const ShaderParam* param = shader != nullptr ? shader->find_param(name) : nullptr;
+                        if (param == nullptr) {
                             return sol::make_object(lua, sol::lua_nil);
                         }
 

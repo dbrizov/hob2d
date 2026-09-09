@@ -16,7 +16,7 @@ namespace hob {
     }
 
     void SpriteAnimatorComponent::tick(float delta_time) {
-        if (!m_playing || m_current_clip == nullptr) {
+        if (!m_playing || !m_current_clip) {
             return;
         }
 
@@ -37,7 +37,7 @@ namespace hob {
     }
 
     void SpriteAnimatorComponent::apply_key_values() {
-        if (m_current_clip == nullptr) {
+        if (!m_current_clip) {
             return;
         }
 
@@ -67,7 +67,7 @@ namespace hob {
         if (!m_current_clip_name.empty()) {
             auto it = m_clips.find(m_current_clip_name);
             m_current_clip = it != m_clips.end() ? it->second : nullptr;
-            if (m_current_clip == nullptr) {
+            if (!m_current_clip) {
                 m_playing = false;
             }
         }
@@ -105,7 +105,7 @@ namespace hob {
     }
 
     void SpriteAnimatorComponent::resume() {
-        if (m_current_clip != nullptr) {
+        if (m_current_clip) {
             m_playing = true;
         }
     }

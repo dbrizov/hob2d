@@ -16,12 +16,12 @@ namespace hob::editor {
             ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
 
         std::string shader_label(const Shader* shader) {
-            return shader ? shader->get_debug_label() : "<none>";
+            return shader != nullptr ? shader->get_debug_label() : "<none>";
         }
 
         std::string material_textures_label(const Material& material) {
             const Shader* shader = material.get_shader();
-            if (!shader || shader->get_textures().empty()) {
+            if (shader == nullptr || shader->get_textures().empty()) {
                 return "-";
             }
 

@@ -12,7 +12,7 @@ namespace hob {
     }
 
     Entity* EntityRef::resolve() const {
-        return m_spawner ? m_spawner->get_entity(m_id) : nullptr;
+        return m_spawner != nullptr ? m_spawner->get_entity(m_id) : nullptr;
     }
 
     bool EntityRef::is_valid() const {

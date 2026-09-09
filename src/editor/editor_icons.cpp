@@ -41,7 +41,7 @@ namespace hob::editor {
             const std::filesystem::path path = PathUtils::resolve_asset_path(ICON_FILES[index]);
 
             std::unique_ptr<lunasvg::Document> document = lunasvg::Document::loadFromFile(path.string());
-            HOB_CHECK(document != nullptr, "Failed to load the editor icon '{}'", ICON_FILES[index]);
+            HOB_CHECK(document, "Failed to load the editor icon '{}'", ICON_FILES[index]);
 
             lunasvg::Bitmap bitmap =
                 document->renderToBitmap(static_cast<int32_t>(ICON_SIZE_PX), static_cast<int32_t>(ICON_SIZE_PX));
@@ -69,7 +69,7 @@ namespace hob::editor {
         }
 
         m_atlas = renderer.create_texture_from_rgba(pixels.data(), ICON_ATLAS_WIDTH, ICON_SIZE_PX);
-        HOB_CHECK(m_atlas != nullptr, "Failed to create the editor icon atlas texture");
+        HOB_CHECK(m_atlas, "Failed to create the editor icon atlas texture");
     }
 
     bool EditorIcons::is_loaded() const {
@@ -77,7 +77,7 @@ namespace hob::editor {
     }
 
     SDL_GPUTexture* EditorIcons::get_texture() const {
-        return m_atlas != nullptr ? m_atlas->get_gpu_texture() : nullptr;
+        return m_atlas ? m_atlas->get_gpu_texture() : nullptr;
     }
 
     ImVec2 EditorIcons::get_uv_min(EditorBarIcon icon) const {

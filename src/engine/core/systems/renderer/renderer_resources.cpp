@@ -50,7 +50,7 @@ namespace hob {
 
         const std::filesystem::path full_path = PathUtils::resolve_asset_path(relative_path);
         SDL_Surface* surface = IMG_Load(full_path.string().c_str());
-        if (!surface) {
+        if (surface == nullptr) {
             log::renderer.error("IMG_Load failed: {}", SDL_GetError());
             return TextureRef();
         }
@@ -59,7 +59,7 @@ namespace hob {
         if (surface->format != SDL_PIXELFORMAT_RGBA32) {
             rgba = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
             SDL_DestroySurface(surface);
-            if (!rgba) {
+            if (rgba == nullptr) {
                 log::renderer.error("SDL_ConvertSurface failed: {}", SDL_GetError());
                 return TextureRef();
             }
@@ -79,7 +79,7 @@ namespace hob {
         tci.sample_count = SDL_GPU_SAMPLECOUNT_1;
 
         SDL_GPUTexture* gpu_tex = SDL_CreateGPUTexture(m_gpu_device, &tci);
-        if (!gpu_tex) {
+        if (gpu_tex == nullptr) {
             log::renderer.error("SDL_CreateGPUTexture failed: {}", SDL_GetError());
             SDL_DestroySurface(rgba);
             return TextureRef();
@@ -115,7 +115,7 @@ namespace hob {
         tci.sample_count = SDL_GPU_SAMPLECOUNT_1;
 
         SDL_GPUTexture* gpu_tex = SDL_CreateGPUTexture(m_gpu_device, &tci);
-        if (!gpu_tex) {
+        if (gpu_tex == nullptr) {
             log::renderer.error("SDL_CreateGPUTexture (from rgba) failed: {}", SDL_GetError());
             return TextureRef();
         }
@@ -134,7 +134,7 @@ namespace hob {
         }
 
         m_textures.erase(texture.m_path);
-        if (texture.m_gpu_texture) {
+        if (texture.m_gpu_texture != nullptr) {
             SDL_ReleaseGPUTexture(m_gpu_device, texture.m_gpu_texture);
             texture.m_gpu_texture = nullptr;
         }
@@ -215,14 +215,14 @@ namespace hob {
         tbi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         tbi.size = size;
         SDL_GPUTransferBuffer* tb = SDL_CreateGPUTransferBuffer(m_gpu_device, &tbi);
-        if (!tb) {
+        if (tb == nullptr) {
             log::renderer.error("SDL_CreateGPUTransferBuffer (texture) failed: {}", SDL_GetError());
             return false;
         }
 
         constexpr bool cycle = false;
         void* map = SDL_MapGPUTransferBuffer(m_gpu_device, tb, cycle);
-        if (!map) {
+        if (map == nullptr) {
             log::renderer.error("SDL_MapGPUTransferBuffer (texture) failed: {}", SDL_GetError());
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
             return false;
@@ -231,14 +231,14 @@ namespace hob {
         SDL_UnmapGPUTransferBuffer(m_gpu_device, tb);
 
         SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(m_gpu_device);
-        if (!upload_cmd) {
+        if (upload_cmd == nullptr) {
             log::renderer.error("SDL_AcquireGPUCommandBuffer (texture) failed: {}", SDL_GetError());
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
             return false;
         }
 
         SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(upload_cmd);
-        if (!copy) {
+        if (copy == nullptr) {
             log::renderer.error("SDL_BeginGPUCopyPass (texture) failed: {}", SDL_GetError());
             SDL_CancelGPUCommandBuffer(upload_cmd);
             SDL_ReleaseGPUTransferBuffer(m_gpu_device, tb);
@@ -282,7 +282,7 @@ namespace hob {
 
         constexpr bool cycle = true;
         void* map = SDL_MapGPUTransferBuffer(m_gpu_device, m_upload_transfer_buffer, cycle);
-        if (!map) {
+        if (map == nullptr) {
             log::renderer.error("SDL_MapGPUTransferBuffer failed: {}", SDL_GetError());
             return false;
         }
@@ -290,13 +290,13 @@ namespace hob {
         SDL_UnmapGPUTransferBuffer(m_gpu_device, m_upload_transfer_buffer);
 
         SDL_GPUCommandBuffer* upload_cmd = SDL_AcquireGPUCommandBuffer(m_gpu_device);
-        if (!upload_cmd) {
+        if (upload_cmd == nullptr) {
             log::renderer.error("SDL_AcquireGPUCommandBuffer (buffer) failed: {}", SDL_GetError());
             return false;
         }
 
         SDL_GPUCopyPass* copy = SDL_BeginGPUCopyPass(upload_cmd);
-        if (!copy) {
+        if (copy == nullptr) {
             log::renderer.error("SDL_BeginGPUCopyPass (buffer) failed: {}", SDL_GetError());
             SDL_CancelGPUCommandBuffer(upload_cmd);
             return false;
@@ -336,7 +336,7 @@ namespace hob {
         tbi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         tbi.size = capacity;
         SDL_GPUTransferBuffer* grown = SDL_CreateGPUTransferBuffer(m_gpu_device, &tbi);
-        if (!grown) {
+        if (grown == nullptr) {
             log::renderer.error("SDL_CreateGPUTransferBuffer failed: {}", SDL_GetError());
             return false;
         }

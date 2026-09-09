@@ -42,7 +42,7 @@ namespace hob {
         // Render pass
         {
             SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(m_command_buffer, &ct, 1, nullptr);
-            if (!pass) {
+            if (pass == nullptr) {
                 return;
             }
 
@@ -72,7 +72,7 @@ namespace hob {
         // Render pass
         {
             SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(m_command_buffer, &ct, 1, nullptr);
-            if (!pass) {
+            if (pass == nullptr) {
                 return;
             }
 
@@ -103,7 +103,7 @@ namespace hob {
 
         const uint32_t bytes = line_vertex_count * sizeof(DebugLineVertex);
         void* map = SDL_MapGPUTransferBuffer(m_gpu_device, m_debug_line_transfer_buffer, true);
-        if (!map) {
+        if (map == nullptr) {
             m_pending_debug_line_vertices.clear();
             return;
         }
@@ -132,7 +132,7 @@ namespace hob {
         // Render pass
         {
             SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, &ct, 1, nullptr);
-            if (!pass) {
+            if (pass == nullptr) {
                 m_pending_debug_line_vertices.clear();
                 return;
             }
@@ -174,7 +174,7 @@ namespace hob {
         // Upload vertices.
         {
             void* map = SDL_MapGPUTransferBuffer(m_gpu_device, m_debug_text_vbo_transfer, true);
-            if (!map) {
+            if (map == nullptr) {
                 m_pending_debug_text_vertices.clear();
                 m_pending_debug_text_indices.clear();
                 return;
@@ -186,7 +186,7 @@ namespace hob {
         // Upload indices.
         {
             void* map = SDL_MapGPUTransferBuffer(m_gpu_device, m_debug_text_ibo_transfer, true);
-            if (!map) {
+            if (map == nullptr) {
                 m_pending_debug_text_vertices.clear();
                 m_pending_debug_text_indices.clear();
                 return;
@@ -224,7 +224,7 @@ namespace hob {
         // Render pass
         {
             SDL_GPURenderPass* pass = SDL_BeginGPURenderPass(cmd, &ct, 1, nullptr);
-            if (!pass) {
+            if (pass == nullptr) {
                 m_pending_debug_text_vertices.clear();
                 m_pending_debug_text_indices.clear();
                 return;
@@ -268,13 +268,13 @@ namespace hob {
                                       const SpriteDrawData& draw,
                                       const Matrix4x4& view_proj,
                                       const Shader*& bound_shader) {
-        if (draw.texture == nullptr || !draw.texture->m_gpu_texture) {
+        if (draw.texture == nullptr || draw.texture->m_gpu_texture == nullptr) {
             return;
         }
 
         const Material& material = draw.material != nullptr ? *draw.material : *m_default_material;
         const Shader* shader = material.get_shader();
-        if (!shader) {
+        if (shader == nullptr) {
             return;
         }
 
@@ -302,16 +302,16 @@ namespace hob {
 
         SDL_GPUTextureSamplerBinding ts{};
         ts.texture = draw.texture->m_gpu_texture;
-        ts.sampler = draw.texture->m_sampler ? draw.texture->m_sampler : m_default_sampler;
+        ts.sampler = draw.texture->m_sampler != nullptr ? draw.texture->m_sampler : m_default_sampler;
         SDL_BindGPUFragmentSamplers(pass, SPRITE_TEXTURE_SLOT, &ts, 1);
 
         for (const ShaderTexture& st : shader->get_textures()) {
             const TextureRef& tex = material.get_texture(st.slot);
-            const bool has_texture = tex && tex->m_gpu_texture;
+            const bool has_texture = tex && tex->m_gpu_texture != nullptr;
 
             SDL_GPUTextureSamplerBinding extra{};
             extra.texture = has_texture ? tex->m_gpu_texture : m_fallback_texture->m_gpu_texture;
-            extra.sampler = (has_texture && tex->m_sampler) ? tex->m_sampler : m_default_sampler;
+            extra.sampler = (has_texture && tex->m_sampler != nullptr) ? tex->m_sampler : m_default_sampler;
             SDL_BindGPUFragmentSamplers(pass, st.slot, &extra, 1);
         }
 
@@ -320,7 +320,7 @@ namespace hob {
 
     void Renderer::push_sprite_fragment_uniforms(const Texture& texture, const Material& material) {
         const Shader* shader = material.get_shader();
-        if (!shader) {
+        if (shader == nullptr) {
             return;
         }
 

@@ -15,7 +15,7 @@ namespace hob::editor {
             ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY;
 
         const char* draw_path(const SpriteDrawData& draw) {
-            return draw.texture ? draw.texture->get_path().c_str() : "<unknown>";
+            return draw.texture != nullptr ? draw.texture->get_path().c_str() : "<unknown>";
         }
 
         bool same_group(const SpriteDrawData& a, const SpriteDrawData& b) {
@@ -75,7 +75,7 @@ namespace hob::editor {
                     ImGui::TableSetColumnIndex(1);
                     ImGui::Text("%d", draw.z_index);
                     ImGui::TableSetColumnIndex(2);
-                    ImGui::TextUnformatted(shader ? shader->get_debug_label().c_str() : "<none>");
+                    ImGui::TextUnformatted(shader != nullptr ? shader->get_debug_label().c_str() : "<none>");
                     ImGui::TableSetColumnIndex(3);
                     ImGui::TextUnformatted(draw_path(draw));
 

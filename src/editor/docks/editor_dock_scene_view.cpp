@@ -288,7 +288,7 @@ namespace hob::editor {
         width = std::max(width, MIN_COLOR_TARGET_SIZE_PX);
         height = std::max(height, MIN_COLOR_TARGET_SIZE_PX);
 
-        if (m_color_target && width == m_color_target_width && height == m_color_target_height) {
+        if (m_color_target != nullptr && width == m_color_target_width && height == m_color_target_height) {
             return;
         }
 

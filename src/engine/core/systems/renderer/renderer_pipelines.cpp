@@ -231,7 +231,7 @@ namespace hob {
                         break;
                     }
                 }
-                if (!match) {
+                if (match == nullptr) {
                     log::renderer.error("Shader '{}' is missing vertex input at location {} (expected {})",
                                         relative_path,
                                         slot.location,
@@ -314,14 +314,14 @@ namespace hob {
 
         size_t spirv_size = 0;
         void* spirv = SDL_ShaderCross_CompileSPIRVFromHLSL(&hlsl_info, &spirv_size);
-        if (!spirv) {
+        if (spirv == nullptr) {
             log::renderer.error("CompileSPIRVFromHLSL failed for {}: {}", hlsl_path.string(), SDL_GetError());
             return nullptr;
         }
 
         SDL_ShaderCross_GraphicsShaderMetadata* meta =
             SDL_ShaderCross_ReflectGraphicsSPIRV(static_cast<Uint8*>(spirv), spirv_size, 0);
-        if (!meta) {
+        if (meta == nullptr) {
             log::renderer.error("ReflectGraphicsSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
             SDL_free(spirv);
             return nullptr;
@@ -337,7 +337,7 @@ namespace hob {
             log::renderer.error("SPIRV-Reflect failed for {}", hlsl_path.string());
         }
 
-        if (out_reflection) {
+        if (out_reflection != nullptr) {
             *out_reflection = std::move(reflection);
         }
 
@@ -353,7 +353,7 @@ namespace hob {
         SDL_free(spirv);
         SDL_free(meta);
 
-        if (!shader) {
+        if (shader == nullptr) {
             log::renderer.error("CompileGraphicsShaderFromSPIRV failed for {}: {}", hlsl_path.string(), SDL_GetError());
             return nullptr;
         }
@@ -366,7 +366,7 @@ namespace hob {
         track_material(material);
         if (m_cvar_log_materials) {
             const Shader* s = material->get_shader();
-            log::renderer.info("Renderer::create_material: shader '{}'", s ? s->get_path() : "<none>");
+            log::renderer.info("Renderer::create_material: shader '{}'", s != nullptr ? s->get_path() : "<none>");
         }
         return material;
     }
@@ -395,7 +395,7 @@ namespace hob {
 
         const SDL_GPUSamplerCreateInfo info = to_sdl_sampler_create_info(desc);
         SDL_GPUSampler* sampler = SDL_CreateGPUSampler(m_gpu_device, &info);
-        if (!sampler) {
+        if (sampler == nullptr) {
             log::renderer.error("SDL_CreateGPUSampler (filter={}, wrap={}) failed: {}",
                                 texture_filter_to_string(desc.filter),
                                 texture_wrap_to_string(desc.wrap),
@@ -436,7 +436,7 @@ namespace hob {
 
         SDL_DestroyProperties(props);
 
-        if (!texture) {
+        if (texture == nullptr) {
             log::renderer.error("SDL_CreateGPUTexture (color target) failed: {}", SDL_GetError());
         }
 
@@ -444,7 +444,7 @@ namespace hob {
     }
 
     bool Renderer::init_offscreen_color_target() {
-        if (m_offscreen_color_target) {
+        if (m_offscreen_color_target != nullptr) {
             SDL_ReleaseGPUTexture(m_gpu_device, m_offscreen_color_target);
             m_offscreen_color_target = nullptr;
         }
@@ -461,7 +461,7 @@ namespace hob {
 
     bool Renderer::init_samplers() {
         m_default_sampler = get_or_create_sampler(m_default_sampler_desc);
-        if (!m_default_sampler) {
+        if (m_default_sampler == nullptr) {
             return false;
         }
 
@@ -474,7 +474,7 @@ namespace hob {
         blit_info.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
 
         m_blit_sampler = SDL_CreateGPUSampler(m_gpu_device, &blit_info);
-        if (!m_blit_sampler) {
+        if (m_blit_sampler == nullptr) {
             log::renderer.error("SDL_CreateGPUSampler (blit) failed: {}", SDL_GetError());
             return false;
         }
@@ -500,7 +500,7 @@ namespace hob {
         bci.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
         bci.size = sizeof(verts);
         m_quad_vbo = SDL_CreateGPUBuffer(m_gpu_device, &bci);
-        if (!m_quad_vbo) {
+        if (m_quad_vbo == nullptr) {
             log::renderer.error("SDL_CreateGPUBuffer (quad) failed: {}", SDL_GetError());
             return false;
         }
@@ -535,13 +535,13 @@ namespace hob {
 
         SDL_GPUShader* vs = load_shader(shader_dir / "blit.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
-        if (!vs) {
+        if (vs == nullptr) {
             return false;
         }
 
         SDL_GPUShader* fs = load_shader(shader_dir / "blit.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
 
-        if (!fs) {
+        if (fs == nullptr) {
             SDL_ReleaseGPUShader(m_gpu_device, vs);
             return false;
         }
@@ -568,7 +568,7 @@ namespace hob {
         SDL_ReleaseGPUShader(m_gpu_device, vs);
         SDL_ReleaseGPUShader(m_gpu_device, fs);
 
-        if (!m_blit_pipeline) {
+        if (m_blit_pipeline == nullptr) {
             log::renderer.error("SDL_CreateGPUGraphicsPipeline (blit) failed: {}", SDL_GetError());
             return false;
         }
@@ -581,13 +581,13 @@ namespace hob {
 
         SDL_GPUShader* vs = load_shader(shader_dir / "line.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
-        if (!vs) {
+        if (vs == nullptr) {
             return false;
         }
 
         SDL_GPUShader* fs = load_shader(shader_dir / "line.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
 
-        if (!fs) {
+        if (fs == nullptr) {
             SDL_ReleaseGPUShader(m_gpu_device, vs);
             return false;
         }
@@ -639,7 +639,7 @@ namespace hob {
         SDL_ReleaseGPUShader(m_gpu_device, vs);
         SDL_ReleaseGPUShader(m_gpu_device, fs);
 
-        if (!m_debug_line_pipeline) {
+        if (m_debug_line_pipeline == nullptr) {
             log::renderer.error("SDL_CreateGPUGraphicsPipeline (debug_line) failed: {}", SDL_GetError());
             return false;
         }
@@ -650,7 +650,7 @@ namespace hob {
         bci.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
         bci.size = buffer_bytes;
         m_debug_line_vbo = SDL_CreateGPUBuffer(m_gpu_device, &bci);
-        if (!m_debug_line_vbo) {
+        if (m_debug_line_vbo == nullptr) {
             log::renderer.error("SDL_CreateGPUBuffer (debug_line) failed: {}", SDL_GetError());
             return false;
         }
@@ -659,7 +659,7 @@ namespace hob {
         tbi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         tbi.size = buffer_bytes;
         m_debug_line_transfer_buffer = SDL_CreateGPUTransferBuffer(m_gpu_device, &tbi);
-        if (!m_debug_line_transfer_buffer) {
+        if (m_debug_line_transfer_buffer == nullptr) {
             log::renderer.error("SDL_CreateGPUTransferBuffer (debug_line) failed: {}", SDL_GetError());
             return false;
         }
@@ -672,13 +672,13 @@ namespace hob {
 
         SDL_GPUShader* vs = load_shader(shader_dir / "debug_text.vert.hlsl", SDL_SHADERCROSS_SHADERSTAGE_VERTEX);
 
-        if (!vs) {
+        if (vs == nullptr) {
             return false;
         }
 
         SDL_GPUShader* fs = load_shader(shader_dir / "debug_text.frag.hlsl", SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT);
 
-        if (!fs) {
+        if (fs == nullptr) {
             SDL_ReleaseGPUShader(m_gpu_device, vs);
             return false;
         }
@@ -734,7 +734,7 @@ namespace hob {
         SDL_ReleaseGPUShader(m_gpu_device, vs);
         SDL_ReleaseGPUShader(m_gpu_device, fs);
 
-        if (!m_debug_text_pipeline) {
+        if (m_debug_text_pipeline == nullptr) {
             log::renderer.error("SDL_CreateGPUGraphicsPipeline (debug_text) failed: {}", SDL_GetError());
             return false;
         }
@@ -746,7 +746,7 @@ namespace hob {
         vbo_info.usage = SDL_GPU_BUFFERUSAGE_VERTEX;
         vbo_info.size = vbo_bytes;
         m_debug_text_vbo = SDL_CreateGPUBuffer(m_gpu_device, &vbo_info);
-        if (!m_debug_text_vbo) {
+        if (m_debug_text_vbo == nullptr) {
             log::renderer.error("SDL_CreateGPUBuffer (debug_text vbo) failed: {}", SDL_GetError());
             return false;
         }
@@ -755,7 +755,7 @@ namespace hob {
         ibo_info.usage = SDL_GPU_BUFFERUSAGE_INDEX;
         ibo_info.size = ibo_bytes;
         m_debug_text_ibo = SDL_CreateGPUBuffer(m_gpu_device, &ibo_info);
-        if (!m_debug_text_ibo) {
+        if (m_debug_text_ibo == nullptr) {
             log::renderer.error("SDL_CreateGPUBuffer (debug_text ibo) failed: {}", SDL_GetError());
             return false;
         }
@@ -764,7 +764,7 @@ namespace hob {
         vbo_tbi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         vbo_tbi.size = vbo_bytes;
         m_debug_text_vbo_transfer = SDL_CreateGPUTransferBuffer(m_gpu_device, &vbo_tbi);
-        if (!m_debug_text_vbo_transfer) {
+        if (m_debug_text_vbo_transfer == nullptr) {
             log::renderer.error("SDL_CreateGPUTransferBuffer (debug_text vbo) failed: {}", SDL_GetError());
             return false;
         }
@@ -773,7 +773,7 @@ namespace hob {
         ibo_tbi.usage = SDL_GPU_TRANSFERBUFFERUSAGE_UPLOAD;
         ibo_tbi.size = ibo_bytes;
         m_debug_text_ibo_transfer = SDL_CreateGPUTransferBuffer(m_gpu_device, &ibo_tbi);
-        if (!m_debug_text_ibo_transfer) {
+        if (m_debug_text_ibo_transfer == nullptr) {
             log::renderer.error("SDL_CreateGPUTransferBuffer (debug_text ibo) failed: {}", SDL_GetError());
             return false;
         }
@@ -786,7 +786,7 @@ namespace hob {
         sci.address_mode_v = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         sci.address_mode_w = SDL_GPU_SAMPLERADDRESSMODE_CLAMP_TO_EDGE;
         m_debug_text_sampler = SDL_CreateGPUSampler(m_gpu_device, &sci);
-        if (!m_debug_text_sampler) {
+        if (m_debug_text_sampler == nullptr) {
             log::renderer.error("SDL_CreateGPUSampler (debug_text) failed: {}", SDL_GetError());
             return false;
         }
@@ -820,13 +820,13 @@ namespace hob {
 
         ShaderReflection vs_reflection;
         SDL_GPUShader* vs = load_shader(vert_path, SDL_SHADERCROSS_SHADERSTAGE_VERTEX, &vs_reflection);
-        if (!vs) {
+        if (vs == nullptr) {
             return nullptr;
         }
 
         ShaderReflection fs_reflection;
         SDL_GPUShader* fs = load_shader(frag_path, SDL_SHADERCROSS_SHADERSTAGE_FRAGMENT, &fs_reflection);
-        if (!fs) {
+        if (fs == nullptr) {
             SDL_ReleaseGPUShader(m_gpu_device, vs);
             return nullptr;
         }
@@ -869,7 +869,7 @@ namespace hob {
         SDL_ReleaseGPUShader(m_gpu_device, vs);
         SDL_ReleaseGPUShader(m_gpu_device, fs);
 
-        if (!pipeline) {
+        if (pipeline == nullptr) {
             log::renderer.error(
                 "SDL_CreateGPUGraphicsPipeline (sprite '{}') failed: {}", relative_path, SDL_GetError());
             return nullptr;

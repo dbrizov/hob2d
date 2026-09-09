@@ -10,7 +10,7 @@ namespace hob {
     namespace {
         int32_t lua_panic_handler(lua_State* L) {
             const char* message = lua_tostring(L, -1);
-            log::sol2.error("panic: {}", message ? message : "unknown error");
+            log::sol2.error("panic: {}", message != nullptr ? message : "unknown error");
             return 0;
         }
 

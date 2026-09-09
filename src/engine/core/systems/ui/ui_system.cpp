@@ -145,7 +145,7 @@ namespace hob {
                                        static_cast<int32_t>(m_reference_size.y));
 
         m_context = Rml::CreateContext(UI_CONTEXT_NAME, dimensions);
-        HOB_CHECK(m_context, "UiSystem init failed: Rml::CreateContext() returned null");
+        HOB_CHECK(m_context != nullptr, "UiSystem init failed: Rml::CreateContext() returned null");
 
         log::ui.info("Rml::CreateContext('{}', {}x{})", UI_CONTEXT_NAME, dimensions.x, dimensions.y);
 

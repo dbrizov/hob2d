@@ -37,13 +37,13 @@ namespace hob {
 #endif
 
         m_gpu_device = SDL_CreateGPUDevice(shader_formats, debug_mode, nullptr);
-        HOB_CHECK(m_gpu_device, "SDL_CreateGPUDevice failed: {}", SDL_GetError());
+        HOB_CHECK(m_gpu_device != nullptr, "SDL_CreateGPUDevice failed: {}", SDL_GetError());
 
         log::sdl.info("SDL_CreateGPUDevice ({})", SDL_GetGPUDeviceDriver(m_gpu_device));
     }
 
     SdlContext::~SdlContext() {
-        if (m_gpu_device) {
+        if (m_gpu_device != nullptr) {
             SDL_DestroyGPUDevice(m_gpu_device);
             m_gpu_device = nullptr;
             log::sdl.info("SDL_DestroyGPUDevice");

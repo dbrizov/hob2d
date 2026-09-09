@@ -59,7 +59,7 @@ namespace hob {
 
             case SDL_EVENT_MOUSE_WHEEL: {
                 const Window* game_window = m_renderer.get_game_window();
-                const bool is_game_window = game_window && game_window->get_id() == event.wheel.windowID;
+                const bool is_game_window = game_window != nullptr && game_window->get_id() == event.wheel.windowID;
                 if (is_game_window) {
                     m_mouse_wheel_delta += event.wheel.y;
                 }
