@@ -15,6 +15,7 @@ namespace hob::editor {
         std::string m_label;
         std::string m_name; // The actual key name used for the ImGui widget
         EditorActionContext m_context;
+        bool m_visible;
 
     protected:
         bool m_hovered = false;
@@ -26,7 +27,7 @@ namespace hob::editor {
         void end();
 
     public:
-        EditorDock(std::string_view id, EditorActionContext context);
+        EditorDock(std::string_view id, EditorActionContext context, bool visible = true);
         virtual ~EditorDock() = default;
 
         EditorDock(const EditorDock&) = delete;
@@ -37,8 +38,12 @@ namespace hob::editor {
 
         virtual void draw(Editor& editor) = 0;
 
+        const std::string& get_id() const;
         const std::string& get_name() const;
         EditorActionContext get_context() const;
+
+        bool is_visible() const;
+        void set_visible(bool visible);
 
         bool is_hovered() const;
         bool is_focused() const;

@@ -30,6 +30,8 @@ namespace hob {
 
 namespace hob::editor {
     class Editor : public EngineHooks {
+        static constexpr size_t DOCK_COUNT = 5;
+
         Engine& m_engine;
 
         std::string m_imgui_ini_path;
@@ -129,6 +131,8 @@ namespace hob::editor {
         EditorDockOutput& get_output();
         const EditorDockOutput& get_output() const;
 
+        std::array<EditorDock*, DOCK_COUNT> get_docks();
+
 #pragma region EngineHooks
         void init() override;
         void end_frame() override;
@@ -141,10 +145,6 @@ namespace hob::editor {
 #pragma endregion
 
     private:
-        static constexpr size_t DOCK_COUNT = 5;
-
-        std::array<EditorDock*, DOCK_COUNT> get_docks();
-
         void update_input();
         void update_window_title();
         bool is_context_active(EditorActionContext context) const;

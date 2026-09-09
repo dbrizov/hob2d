@@ -172,7 +172,7 @@ namespace hob::editor {
         return dock_space_id;
     }
 
-    bool begin_dock(const char* name, ImGuiWindowFlags flags) {
+    bool begin_dock(const char* name, bool* p_open, ImGuiWindowFlags flags) {
         const ImGuiWindow* window = ImGui::FindWindowByName(name);
         const bool is_tab_selected = window && window->DockTabIsVisible;
         const bool is_floating = window && window->DockNode == nullptr;
@@ -184,7 +184,7 @@ namespace hob::editor {
         EditorStyleVarStack vars;
         vars.push(ImGuiStyleVar_WindowBorderSize, is_floating ? DOCK_BORDER_SIZE_FLOATING : DOCK_BORDER_SIZE);
 
-        const bool visible = ImGui::Begin(name, nullptr, flags);
+        const bool visible = ImGui::Begin(name, p_open, flags);
 
         vars.pop();
         colors.pop();

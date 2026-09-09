@@ -403,7 +403,9 @@ namespace hob::editor {
         }
 
         for (EditorDock* dock : get_docks()) {
-            dock->draw(*this);
+            if (dock->is_visible()) {
+                dock->draw(*this);
+            }
         }
 
         m_modal.draw();

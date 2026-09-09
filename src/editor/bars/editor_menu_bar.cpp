@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "editor/actions/editor_action.h"
+#include "editor/docks/editor_dock.h"
 #include "editor/editor.h"
 #include "editor/editor_gui_utils.h"
 
@@ -39,6 +40,15 @@ namespace hob::editor {
         }
 
         if (begin_menu("Editor")) {
+            if (begin_submenu("Docks")) {
+                for (EditorDock* dock : editor.get_docks()) {
+                    if (menu_item(dock->get_id().c_str(), nullptr, true, dock->is_visible())) {
+                        dock->set_visible(!dock->is_visible());
+                    }
+                }
+                end_submenu();
+            }
+
             action_menu_item(editor, EditorActionId::ResetLayout);
             action_menu_item(editor, EditorActionId::RefreshAssets);
             end_menu();
